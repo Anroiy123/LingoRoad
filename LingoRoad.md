@@ -1,5 +1,7 @@
 # Tổng hợp đề tài thực tập
 
+> Sản phẩm triển khai của đề tài: **lingoRoad**. Tên này được dùng cho ứng dụng người học, giao diện và tài liệu sản phẩm; tên đề tài học thuật bên dưới được giữ nguyên.
+
 ## Tên đề tài
 
 **Xây dựng ứng dụng học tiếng Anh cá nhân hóa với lộ trình học tự động ứng dụng trí tuệ nhân tạo**
