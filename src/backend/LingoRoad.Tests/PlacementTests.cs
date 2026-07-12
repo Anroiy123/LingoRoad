@@ -21,6 +21,9 @@ public class FakeMlClient : IMlClient
         var next = req.Candidates.Count > 0 ? req.Candidates[0].ItemId : (Guid?)null;
         return Task.FromResult(new CatSelectResponse(0.1 * n, se, next));
     }
+
+    public Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default)
+        => Task.FromResult(new AdvisorResponse("Bạn nên học kỹ năng này vì nó là nền tảng."));
 }
 
 public class PlacementFactory : TestAppFactory

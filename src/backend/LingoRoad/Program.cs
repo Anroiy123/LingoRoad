@@ -50,6 +50,7 @@ app.MapItems();
 app.MapPlacement();
 app.MapMastery();
 app.MapReviews();
+app.MapPath();
 
 app.Run();
 

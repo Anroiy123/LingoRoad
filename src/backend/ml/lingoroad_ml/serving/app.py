@@ -3,9 +3,11 @@ from pydantic import BaseModel
 from lingoroad_ml.cat import select_next
 from lingoroad_ml.irt import eap_estimate
 from lingoroad_ml.serving.kt_routes import router as kt_router
+from lingoroad_ml.serving.llm_routes import router as llm_router
 
 app = FastAPI(title="LingoRoad ML Service")
 app.include_router(kt_router)
+app.include_router(llm_router)
 
 class HistoryEntry(BaseModel):
     a: float; b: float; c: float; correct: bool

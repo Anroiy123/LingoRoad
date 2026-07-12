@@ -14,9 +14,14 @@ public record CatSelectRequest(List<CatHistory> History, List<CatCandidate> Cand
 public record CatSelectResponse(double Theta, double Se,
     [property: JsonPropertyName("next_item_id")] Guid? NextItemId);
 
+public record AdvisorSkillContext(string Code, string Name, double Mastery, string Reason);
+public record AdvisorRequest(string Question, List<AdvisorSkillContext> Path, string Locale);
+public record AdvisorResponse(string Answer);
+
 public interface IMlClient
 {
     Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default);
+    Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default);
 }
 
 public class MlClient(HttpClient http) : IMlClient
@@ -29,6 +34,9 @@ public class MlClient(HttpClient http) : IMlClient
 
     public async Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default)
         => await PostAsync<CatSelectRequest, CatSelectResponse>("/cat/select", req, ct);
+
+    public async Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default)
+        => await PostAsync<AdvisorRequest, AdvisorResponse>("/llm/advisor", req, ct);
 
     protected async Task<TRes> PostAsync<TReq, TRes>(string path, TReq body, CancellationToken ct)
     {
