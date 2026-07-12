@@ -49,6 +49,7 @@ app.MapSkills();
 app.MapItems();
 app.MapPlacement();
 app.MapMastery();
+app.MapReviews();
 
 app.Run();
 

@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<TestSession> TestSessions => Set<TestSession>();
     public DbSet<Response> Responses => Set<Response>();
     public DbSet<Mastery> Masteries => Set<Mastery>();
+    public DbSet<ReviewCard> ReviewCards => Set<ReviewCard>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -21,5 +22,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<Item>().HasIndex(i => new { i.SkillId, i.CefrLevel });
         mb.Entity<Response>().HasIndex(r => r.SessionId);
         mb.Entity<Mastery>().HasKey(m => new { m.UserId, m.SkillId });
+        mb.Entity<ReviewCard>().HasIndex(c => new { c.UserId, c.Due });
     }
 }
