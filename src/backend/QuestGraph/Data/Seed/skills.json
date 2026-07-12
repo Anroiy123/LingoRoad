@@ -1,0 +1,1974 @@
+{
+  "skills": [
+    {
+      "code": "grammar",
+      "name": "Grammar",
+      "name_vi": "Ngữ pháp",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": null
+    },
+    {
+      "code": "grammar.articles",
+      "name": "Articles",
+      "name_vi": "Mạo từ",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.prepositions",
+      "name": "Prepositions",
+      "name_vi": "Giới từ",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.modals",
+      "name": "Modal Verbs",
+      "name_vi": "Động từ khuyết thiếu",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.tenses",
+      "name": "Tenses",
+      "name_vi": "Các thì",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.tenses.present_simple",
+      "name": "Present Simple",
+      "name_vi": "Thì hiện tại đơn",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.present_continuous",
+      "name": "Present Continuous",
+      "name_vi": "Thì hiện tại tiếp diễn",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.past_simple",
+      "name": "Past Simple",
+      "name_vi": "Thì quá khứ đơn",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.future_forms",
+      "name": "Future Forms",
+      "name_vi": "Các dạng tương lai",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.present_perfect",
+      "name": "Present Perfect",
+      "name_vi": "Thì hiện tại hoàn thành",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.past_perfect",
+      "name": "Past Perfect",
+      "name_vi": "Thì quá khứ hoàn thành",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.conditionals",
+      "name": "Conditionals",
+      "name_vi": "Câu điều kiện",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.conditionals.first",
+      "name": "First Conditional",
+      "name_vi": "Câu điều kiện loại 1",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.conditionals"
+    },
+    {
+      "code": "grammar.conditionals.second",
+      "name": "Second Conditional",
+      "name_vi": "Câu điều kiện loại 2",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.conditionals"
+    },
+    {
+      "code": "grammar.conditionals.third",
+      "name": "Third Conditional",
+      "name_vi": "Câu điều kiện loại 3",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.conditionals"
+    },
+    {
+      "code": "grammar.passive_voice",
+      "name": "Passive Voice",
+      "name_vi": "Câu bị động",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.reported_speech",
+      "name": "Reported Speech",
+      "name_vi": "Câu tường thuật",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.relative_clauses",
+      "name": "Relative Clauses",
+      "name_vi": "Mệnh đề quan hệ",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar"
+    },
+    {
+      "code": "vocabulary",
+      "name": "Vocabulary",
+      "name_vi": "Từ vựng",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": null
+    },
+    {
+      "code": "vocabulary.everyday",
+      "name": "Everyday Vocabulary",
+      "name_vi": "Từ vựng hằng ngày",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.travel",
+      "name": "Travel Vocabulary",
+      "name_vi": "Từ vựng du lịch",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.work_business",
+      "name": "Work & Business",
+      "name_vi": "Từ vựng công việc",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.phrasal_verbs",
+      "name": "Phrasal Verbs",
+      "name_vi": "Cụm động từ",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.collocations",
+      "name": "Collocations",
+      "name_vi": "Kết hợp từ",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.academic",
+      "name": "Academic Vocabulary",
+      "name_vi": "Từ vựng học thuật",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.idioms",
+      "name": "Idioms",
+      "name_vi": "Thành ngữ",
+      "category": "vocabulary",
+      "cefr": "C1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "reading",
+      "name": "Reading",
+      "name_vi": "Đọc hiểu",
+      "category": "reading",
+      "cefr": "A1",
+      "parent": null
+    },
+    {
+      "code": "reading.skimming",
+      "name": "Skimming",
+      "name_vi": "Đọc lướt",
+      "category": "reading",
+      "cefr": "A2",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.main_idea",
+      "name": "Main Idea",
+      "name_vi": "Ý chính",
+      "category": "reading",
+      "cefr": "B1",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.inference",
+      "name": "Inference",
+      "name_vi": "Suy luận",
+      "category": "reading",
+      "cefr": "B2",
+      "parent": "reading"
+    },
+    {
+      "code": "listening",
+      "name": "Listening",
+      "name_vi": "Nghe hiểu",
+      "category": "listening",
+      "cefr": "A1",
+      "parent": null
+    },
+    {
+      "code": "listening.basic_dialogues",
+      "name": "Basic Dialogues",
+      "name_vi": "Hội thoại cơ bản",
+      "category": "listening",
+      "cefr": "A1",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.gist",
+      "name": "Listening for Gist",
+      "name_vi": "Nghe ý chính",
+      "category": "listening",
+      "cefr": "A2",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.detail",
+      "name": "Listening for Detail",
+      "name_vi": "Nghe chi tiết",
+      "category": "listening",
+      "cefr": "B1",
+      "parent": "listening"
+    },
+    {
+      "code": "writing",
+      "name": "Writing",
+      "name_vi": "Viết",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": null
+    },
+    {
+      "code": "writing.simple_sentences",
+      "name": "Simple Sentences",
+      "name_vi": "Câu đơn",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.paragraphs",
+      "name": "Paragraphs",
+      "name_vi": "Đoạn văn",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.emails",
+      "name": "Emails",
+      "name_vi": "Viết email",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.essays",
+      "name": "Essays",
+      "name_vi": "Bài luận",
+      "category": "writing",
+      "cefr": "B2",
+      "parent": "writing"
+    },
+    {
+      "code": "grammar.nouns",
+      "name": "Nouns",
+      "name_vi": "Danh từ",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.pronouns",
+      "name": "Pronouns",
+      "name_vi": "Đại từ",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.conjunctions",
+      "name": "Conjunctions",
+      "name_vi": "Liên từ",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.verb_forms",
+      "name": "Verb Forms",
+      "name_vi": "Các dạng động từ",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.verb_forms.gerunds",
+      "name": "Gerunds",
+      "name_vi": "Danh động từ",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.verb_forms.infinitives",
+      "name": "Infinitives",
+      "name_vi": "Động từ nguyên mẫu",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.verb_forms.verbs_gerund",
+      "name": "Verbs followed by Gerunds",
+      "name_vi": "Động từ theo sau bởi danh động từ",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.verb_forms.verbs_infinitive",
+      "name": "Verbs followed by Infinitives",
+      "name_vi": "Động từ theo sau bởi động từ nguyên mẫu",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.verb_forms.verbs_both",
+      "name": "Verbs followed by both Gerunds & Infinitives",
+      "name_vi": "Động từ theo sau bởi cả hai",
+      "category": "grammar",
+      "cefr": "C1",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.verb_forms.participles",
+      "name": "Participles",
+      "name_vi": "Phân từ",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.verb_forms"
+    },
+    {
+      "code": "grammar.comparatives_superlatives",
+      "name": "Comparatives & Superlatives",
+      "name_vi": "So sánh hơn và nhất",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.comparatives_superlatives.comparative_adjectives",
+      "name": "Comparative Adjectives",
+      "name_vi": "Tính từ so sánh hơn",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.comparatives_superlatives"
+    },
+    {
+      "code": "grammar.comparatives_superlatives.superlative_adjectives",
+      "name": "Superlative Adjectives",
+      "name_vi": "Tính từ so sánh nhất",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.comparatives_superlatives"
+    },
+    {
+      "code": "grammar.comparatives_superlatives.comparative_adverbs",
+      "name": "Comparative Adverbs",
+      "name_vi": "Trạng từ so sánh hơn",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.comparatives_superlatives"
+    },
+    {
+      "code": "grammar.comparatives_superlatives.superlative_adverbs",
+      "name": "Superlative Adverbs",
+      "name_vi": "Trạng từ so sánh nhất",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.comparatives_superlatives"
+    },
+    {
+      "code": "grammar.comparatives_superlatives.as_as",
+      "name": "As...as (Comparison)",
+      "name_vi": "So sánh bằng",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.comparatives_superlatives"
+    },
+    {
+      "code": "grammar.questions",
+      "name": "Question Forms",
+      "name_vi": "Các dạng câu hỏi",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.questions.yes_no",
+      "name": "Yes/No Questions",
+      "name_vi": "Câu hỏi Yes/No",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.questions"
+    },
+    {
+      "code": "grammar.questions.wh",
+      "name": "Wh- Questions",
+      "name_vi": "Câu hỏi Wh-",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.questions"
+    },
+    {
+      "code": "grammar.questions.tag",
+      "name": "Tag Questions",
+      "name_vi": "Câu hỏi đuôi",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.questions"
+    },
+    {
+      "code": "grammar.questions.indirect",
+      "name": "Indirect Questions",
+      "name_vi": "Câu hỏi gián tiếp",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.questions"
+    },
+    {
+      "code": "grammar.questions.subject_object",
+      "name": "Subject/Object Questions",
+      "name_vi": "Câu hỏi chủ ngữ/tân ngữ",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.questions"
+    },
+    {
+      "code": "grammar.quantifiers",
+      "name": "Quantifiers",
+      "name_vi": "Từ chỉ số lượng",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.quantifiers.countable_uncountable",
+      "name": "Countable/Uncountable Nouns",
+      "name_vi": "Danh từ đếm được/không đếm được",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.quantifiers"
+    },
+    {
+      "code": "grammar.quantifiers.some_any",
+      "name": "Some/Any",
+      "name_vi": "Cách dùng Some/Any",
+      "category": "grammar",
+      "cefr": "A1",
+      "parent": "grammar.quantifiers"
+    },
+    {
+      "code": "grammar.quantifiers.much_many_alotof",
+      "name": "Much/Many/A lot of",
+      "name_vi": "Cách dùng Much/Many/A lot of",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.quantifiers"
+    },
+    {
+      "code": "grammar.quantifiers.few_little",
+      "name": "Few/Little",
+      "name_vi": "Cách dùng Few/Little",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.quantifiers"
+    },
+    {
+      "code": "grammar.quantifiers.all_most_some",
+      "name": "All/Most/Some (Quantifiers)",
+      "name_vi": "Cách dùng All/Most/Some",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.quantifiers"
+    },
+    {
+      "code": "grammar.tenses.present_perfect_continuous",
+      "name": "Present Perfect Continuous",
+      "name_vi": "Thì hiện tại hoàn thành tiếp diễn",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.past_continuous",
+      "name": "Past Continuous",
+      "name_vi": "Thì quá khứ tiếp diễn",
+      "category": "grammar",
+      "cefr": "A2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.past_perfect_continuous",
+      "name": "Past Perfect Continuous",
+      "name_vi": "Thì quá khứ hoàn thành tiếp diễn",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.future_continuous",
+      "name": "Future Continuous",
+      "name_vi": "Thì tương lai tiếp diễn",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.future_perfect",
+      "name": "Future Perfect",
+      "name_vi": "Thì tương lai hoàn thành",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.future_perfect_continuous",
+      "name": "Future Perfect Continuous",
+      "name_vi": "Thì tương lai hoàn thành tiếp diễn",
+      "category": "grammar",
+      "cefr": "C1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.tenses.used_to_would",
+      "name": "Used to / Would",
+      "name_vi": "Used to / Would (thói quen trong quá khứ)",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.tenses"
+    },
+    {
+      "code": "grammar.conditionals.zero",
+      "name": "Zero Conditional",
+      "name_vi": "Câu điều kiện loại 0",
+      "category": "grammar",
+      "cefr": "B1",
+      "parent": "grammar.conditionals"
+    },
+    {
+      "code": "grammar.conditionals.mixed",
+      "name": "Mixed Conditionals",
+      "name_vi": "Câu điều kiện hỗn hợp",
+      "category": "grammar",
+      "cefr": "C1",
+      "parent": "grammar.conditionals"
+    },
+    {
+      "code": "grammar.wish_clauses",
+      "name": "Wish Clauses",
+      "name_vi": "Mệnh đề Wish",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.causative_verbs",
+      "name": "Causative Verbs",
+      "name_vi": "Động từ cầu khiến",
+      "category": "grammar",
+      "cefr": "B2",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.inversion",
+      "name": "Inversion",
+      "name_vi": "Đảo ngữ",
+      "category": "grammar",
+      "cefr": "C1",
+      "parent": "grammar"
+    },
+    {
+      "code": "grammar.subjunctive",
+      "name": "Subjunctive",
+      "name_vi": "Thức giả định",
+      "category": "grammar",
+      "cefr": "C1",
+      "parent": "grammar"
+    },
+    {
+      "code": "vocabulary.family",
+      "name": "Family",
+      "name_vi": "Gia đình",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.food",
+      "name": "Food",
+      "name_vi": "Thức ăn",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.hobbies",
+      "name": "Hobbies",
+      "name_vi": "Sở thích",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.numbers_colors",
+      "name": "Numbers & Colors",
+      "name_vi": "Số và màu sắc",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.countries_nationalities",
+      "name": "Countries & Nationalities",
+      "name_vi": "Quốc gia và quốc tịch",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.daily_routines",
+      "name": "Daily Routines",
+      "name_vi": "Thói quen hàng ngày",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.places_in_town",
+      "name": "Places in Town",
+      "name_vi": "Địa điểm trong thành phố",
+      "category": "vocabulary",
+      "cefr": "A1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.clothes",
+      "name": "Clothes",
+      "name_vi": "Quần áo",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.weather",
+      "name": "Weather",
+      "name_vi": "Thời tiết",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.health",
+      "name": "Health",
+      "name_vi": "Sức khỏe",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.shopping",
+      "name": "Shopping",
+      "name_vi": "Mua sắm",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.transport",
+      "name": "Transport",
+      "name_vi": "Giao thông",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.jobs",
+      "name": "Jobs",
+      "name_vi": "Nghề nghiệp",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.technology_basic",
+      "name": "Basic Technology",
+      "name_vi": "Công nghệ cơ bản",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.feelings",
+      "name": "Feelings",
+      "name_vi": "Cảm xúc",
+      "category": "vocabulary",
+      "cefr": "A2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.environment",
+      "name": "Environment",
+      "name_vi": "Môi trường",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.education",
+      "name": "Education",
+      "name_vi": "Giáo dục",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.crime",
+      "name": "Crime",
+      "name_vi": "Tội phạm",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.media",
+      "name": "Media",
+      "name_vi": "Truyền thông",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.sports",
+      "name": "Sports",
+      "name_vi": "Thể thao",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.culture",
+      "name": "Culture",
+      "name_vi": "Văn hóa",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.social_issues",
+      "name": "Social Issues",
+      "name_vi": "Vấn đề xã hội",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.business_economics",
+      "name": "Business & Economics",
+      "name_vi": "Kinh doanh và kinh tế",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.science_research",
+      "name": "Science & Research",
+      "name_vi": "Khoa học và nghiên cứu",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.politics",
+      "name": "Politics",
+      "name_vi": "Chính trị",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.global_issues",
+      "name": "Global Issues",
+      "name_vi": "Vấn đề toàn cầu",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.arts_literature",
+      "name": "Arts & Literature",
+      "name_vi": "Nghệ thuật và văn học",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.health_medicine_advanced",
+      "name": "Advanced Health & Medicine",
+      "name_vi": "Sức khỏe và y học nâng cao",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.abstract_nouns",
+      "name": "Abstract Nouns",
+      "name_vi": "Danh từ trừu tượng",
+      "category": "vocabulary",
+      "cefr": "C1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.academic_collocations",
+      "name": "Academic Collocations",
+      "name_vi": "Kết hợp từ học thuật",
+      "category": "vocabulary",
+      "cefr": "C1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.formal_vocabulary",
+      "name": "Formal Vocabulary",
+      "name_vi": "Từ vựng trang trọng",
+      "category": "vocabulary",
+      "cefr": "C1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.specialized_vocabulary",
+      "name": "Specialized Vocabulary",
+      "name_vi": "Từ vựng chuyên ngành",
+      "category": "vocabulary",
+      "cefr": "C2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.nuances_of_meaning",
+      "name": "Nuances of Meaning",
+      "name_vi": "Sắc thái nghĩa",
+      "category": "vocabulary",
+      "cefr": "C2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.figurative_language",
+      "name": "Figurative Language",
+      "name_vi": "Ngôn ngữ hình tượng",
+      "category": "vocabulary",
+      "cefr": "C2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.word_formation",
+      "name": "Word Formation",
+      "name_vi": "Cấu tạo từ",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.word_formation.prefixes",
+      "name": "Prefixes",
+      "name_vi": "Tiền tố",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary.word_formation"
+    },
+    {
+      "code": "vocabulary.word_formation.suffixes",
+      "name": "Suffixes",
+      "name_vi": "Hậu tố",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary.word_formation"
+    },
+    {
+      "code": "vocabulary.word_formation.compounding",
+      "name": "Compounding",
+      "name_vi": "Ghép từ",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary.word_formation"
+    },
+    {
+      "code": "vocabulary.word_formation.derivation",
+      "name": "Derivation",
+      "name_vi": "Phái sinh từ",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary.word_formation"
+    },
+    {
+      "code": "vocabulary.synonyms_antonyms",
+      "name": "Synonyms & Antonyms",
+      "name_vi": "Từ đồng nghĩa và trái nghĩa",
+      "category": "vocabulary",
+      "cefr": "B1",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "vocabulary.homophones_homographs",
+      "name": "Homophones & Homographs",
+      "name_vi": "Từ đồng âm và đồng tự",
+      "category": "vocabulary",
+      "cefr": "B2",
+      "parent": "vocabulary"
+    },
+    {
+      "code": "reading.scanning",
+      "name": "Scanning",
+      "name_vi": "Đọc tìm ý cụ thể",
+      "category": "reading",
+      "cefr": "A2",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.context_clues",
+      "name": "Understanding Context Clues",
+      "name_vi": "Hiểu ngữ cảnh",
+      "category": "reading",
+      "cefr": "B1",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.text_structure",
+      "name": "Identifying Text Structure",
+      "name_vi": "Nhận diện cấu trúc văn bản",
+      "category": "reading",
+      "cefr": "B2",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.fact_opinion",
+      "name": "Distinguishing Fact from Opinion",
+      "name_vi": "Phân biệt sự thật và ý kiến",
+      "category": "reading",
+      "cefr": "B2",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.author_purpose",
+      "name": "Understanding Author's Purpose",
+      "name_vi": "Hiểu mục đích của tác giả",
+      "category": "reading",
+      "cefr": "C1",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.critical_reading",
+      "name": "Critical Reading",
+      "name_vi": "Đọc phê phán",
+      "category": "reading",
+      "cefr": "C1",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.text_types",
+      "name": "Reading Different Text Types",
+      "name_vi": "Đọc các dạng văn bản khác nhau",
+      "category": "reading",
+      "cefr": "A1",
+      "parent": "reading"
+    },
+    {
+      "code": "reading.text_types.short_stories",
+      "name": "Short Stories",
+      "name_vi": "Truyện ngắn",
+      "category": "reading",
+      "cefr": "A1",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.news_articles",
+      "name": "News Articles",
+      "name_vi": "Bài báo",
+      "category": "reading",
+      "cefr": "A2",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.informal_letters",
+      "name": "Informal Letters/Emails",
+      "name_vi": "Thư/email thân mật",
+      "category": "reading",
+      "cefr": "A2",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.formal_letters",
+      "name": "Formal Letters/Emails",
+      "name_vi": "Thư/email trang trọng",
+      "category": "reading",
+      "cefr": "B1",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.reports",
+      "name": "Reports",
+      "name_vi": "Báo cáo",
+      "category": "reading",
+      "cefr": "B2",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.academic_texts",
+      "name": "Academic Texts",
+      "name_vi": "Văn bản học thuật",
+      "category": "reading",
+      "cefr": "C1",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "reading.text_types.literary_texts",
+      "name": "Literary Texts",
+      "name_vi": "Văn bản văn học",
+      "category": "reading",
+      "cefr": "C1",
+      "parent": "reading.text_types"
+    },
+    {
+      "code": "listening.numbers_dates_times",
+      "name": "Understanding Numbers, Dates, Times",
+      "name_vi": "Hiểu số, ngày, giờ",
+      "category": "listening",
+      "cefr": "A1",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.directions",
+      "name": "Following Directions",
+      "name_vi": "Nghe và làm theo hướng dẫn",
+      "category": "listening",
+      "cefr": "A1",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.specific_information",
+      "name": "Listening for Specific Information",
+      "name_vi": "Nghe thông tin cụ thể",
+      "category": "listening",
+      "cefr": "A2",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.speaker_attitude",
+      "name": "Identifying Speaker's Attitude",
+      "name_vi": "Nhận diện thái độ người nói",
+      "category": "listening",
+      "cefr": "B1",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.note_taking",
+      "name": "Note-taking (Listening)",
+      "name_vi": "Ghi chú (Nghe)",
+      "category": "listening",
+      "cefr": "B1",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.implied_meaning",
+      "name": "Understanding Implied Meaning",
+      "name_vi": "Hiểu ý nghĩa ngụ ý",
+      "category": "listening",
+      "cefr": "B2",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.accents",
+      "name": "Understanding Different Accents",
+      "name_vi": "Hiểu các giọng khác nhau",
+      "category": "listening",
+      "cefr": "B2",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.discussions",
+      "name": "Participating in Discussions",
+      "name_vi": "Tham gia thảo luận",
+      "category": "listening",
+      "cefr": "B2",
+      "parent": "listening"
+    },
+    {
+      "code": "listening.lectures",
+      "name": "Understanding Lectures",
+      "name_vi": "Nghe hiểu bài giảng",
+      "category": "listening",
+      "cefr": "C1",
+      "parent": "listening"
+    },
+    {
+      "code": "writing.genres",
+      "name": "Writing Genres",
+      "name_vi": "Các thể loại viết",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.genres.postcards_messages",
+      "name": "Postcards & Short Messages",
+      "name_vi": "Bưu thiếp và tin nhắn ngắn",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.descriptions",
+      "name": "Descriptions",
+      "name_vi": "Miêu tả",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.narratives_stories",
+      "name": "Narratives & Stories",
+      "name_vi": "Kể chuyện",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.reviews",
+      "name": "Reviews",
+      "name_vi": "Viết đánh giá",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.reports",
+      "name": "Reports (Writing)",
+      "name_vi": "Viết báo cáo",
+      "category": "writing",
+      "cefr": "B2",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.formal_letters",
+      "name": "Formal Letters (Writing)",
+      "name_vi": "Viết thư trang trọng",
+      "category": "writing",
+      "cefr": "B2",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.proposals",
+      "name": "Proposals",
+      "name_vi": "Viết đề xuất",
+      "category": "writing",
+      "cefr": "C1",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.genres.academic_papers",
+      "name": "Academic Papers",
+      "name_vi": "Viết bài nghiên cứu",
+      "category": "writing",
+      "cefr": "C1",
+      "parent": "writing.genres"
+    },
+    {
+      "code": "writing.mechanics",
+      "name": "Writing Mechanics",
+      "name_vi": "Quy tắc viết",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.mechanics.capitalization",
+      "name": "Capitalization",
+      "name_vi": "Viết hoa",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.full_stops",
+      "name": "Full Stops/Periods",
+      "name_vi": "Dấu chấm",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.question_exclamation",
+      "name": "Question/Exclamation Marks",
+      "name_vi": "Dấu hỏi/chấm than",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.commas",
+      "name": "Commas",
+      "name_vi": "Dấu phẩy",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.apostrophes",
+      "name": "Apostrophes",
+      "name_vi": "Dấu nháy đơn",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.quotation_marks",
+      "name": "Quotation Marks",
+      "name_vi": "Dấu ngoặc kép",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.mechanics.semicolons_colons",
+      "name": "Semicolons & Colons",
+      "name_vi": "Dấu chấm phẩy và dấu hai chấm",
+      "category": "writing",
+      "cefr": "B2",
+      "parent": "writing.mechanics"
+    },
+    {
+      "code": "writing.cohesion",
+      "name": "Cohesion & Linking Words",
+      "name_vi": "Mạch lạc và từ nối",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.cohesion.basic_connectors",
+      "name": "Basic Connectors (And, But, Or)",
+      "name_vi": "Từ nối cơ bản (And, But, Or)",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.cohesion.sequence_words",
+      "name": "Sequence Words (First, Then, Next)",
+      "name_vi": "Từ chỉ trình tự (First, Then, Next)",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.cohesion.cause_effect",
+      "name": "Cause and Effect (Because, So)",
+      "name_vi": "Nguyên nhân và kết quả (Because, So)",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.cohesion.contrast",
+      "name": "Contrast (However, Although)",
+      "name_vi": "Đối lập (However, Although)",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.cohesion.addition",
+      "name": "Addition (Moreover, Furthermore)",
+      "name_vi": "Bổ sung (Moreover, Furthermore)",
+      "category": "writing",
+      "cefr": "B2",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.cohesion.summary",
+      "name": "Summary (In conclusion)",
+      "name_vi": "Tóm tắt (In conclusion)",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.cohesion"
+    },
+    {
+      "code": "writing.sentence_structure",
+      "name": "Sentence Structure",
+      "name_vi": "Cấu trúc câu",
+      "category": "writing",
+      "cefr": "A1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.sentence_structure.compound",
+      "name": "Compound Sentences",
+      "name_vi": "Câu ghép",
+      "category": "writing",
+      "cefr": "A2",
+      "parent": "writing.sentence_structure"
+    },
+    {
+      "code": "writing.sentence_structure.complex",
+      "name": "Complex Sentences",
+      "name_vi": "Câu phức",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.sentence_structure"
+    },
+    {
+      "code": "writing.paragraph_structure",
+      "name": "Paragraph Structure",
+      "name_vi": "Cấu trúc đoạn văn",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing"
+    },
+    {
+      "code": "writing.paragraph_structure.topic_sentences",
+      "name": "Topic Sentences",
+      "name_vi": "Câu chủ đề",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.paragraph_structure"
+    },
+    {
+      "code": "writing.paragraph_structure.supporting_details",
+      "name": "Supporting Details",
+      "name_vi": "Chi tiết hỗ trợ",
+      "category": "writing",
+      "cefr": "B1",
+      "parent": "writing.paragraph_structure"
+    }
+  ],
+  "prerequisites": [
+    [
+      "grammar.tenses.present_simple",
+      "grammar.tenses.present_continuous"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.tenses.past_simple"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.tenses.future_forms"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.tenses.present_perfect"
+    ],
+    [
+      "grammar.tenses.present_perfect",
+      "grammar.tenses.past_perfect"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.conditionals.first"
+    ],
+    [
+      "grammar.conditionals.first",
+      "grammar.conditionals.second"
+    ],
+    [
+      "grammar.conditionals.second",
+      "grammar.conditionals.third"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.passive_voice"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.reported_speech"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.relative_clauses"
+    ],
+    [
+      "vocabulary.everyday",
+      "vocabulary.travel"
+    ],
+    [
+      "vocabulary.everyday",
+      "vocabulary.work_business"
+    ],
+    [
+      "vocabulary.work_business",
+      "vocabulary.academic"
+    ],
+    [
+      "vocabulary.phrasal_verbs",
+      "vocabulary.idioms"
+    ],
+    [
+      "reading.skimming",
+      "reading.main_idea"
+    ],
+    [
+      "reading.main_idea",
+      "reading.inference"
+    ],
+    [
+      "listening.basic_dialogues",
+      "listening.gist"
+    ],
+    [
+      "listening.gist",
+      "listening.detail"
+    ],
+    [
+      "writing.simple_sentences",
+      "writing.paragraphs"
+    ],
+    [
+      "writing.paragraphs",
+      "writing.emails"
+    ],
+    [
+      "writing.paragraphs",
+      "writing.essays"
+    ],
+    [
+      "grammar.nouns",
+      "grammar.pronouns"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.tenses.past_continuous"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.tenses.past_continuous"
+    ],
+    [
+      "grammar.tenses.present_perfect",
+      "grammar.tenses.present_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.present_continuous",
+      "grammar.tenses.present_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.future_forms",
+      "grammar.tenses.future_continuous"
+    ],
+    [
+      "grammar.tenses.future_forms",
+      "grammar.tenses.future_perfect"
+    ],
+    [
+      "grammar.tenses.future_continuous",
+      "grammar.tenses.future_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.future_perfect",
+      "grammar.tenses.future_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.past_perfect",
+      "grammar.tenses.past_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.past_continuous",
+      "grammar.tenses.past_perfect_continuous"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.tenses.used_to_would"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.conditionals.zero"
+    ],
+    [
+      "grammar.conditionals.third",
+      "grammar.conditionals.mixed"
+    ],
+    [
+      "grammar.tenses.past_simple",
+      "grammar.wish_clauses"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.causative_verbs"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.inversion"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.subjunctive"
+    ],
+    [
+      "grammar.verb_forms.gerunds",
+      "grammar.verb_forms.verbs_gerund"
+    ],
+    [
+      "grammar.verb_forms.infinitives",
+      "grammar.verb_forms.verbs_infinitive"
+    ],
+    [
+      "grammar.verb_forms.gerunds",
+      "grammar.verb_forms.verbs_both"
+    ],
+    [
+      "grammar.verb_forms.infinitives",
+      "grammar.verb_forms.verbs_both"
+    ],
+    [
+      "grammar.tenses.present_simple",
+      "grammar.verb_forms.participles"
+    ],
+    [
+      "grammar.comparatives_superlatives",
+      "grammar.comparatives_superlatives.comparative_adjectives"
+    ],
+    [
+      "grammar.comparatives_superlatives.comparative_adjectives",
+      "grammar.comparatives_superlatives.superlative_adjectives"
+    ],
+    [
+      "grammar.comparatives_superlatives",
+      "grammar.comparatives_superlatives.comparative_adverbs"
+    ],
+    [
+      "grammar.comparatives_superlatives.comparative_adverbs",
+      "grammar.comparatives_superlatives.superlative_adverbs"
+    ],
+    [
+      "grammar.comparatives_superlatives.comparative_adjectives",
+      "grammar.comparatives_superlatives.as_as"
+    ],
+    [
+      "grammar.questions.yes_no",
+      "grammar.questions.wh"
+    ],
+    [
+      "grammar.questions.wh",
+      "grammar.questions.tag"
+    ],
+    [
+      "grammar.questions.wh",
+      "grammar.questions.indirect"
+    ],
+    [
+      "grammar.questions.wh",
+      "grammar.questions.subject_object"
+    ],
+    [
+      "grammar.quantifiers.countable_uncountable",
+      "grammar.quantifiers.some_any"
+    ],
+    [
+      "grammar.quantifiers.some_any",
+      "grammar.quantifiers.much_many_alotof"
+    ],
+    [
+      "grammar.quantifiers.much_many_alotof",
+      "grammar.quantifiers.few_little"
+    ],
+    [
+      "grammar.quantifiers.much_many_alotof",
+      "grammar.quantifiers.all_most_some"
+    ],
+    [
+      "vocabulary.everyday",
+      "vocabulary.family"
+    ],
+    [
+      "vocabulary.family",
+      "vocabulary.food"
+    ],
+    [
+      "vocabulary.food",
+      "vocabulary.hobbies"
+    ],
+    [
+      "vocabulary.hobbies",
+      "vocabulary.numbers_colors"
+    ],
+    [
+      "vocabulary.numbers_colors",
+      "vocabulary.countries_nationalities"
+    ],
+    [
+      "vocabulary.countries_nationalities",
+      "vocabulary.daily_routines"
+    ],
+    [
+      "vocabulary.daily_routines",
+      "vocabulary.places_in_town"
+    ],
+    [
+      "vocabulary.places_in_town",
+      "vocabulary.clothes"
+    ],
+    [
+      "vocabulary.clothes",
+      "vocabulary.weather"
+    ],
+    [
+      "vocabulary.weather",
+      "vocabulary.health"
+    ],
+    [
+      "vocabulary.health",
+      "vocabulary.shopping"
+    ],
+    [
+      "vocabulary.shopping",
+      "vocabulary.transport"
+    ],
+    [
+      "vocabulary.transport",
+      "vocabulary.jobs"
+    ],
+    [
+      "vocabulary.jobs",
+      "vocabulary.technology_basic"
+    ],
+    [
+      "vocabulary.technology_basic",
+      "vocabulary.feelings"
+    ],
+    [
+      "vocabulary.feelings",
+      "vocabulary.environment"
+    ],
+    [
+      "vocabulary.environment",
+      "vocabulary.education"
+    ],
+    [
+      "vocabulary.education",
+      "vocabulary.crime"
+    ],
+    [
+      "vocabulary.crime",
+      "vocabulary.media"
+    ],
+    [
+      "vocabulary.media",
+      "vocabulary.sports"
+    ],
+    [
+      "vocabulary.sports",
+      "vocabulary.culture"
+    ],
+    [
+      "vocabulary.culture",
+      "vocabulary.social_issues"
+    ],
+    [
+      "vocabulary.social_issues",
+      "vocabulary.business_economics"
+    ],
+    [
+      "vocabulary.business_economics",
+      "vocabulary.science_research"
+    ],
+    [
+      "vocabulary.science_research",
+      "vocabulary.politics"
+    ],
+    [
+      "vocabulary.politics",
+      "vocabulary.global_issues"
+    ],
+    [
+      "vocabulary.global_issues",
+      "vocabulary.arts_literature"
+    ],
+    [
+      "vocabulary.arts_literature",
+      "vocabulary.health_medicine_advanced"
+    ],
+    [
+      "vocabulary.health_medicine_advanced",
+      "vocabulary.abstract_nouns"
+    ],
+    [
+      "vocabulary.abstract_nouns",
+      "vocabulary.academic_collocations"
+    ],
+    [
+      "vocabulary.academic_collocations",
+      "vocabulary.formal_vocabulary"
+    ],
+    [
+      "vocabulary.formal_vocabulary",
+      "vocabulary.specialized_vocabulary"
+    ],
+    [
+      "vocabulary.specialized_vocabulary",
+      "vocabulary.nuances_of_meaning"
+    ],
+    [
+      "vocabulary.nuances_of_meaning",
+      "vocabulary.figurative_language"
+    ],
+    [
+      "vocabulary.word_formation.prefixes",
+      "vocabulary.word_formation.suffixes"
+    ],
+    [
+      "vocabulary.word_formation.suffixes",
+      "vocabulary.word_formation.compounding"
+    ],
+    [
+      "vocabulary.word_formation.compounding",
+      "vocabulary.word_formation.derivation"
+    ],
+    [
+      "vocabulary.everyday",
+      "vocabulary.synonyms_antonyms"
+    ],
+    [
+      "vocabulary.synonyms_antonyms",
+      "vocabulary.homophones_homographs"
+    ],
+    [
+      "reading.skimming",
+      "reading.scanning"
+    ],
+    [
+      "reading.main_idea",
+      "reading.context_clues"
+    ],
+    [
+      "reading.inference",
+      "reading.text_structure"
+    ],
+    [
+      "reading.text_structure",
+      "reading.fact_opinion"
+    ],
+    [
+      "reading.fact_opinion",
+      "reading.author_purpose"
+    ],
+    [
+      "reading.author_purpose",
+      "reading.critical_reading"
+    ],
+    [
+      "reading.text_types",
+      "reading.text_types.short_stories"
+    ],
+    [
+      "reading.text_types.short_stories",
+      "reading.text_types.news_articles"
+    ],
+    [
+      "reading.text_types.news_articles",
+      "reading.text_types.informal_letters"
+    ],
+    [
+      "reading.text_types.informal_letters",
+      "reading.text_types.formal_letters"
+    ],
+    [
+      "reading.text_types.formal_letters",
+      "reading.text_types.reports"
+    ],
+    [
+      "reading.text_types.reports",
+      "reading.text_types.academic_texts"
+    ],
+    [
+      "reading.text_types.academic_texts",
+      "reading.text_types.literary_texts"
+    ],
+    [
+      "listening.basic_dialogues",
+      "listening.numbers_dates_times"
+    ],
+    [
+      "listening.numbers_dates_times",
+      "listening.directions"
+    ],
+    [
+      "listening.gist",
+      "listening.specific_information"
+    ],
+    [
+      "listening.detail",
+      "listening.speaker_attitude"
+    ],
+    [
+      "listening.speaker_attitude",
+      "listening.implied_meaning"
+    ],
+    [
+      "listening.detail",
+      "listening.note_taking"
+    ],
+    [
+      "listening.specific_information",
+      "listening.accents"
+    ],
+    [
+      "listening.implied_meaning",
+      "listening.lectures"
+    ],
+    [
+      "listening.note_taking",
+      "listening.lectures"
+    ],
+    [
+      "listening.accents",
+      "listening.discussions"
+    ],
+    [
+      "writing.simple_sentences",
+      "writing.genres.postcards_messages"
+    ],
+    [
+      "writing.genres.postcards_messages",
+      "writing.genres.descriptions"
+    ],
+    [
+      "writing.paragraphs",
+      "writing.genres.narratives_stories"
+    ],
+    [
+      "writing.genres.narratives_stories",
+      "writing.genres.reviews"
+    ],
+    [
+      "writing.emails",
+      "writing.genres.reports"
+    ],
+    [
+      "writing.genres.reports",
+      "writing.genres.formal_letters"
+    ],
+    [
+      "writing.essays",
+      "writing.genres.proposals"
+    ],
+    [
+      "writing.genres.proposals",
+      "writing.genres.academic_papers"
+    ],
+    [
+      "writing.mechanics.full_stops",
+      "writing.mechanics.capitalization"
+    ],
+    [
+      "writing.mechanics.full_stops",
+      "writing.mechanics.question_exclamation"
+    ],
+    [
+      "writing.mechanics.capitalization",
+      "writing.mechanics.commas"
+    ],
+    [
+      "writing.mechanics.commas",
+      "writing.mechanics.apostrophes"
+    ],
+    [
+      "writing.mechanics.apostrophes",
+      "writing.mechanics.quotation_marks"
+    ],
+    [
+      "writing.mechanics.quotation_marks",
+      "writing.mechanics.semicolons_colons"
+    ],
+    [
+      "writing.simple_sentences",
+      "writing.cohesion.basic_connectors"
+    ],
+    [
+      "writing.cohesion.basic_connectors",
+      "writing.cohesion.sequence_words"
+    ],
+    [
+      "writing.cohesion.sequence_words",
+      "writing.cohesion.cause_effect"
+    ],
+    [
+      "writing.cohesion.cause_effect",
+      "writing.cohesion.contrast"
+    ],
+    [
+      "writing.cohesion.contrast",
+      "writing.cohesion.addition"
+    ],
+    [
+      "writing.cohesion.addition",
+      "writing.cohesion.summary"
+    ],
+    [
+      "writing.simple_sentences",
+      "writing.sentence_structure.compound"
+    ],
+    [
+      "writing.sentence_structure.compound",
+      "writing.sentence_structure.complex"
+    ],
+    [
+      "writing.paragraphs",
+      "writing.paragraph_structure.topic_sentences"
+    ],
+    [
+      "writing.paragraph_structure.topic_sentences",
+      "writing.paragraph_structure.supporting_details"
+    ]
+  ]
+}

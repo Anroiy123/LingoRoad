@@ -1,0 +1,6 @@
+@QuestGraph_HostAddress = http://localhost:5011
+
+GET {{QuestGraph_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,12 @@
+.claude/
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+.idea/
+ml/data/
+ml/checkpoints/
+ml/.venv/
+QuestGraph/wwwroot/uploads/
+__pycache__/
