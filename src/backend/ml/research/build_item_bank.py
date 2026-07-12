@@ -15,13 +15,13 @@ import numpy as np
 import openai
 from openai import OpenAI
 
-sys.path.insert(0, str(Path(__file__).parents[1]))  # make questgraph_ml importable
-from questgraph_ml.itemgen import seed_irt_params
+sys.path.insert(0, str(Path(__file__).parents[1]))  # make lingoroad_ml importable
+from lingoroad_ml.itemgen import seed_irt_params
 
 ROOT = Path(__file__).parents[2]
-SKILLS = ROOT / "QuestGraph/Data/Seed/skills.json"
+SKILLS = ROOT / "LingoRoad/Data/Seed/skills.json"
 OUT = ROOT / "ml/data/items.json"
-AUDIO_DIR = ROOT / "QuestGraph/wwwroot/audio"
+AUDIO_DIR = ROOT / "LingoRoad/wwwroot/audio"
 
 GEN_MODEL = os.environ.get("GEN_MODEL", "gemini-2.5-flash")
 TTS_PROVIDER = os.environ.get("TTS_PROVIDER", "edge")

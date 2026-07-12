@@ -3,7 +3,7 @@ Usage: python ml/research/ednet_prepare.py --max-users 60000
 """
 import argparse, json
 from pathlib import Path
-from questgraph_ml.kt.data import build_interactions
+from lingoroad_ml.kt.data import build_interactions
 
 ROOT = Path(__file__).parents[2] / "ml/data/ednet"
 

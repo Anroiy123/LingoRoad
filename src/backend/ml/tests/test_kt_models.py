@@ -1,7 +1,7 @@
 import torch
-from questgraph_ml.kt.saint_plus import SAINTPlus
-from questgraph_ml.kt.dkt import DKTLstm
-from questgraph_ml.kt.dkvmn import DKVMN
+from lingoroad_ml.kt.saint_plus import SAINTPlus
+from lingoroad_ml.kt.dkt import DKTLstm
+from lingoroad_ml.kt.dkvmn import DKVMN
 
 def fake_batch(B=4, L=16, n_q=50):
     g = torch.Generator().manual_seed(0)

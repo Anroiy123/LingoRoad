@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 def make_checkpoint(tmp_path: Path) -> Path:
-    from questgraph_ml.kt.saint_plus import SAINTPlus
+    from lingoroad_ml.kt.saint_plus import SAINTPlus
     m = SAINTPlus(n_questions=100, seq_len=100, d=32, heads=4, layers=1)
     p = tmp_path / "saint_plus.pt"
     torch.save({"state_dict": m.state_dict(),
@@ -13,9 +13,9 @@ def make_checkpoint(tmp_path: Path) -> Path:
 
 def test_kt_predict_returns_probabilities(tmp_path, monkeypatch):
     monkeypatch.setenv("QG_KT_CHECKPOINT", str(make_checkpoint(tmp_path)))
-    from questgraph_ml.serving import kt_routes
+    from lingoroad_ml.serving import kt_routes
     kt_routes.reset_model()          # force reload with the env var
-    from questgraph_ml.serving.app import app
+    from lingoroad_ml.serving.app import app
     r = TestClient(app).post("/kt/predict", json={"sequence": [
         {"q_idx": 5, "part": 1, "correct": 1, "elapsed": 0.1, "lag": 0.0},
         {"q_idx": 9, "part": 2, "correct": 0, "elapsed": 0.2, "lag": 0.3},
@@ -26,8 +26,8 @@ def test_kt_predict_returns_probabilities(tmp_path, monkeypatch):
 
 def test_kt_predict_without_checkpoint_returns_503(monkeypatch, tmp_path):
     monkeypatch.setenv("QG_KT_CHECKPOINT", str(tmp_path / "missing.pt"))
-    from questgraph_ml.serving import kt_routes
+    from lingoroad_ml.serving import kt_routes
     kt_routes.reset_model()
-    from questgraph_ml.serving.app import app
+    from lingoroad_ml.serving.app import app
     r = TestClient(app).post("/kt/predict", json={"sequence": []})
     assert r.status_code == 503

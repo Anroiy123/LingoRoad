@@ -1,5 +1,5 @@
 import numpy as np
-from questgraph_ml.itemgen import seed_irt_params, CEFR_B
+from lingoroad_ml.itemgen import seed_irt_params, CEFR_B
 
 def test_params_within_bounds():
     rng = np.random.default_rng(42)

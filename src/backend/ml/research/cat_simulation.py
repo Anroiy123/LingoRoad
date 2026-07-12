@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from questgraph_ml.cefr import cefr_from_theta
-from questgraph_ml.simulation import make_synthetic_bank, simulate_examinee, fixed_test
+from lingoroad_ml.cefr import cefr_from_theta
+from lingoroad_ml.simulation import make_synthetic_bank, simulate_examinee, fixed_test
 
 ROOT = Path(__file__).parents[2]
 

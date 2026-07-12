@@ -8,5 +8,5 @@ riderModule.iml
 ml/data/
 ml/checkpoints/
 ml/.venv/
-QuestGraph/wwwroot/uploads/
+LingoRoad/wwwroot/uploads/
 __pycache__/

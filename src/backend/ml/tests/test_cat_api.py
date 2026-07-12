@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from questgraph_ml.serving.app import app
+from lingoroad_ml.serving.app import app
 
 client = TestClient(app)
 

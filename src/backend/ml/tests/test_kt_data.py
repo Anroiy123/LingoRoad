@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from questgraph_ml.kt.data import build_interactions, split_users, KTSequenceDataset
+from lingoroad_ml.kt.data import build_interactions, split_users, KTSequenceDataset
 
 def make_fixture(tmp_path: Path):
     kt1 = tmp_path / "KT1"; kt1.mkdir()

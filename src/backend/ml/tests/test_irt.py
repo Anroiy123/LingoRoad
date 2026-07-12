@@ -1,6 +1,6 @@
 import numpy as np
-from questgraph_ml.irt import prob_3pl, information, eap_estimate
-from questgraph_ml.cat import select_next
+from lingoroad_ml.irt import prob_3pl, information, eap_estimate
+from lingoroad_ml.cat import select_next
 
 def test_prob_at_b_is_midpoint_between_c_and_1():
     np.testing.assert_allclose(prob_3pl(0.5, 1.2, 0.5, 0.2), 0.2 + 0.8 / 2, rtol=1e-9)

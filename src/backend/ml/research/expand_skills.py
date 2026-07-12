@@ -8,7 +8,7 @@ import json, os, sys
 from pathlib import Path
 from openai import OpenAI
 
-SEED = Path(__file__).parents[2] / "QuestGraph/Data/Seed/skills.json"
+SEED = Path(__file__).parents[2] / "LingoRoad/Data/Seed/skills.json"
 
 PROMPT = """You are designing a knowledge graph for Vietnamese learners of English.
 Below is an existing skills.json with 'skills' and 'prerequisites'.

@@ -1,4 +1,4 @@
-# SDD progress ledger — QuestGraph plan
+# SDD progress ledger — LingoRoad plan
 
 ## Session end 2026-07-10 (tasks 5-10 completed; resume here)
 - Tasks 1-4: COMPLETE (see git history; 617 items / 156 skills in DB, audio 0b278a6).
@@ -24,6 +24,6 @@
   Then task-12 (needs 3,10 — both done), 13, 14, 15, 16.
 - Conventions: TDD per task file, commits with EXPLICIT paths (never `git add -A`),
   never commit .claude/ ml/data/ ml/checkpoints/ ml/.venv/.
-- Environment: docker db questgraph-db-1 running; .NET API and uvicorn NOT running; ports 5000/8001 free.
+- Environment: docker db lingoroad-db-1 running; .NET API and uvicorn NOT running; ports 5000/8001 free.
   DB schema current through AddMastery. To serve KT: set QG_KT_CHECKPOINT=ml/checkpoints/saint_plus.pt
   before starting uvicorn from repo root (default relative path resolves wrong from there).

@@ -1,6 +1,6 @@
 import numpy as np
-from questgraph_ml.cefr import cefr_from_theta
-from questgraph_ml.simulation import make_synthetic_bank, simulate_examinee
+from lingoroad_ml.cefr import cefr_from_theta
+from lingoroad_ml.simulation import make_synthetic_bank, simulate_examinee
 
 def test_cefr_bins_match_dotnet():
     assert cefr_from_theta(-2.5) == "A1"
