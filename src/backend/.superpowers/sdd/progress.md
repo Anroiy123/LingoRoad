@@ -1,6 +1,19 @@
 # SDD progress ledger — LingoRoad plan
 
-## Session end 2026-07-10 (tasks 5-10 completed; resume here)
+## Session 2026-07-13 (task 11 completed; resume here)
+- Re-ran both suites before starting: ml 22 passed, .NET 25 passed (post-rename state healthy).
+- Task 11: COMPLETE — d49e814 (FSRS-4.5 scheduler in C# Domain/Fsrs.cs + ReviewCard entity,
+  /reviews/cards, /reviews/due, /reviews/{cardId}/grade; migration AddReviewCards applied).
+  TDD followed: 5 property tests red→green, endpoint flow test red→green. Note: task files still
+  say QuestGraph — paths/namespaces are LingoRoad since the f26847c rename; adapt on the fly.
+- Test counts: ml 22 passed; .NET 31 passed.
+- Next per task order: task-12 (learning path advisor, needs 3+10 — both done) —
+  .claude/tasks/task-12-learning-path-advisor.md. Then 13, 14, 15, 16.
+- Environment: docker db lingoroad-db-1 running (was stopped, restarted this session);
+  DB schema current through AddReviewCards. NuGet NU1903 warnings: Microsoft.OpenApi 2.0.0 and
+  SQLitePCLRaw.lib.e_sqlite3 2.1.11 have known vulns — bump when convenient.
+
+## Session end 2026-07-10 (tasks 5-10 completed)
 - Tasks 1-4: COMPLETE (see git history; 617 items / 156 skills in DB, audio 0b278a6).
 - Task 5: COMPLETE — b49d767 (IRT 3PL + EAP + max-info, FastAPI /cat/select, .NET MlClient).
 - Task 6: COMPLETE — 52029d8 (placement sessions e2e; migration AddTestSessions applied).
