@@ -1,6 +1,20 @@
 # SDD progress ledger — LingoRoad plan
 
-## Session 2026-07-13 (task 11 completed; resume here)
+## Session 2026-07-13 later (task 12 code complete, step 5 BLOCKED; resume here)
+- Task 12: CODE COMPLETE — 6244887 (PathBuilder + CefrMap.Rank, GET /path, POST /path/advisor
+  w/ 503 degradation, MlClient.AdvisorAsync; Python lingoroad_ml/llm/{rag,advisor}.py +
+  /llm/advisor route; env var QG_RAG_INDEX). Tests: .NET 37 passed, ml 24 passed.
+  Live-checked GET /path against docker Postgres (sensible A1-first path) and advisor
+  503 degradation with uvicorn down. 12 corpus guides written in ml/data/corpus/ (gitignored).
+- **BLOCKER: GEMINI_API_KEY prepayment credits depleted (429 RESOURCE_EXHAUSTED).**
+  Task-12 step 5 remainder needs credits: (a) cd ml && python -m research.build_rag_index
+  (note: run research scripts as modules from ml/, plain path invocation can't import
+  lingoroad_ml); (b) start uvicorn + API, POST /path/advisor, save a good Vietnamese answer
+  to ml/reports/samples/advisor.md. Tasks 13/14 advisor-side LLM calls also blocked until topped up.
+- Docs: user asked for AI theory/algorithms documentation → written to docs/ at repo root
+  (C:\Projects\LingoRoad\docs\).
+
+## Session 2026-07-13 (task 11 completed)
 - Re-ran both suites before starting: ml 22 passed, .NET 25 passed (post-rename state healthy).
 - Task 11: COMPLETE — d49e814 (FSRS-4.5 scheduler in C# Domain/Fsrs.cs + ReviewCard entity,
   /reviews/cards, /reviews/due, /reviews/{cardId}/grade; migration AddReviewCards applied).
