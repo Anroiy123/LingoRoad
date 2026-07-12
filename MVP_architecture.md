@@ -286,8 +286,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Learner[Người học] --> Mobile[lingoRoad React Native App]
-    Admin[Admin / Content Manager] --> AdminWeb[Flutter Web Admin]
+    Learner[Người học] --> Mobile[lingoRoad Flutter App]
+    Admin[Admin / Content Manager] --> AdminWeb[React Web Admin]
 
     Mobile --> API[.NET Backend API]
     AdminWeb --> API
