@@ -52,7 +52,9 @@ modeled.
 **Constraints:**
 - **C1 Precedence (hard):** for every (p, sᵢ) ∈ E with p ∉ D, p appears before sᵢ in π.
   (Assumes prerequisites of target skills are themselves studiable targets — leaves with
-  ℓ(p) ≤ g — which holds for the seeded skill graph.)
+  ℓ(p) ≤ g. This is a modeling idealization: the seeded graph satisfies it for 140 of
+  144 prerequisite edges; the exceptions — 3 container-as-prerequisite hierarchy edges
+  and one B2 prerequisite of a B1 skill — are dropped by the production filters.)
 - **C2 Goal filter:** every sᵢ has ℓ(sᵢ) ≤ g.
 - **C3 Leaf-only:** container skills (nodes that are parents) are not studiable.
 - **C4 Session budget:** the path is consumed in prefixes of at most B minutes per
