@@ -14,5 +14,5 @@ among the team is still TBD.
 
 | Area | Focus | Covered by |
 |---|---|---|
-| Mảng 1 & 2 (TBD split) | Assessment models (IRT/CAT, knowledge tracing) and NLP/LLM (exercise generation, AWE, advisor, speaking) | [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) §1–4, §6–8 |
+| Mảng 1 & 2 (TBD split) | Assessment models (IRT/CAT, knowledge tracing) and NLP/LLM (exercise generation, AWE, advisor, speaking) | [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) §1–4, §6–7 |
 | **Mảng 3** (`src/backend/.claude/theory-reqquirement.md`) | Learning-path optimization + technical infrastructure | [learning-path-optimization.md](learning-path-optimization.md) + [system-architecture.md](system-architecture.md) |
