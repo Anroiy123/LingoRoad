@@ -65,7 +65,7 @@ Entities (`src/backend/LingoRoad/Data/AppDbContext.cs`):
 | Table | Keys / indexes | Purpose | Model it feeds |
 |---|---|---|---|
 | Users | unique(Email) | auth, goal CEFR | path builder (goal filter) |
-| Skills | unique(Code), CefrLevel, parent link | 156 micro-skills | path builder, mastery |
+| Skills | unique(Code), CefrLevel, parent link | 174 skill nodes: 156 studiable leaves + 18 containers | path builder, mastery |
 | SkillEdges | PK(PrerequisiteId, SkillId) | prerequisite DAG | topological sort |
 | Items | index(SkillId, CefrLevel); IRT A, B, C | 617-item bank | CAT item selection |
 | TestSessions | Theta, ThetaSe, Status, ResultCefr | placement state | CAT loop / EAP |
