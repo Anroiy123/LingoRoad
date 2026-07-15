@@ -16,6 +16,10 @@ that it works. Paths are relative to `src/backend/`.
 | Speaking assessment | Whisper ASR + scoring | task 14 | Planned |
 | Path optimization | DQN proof-of-concept | task 15 | Planned |
 
+Deep-dives: [learning-path-optimization.md](learning-path-optimization.md) (formal
+problem statement, Greedy vs DP vs RL) and [system-architecture.md](system-architecture.md)
+(full-stack architecture and schema).
+
 ---
 
 ## 1. Adaptive placement testing
@@ -222,7 +226,8 @@ optional parent container), edges are prerequisites. The path builder
 Rules rather than a learned policy because the requirements are hard constraints
 (never suggest a skill before its prerequisite), the result must be explainable to the
 learner, and there is no interaction data yet to fit a policy — the DQN task (§8) is the
-planned learned alternative.
+planned learned alternative. The formal optimization problem and the three-method
+comparison are developed in [learning-path-optimization.md](learning-path-optimization.md).
 
 ---
 
@@ -272,7 +277,9 @@ learner simulator (mastery dynamics like §3) provides the environment; a **Deep
 Q-Network** (state = mastery vector, action = which skill to practice, reward = mastery
 gain) is trained against it, and its learning curve is compared with the rule-based path.
 It is a PoC only: real learner data is far too scarce to train RL safely, which is exactly
-why production uses §5's rules.
+why production uses §5's rules. The experiment protocol comparing DQN with DP and greedy
+baselines on the same environment is specified in
+[learning-path-optimization.md](learning-path-optimization.md) §7.
 
 ---
 
