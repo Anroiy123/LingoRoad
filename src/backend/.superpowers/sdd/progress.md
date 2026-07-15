@@ -1,5 +1,27 @@
 # SDD progress ledger — LingoRoad plan
 
+## Session 2026-07-15 (theory Mảng-3 docs)
+- User owns theory Mảng 3 = the whole of src/backend/.claude/theory-reqquirement.md
+  (optimization + infrastructure). Brainstormed via superpowers; spec committed 10e74a2
+  (docs/superpowers/specs/2026-07-15-theory-section3-docs-design.md).
+- Written: docs/learning-path-optimization.md (problem spec, Greedy vs DP vs RL,
+  task-15 experiment protocol), docs/system-architecture.md (hybrid .NET+FastAPI+Postgres
+  documented as-is per user choice), docs/README.md index, root README.md rewrite,
+  cross-links in docs/ai-theory-and-algorithms.md.
+- Decisions: EN docs with VN key terms (user translates for report); Mảng 1/2 split TBD
+  (integration written against the 5 modules); theory now, measured numbers when task 15
+  runs.
+- Task 15 gains a comparison duty: DP value-iteration (k=11 grid) + greedy + random vs
+  DQN on ToyLearnerEnv; protocol in learning-path-optimization.md §7; code goes under
+  ml/lingoroad_ml/rl/ (task file predates rename).
+- Task-1 doc revised after quality review (table pipe escape, src/backend/ path
+  prefixes, greedy-equivalence correction, discretized-DP hedging, goal-reach-rate
+  metric); plan updated in lockstep.
+- Task-2 doc corrected post-review (Skills table = 174 nodes: 156 leaves + 18
+  containers); later reviews done inline after a session-limit hit killed a reviewer
+  subagent.
+- Gemini credit blocker from 2026-07-13 still stands (unrelated to this docs work).
+
 ## Session 2026-07-13 later (task 12 code complete, step 5 BLOCKED; resume here)
 - Task 12: CODE COMPLETE — 6244887 (PathBuilder + CefrMap.Rank, GET /path, POST /path/advisor
   w/ 503 degradation, MlClient.AdvisorAsync; Python lingoroad_ml/llm/{rag,advisor}.py +
