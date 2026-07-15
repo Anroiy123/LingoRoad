@@ -22,12 +22,12 @@ Four things make this more than "sort the skills":
    preference.
 2. **Order-dependent gains** — studying a skill whose prerequisite is weak is mostly
    wasted effort, so the value of an action depends on what was studied before it.
-3. **Forgetting** — mastery decays over time (`LingoRoad/Domain/MasteryCalc.cs` decays
+3. **Forgetting** — mastery decays over time (`src/backend/LingoRoad/Domain/MasteryCalc.cs` decays
    toward 0.5 at 0.03/day), so a pure feed-forward order is not enough; good paths revisit.
 4. **Stochasticity** — real learning gains vary per learner and per attempt.
 
 Repo grounding: the production path builder is rule-based
-(`LingoRoad/Domain/PathBuilder.cs`, see
+(`src/backend/LingoRoad/Domain/PathBuilder.cs`, see
 [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) §5); the mastery dynamics that
 define our transition model are in `MasteryCalc.cs`; the planned RL proof-of-concept is
 task 15 (`src/backend/.claude/tasks/task-15-dqn-poc.md`).
@@ -51,6 +51,8 @@ modeled.
 
 **Constraints:**
 - **C1 Precedence (hard):** for every (p, sᵢ) ∈ E with p ∉ D, p appears before sᵢ in π.
+  (Assumes prerequisites of target skills are themselves studiable targets — leaves with
+  ℓ(p) ≤ g — which holds for the seeded skill graph.)
 - **C2 Goal filter:** every sᵢ has ℓ(sᵢ) ≤ g.
 - **C3 Leaf-only:** container skills (nodes that are parents) are not studiable.
 - **C4 Session budget:** the path is consumed in prefixes of at most B minutes per
@@ -76,8 +78,8 @@ The canonical formulation, and the one task 15 implements at toy scale:
   α = 0.15, ε = 0.01) — while **all** skills decay from forgetting (toy: −0.005 per
   step; production: exponential decay toward 0.5 at 0.03/day per `MasteryCalc.cs`).
 - **Reward** r_t = mean(m_{t+1}) − mean(m_t), plus a terminal bonus (+1) when every
-  target skill reaches τ. (An equivalent pure min-time objective uses r = −1 per step;
-  the mastery-gain form is a denser shaping of the same goal.)
+  target skill reaches τ. (A pure min-time objective would use r = −1 per step; the
+  mastery-gain form is a denser shaped proxy for the same goal.)
 - **Objective:** a policy π maximizing E[Σ_t γᵗ r_t], discount γ = 0.98.
 - **Bellman optimality equation:**
   Q*(s, a) = E[r + γ·max_{a'} Q*(s', a')], and V*(s) = max_a Q*(s, a).
@@ -96,9 +98,9 @@ O(V+E). "Greedy" in the sense that it commits to one fixed priority order with z
 lookahead. Full rationale in [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) §5.
 
 **3.2 Scoring greedy.** Repeatedly pick the unlocked skill with the best immediate value
-per unit cost: score(a) = α·(1 − m_a) / c(a). O(n log n) with a heap. On the task-15 toy
-environment this reduces to "first skill below τ, front to back" — the fixed-order
-baseline.
+per unit cost: score(a) = α·(1 − m_a) / c(a). O(n log n) with a heap. Note this is a
+different policy from the fixed-order baseline in §7: it moves to a skill as soon as it
+unlocks (prerequisite ≥ 0.5), not once the current skill is finished (≥ τ).
 
 **Properties.**
 - (+) Instant; zero training; zero data — works on day one with no learner history.
@@ -126,8 +128,9 @@ into k levels → kⁿ states:
 **Tractable special cases.**
 - No forgetting + binary mastery: the state collapses to the *subset* of mastered
   skills → 2ⁿ states, a Held–Karp-style subset DP — usable to n ≈ 20.
-- The toy environment (n = 5): full value iteration is cheap and yields the **exact
-  optimum** — the gold standard against which greedy and DQN are measured (§7).
+- The toy environment (n = 5): value iteration on a k = 11 grid is cheap and yields the
+  exact optimum of the **discretized** model — a near-optimal reference against which
+  greedy and DQN are measured (§7).
 
 DP also requires the transition model in closed form. With real learners we only ever
 have *samples* of transitions — which is precisely the setting RL is built for.
@@ -176,7 +179,7 @@ and **online** (per-request) cost.
 |---|---|---|---|
 | Solution quality | No guarantee; near-optimal when gains are ~independent | **Exact optimum** of the modeled MDP | Approaches optimum with enough training; no guarantee |
 | Online cost | O(V+E), sub-millisecond | O(1) table lookup — *if* the table exists | One NN forward pass, ~ms |
-| Offline cost | None | O(kⁿ·|A|) per sweep — toy scale only | Simulator training (minutes on toy; hours+ at scale) |
+| Offline cost | None | O(kⁿ·\|A\|) per sweep — toy scale only | Simulator training (minutes on toy; hours+ at scale) |
 | Data needs | None | Exact transition model in closed form | A simulator, or massive logged interactions |
 | Hard constraints (C1–C3) | By construction | By state-space design | Require action masking |
 | Explainability | Full | Full (within the model) | Low — Q-values are opaque |
@@ -203,7 +206,8 @@ well-defined.
 **Policies.**
 1. **Random** — uniform over the 5 actions.
 2. **Greedy** — first skill with mastery < 0.8, front to back (task 15's fixed-order
-   policy; coincides with §3.2's scoring greedy on this env).
+   policy; the toy-scale analogue of §3.1's rule pipeline: a fixed priority order,
+   skipping mastered skills).
 3. **DP** — value iteration on the discretized env: k = 11 levels per skill
    (0.0, 0.1, …, 1.0) → 11⁵ = 161,051 states; transitions from the true dynamics with
    nearest-grid rounding; γ = 0.98; iterate until ‖V_{k+1} − V_k‖∞ < 1e-6; act greedily
@@ -211,17 +215,18 @@ well-defined.
 4. **DQN** — as trained by task 15 (800 episodes, ε 1.0 → 0.05).
 
 **Protocol.** Task 15's `run_policy` evaluation: 100 episodes, seed 123. Report per
-policy: (a) mean return; (b) mean episode length = time-to-goal; (c) offline cost —
-DP solve wall-clock, DQN training wall-clock, zero for greedy/random; (d) per-decision
-latency.
+policy: (a) mean return; (b) mean episode length (time-to-goal, censored at the 60-step
+cap); (c) goal-reach rate within the cap; (d) offline cost — DP solve wall-clock, DQN
+training wall-clock, zero for greedy/random; (e) per-decision latency.
 
-**Expected ordering:** DP ≥ DQN ≥ greedy > random on return. DP is the upper bound; the
-gaps quantify exactly how much optimality greedy and DQN sacrifice — the "độ chính xác"
-column of §6, measured.
+**Expected ordering:** DP ≥ DQN ≥ greedy > random on return. DP is the expected upper
+bound (exact for the discretized model); the gaps quantify how much optimality greedy
+and DQN sacrifice — the "độ chính xác" column of §6, measured.
 
-**Deliverable:** extra rows (DP) and columns (time-to-goal, offline cost, latency) in
-`ml/reports/dqn_poc.md`. Implementation note: the task-15 file predates the
-QuestGraph → LingoRoad rename; create code under `ml/lingoroad_ml/rl/`.
+**Deliverable:** extra rows (DP) and columns (time-to-goal, goal-reach rate, offline
+cost, latency) in `src/backend/ml/reports/dqn_poc.md`. Implementation note: the task-15
+file predates the QuestGraph → LingoRoad rename; create code under
+`src/backend/ml/lingoroad_ml/rl/`.
 
 ## 8. Recommendation *(đề xuất)*
 
@@ -229,8 +234,8 @@ A layered strategy — which is what the repo already does, now with its justifi
 
 1. **Production: greedy rule pipeline.** Constraints guaranteed, fully explainable,
    works with zero interaction data — the cold-start reality of a new platform.
-2. **Theory anchor: DP on the toy environment.** The exact optimum that makes the other
-   two measurable.
+2. **Theory anchor: DP on the toy environment.** The (discretized-)exact optimum that
+   makes the other two measurable.
 3. **Research track: RL.** DQN PoC now (task 15). If the EdNet-fitted simulator
    materializes, PPO + action masking at 156 skills is the natural next step — deployed
    only behind an evaluation gate that shows it beating greedy in simulation.
