@@ -1,5 +1,6 @@
 import numpy as np
 
+from lingoroad_ml.rl.dqn import DQNAgent
 from lingoroad_ml.rl.env import ToyLearnerEnv
 
 
@@ -32,3 +33,15 @@ def test_episode_terminates():
         if done:
             break
     assert done
+
+
+def test_agent_trains_without_error_and_buffer_fills():
+    env, agent = ToyLearnerEnv(seed=1), DQNAgent(state_dim=5, n_actions=5, seed=1)
+    s = env.reset()
+    for _ in range(200):
+        a = agent.act(s, eps=1.0)
+        s2, r, done = env.step(a)
+        agent.remember(s, a, r, s2, done)
+        s = env.reset() if done else s2
+    loss = agent.train_step()
+    assert loss is not None and np.isfinite(loss)
