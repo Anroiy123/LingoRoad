@@ -194,10 +194,37 @@ method with a guarantee, but it exists only at toy scale, where its job is to *m
 the others*. RL is the only method that both scales and optimizes long-horizon effects
 (unlock value, forgetting), at the price of a simulator, training compute, and opacity.
 
-## 7. Experiment protocol (executes with task 15)
+### 6.1 Measured on ToyLearnerEnv *(số liệu đo được, task 15)*
+
+| Policy | Mean return | Mean episode length | Goal-reach rate | Offline cost (s) | Latency (ms/decision) |
+|---|---|---|---|---|---|
+| DP (value iteration) | 0.636 | 60.0 | 0.00 | 50.2 | 0.149 |
+| DQN | 0.581 | 60.0 | 0.00 | 82.3 | 0.071 |
+| Greedy (fixed order) | 0.533 | 60.0 | 0.00 | 0.0 | 0.002 |
+| Random | 0.197 | 60.0 | 0.00 | 0.0 | 0.002 |
+
+100 eval episodes, seed 123, identical dynamics for all policies (protocol §7). The
+expected ordering **DP ≥ DQN ≥ greedy > random** holds. Two measured findings worth
+quoting:
+
+1. **The goal never fires at n = 5.** Total forgetting is 5 × 0.005 = 0.025/step while
+   practice gains shrink as mastery rises (0.15·(1−m)), so pushing all five skills to
+   ≥ 0.8 *simultaneously* needs ~80–90 steps — more than the 60-step cap, for any
+   policy (goal-reach 0.00 across the board). The comparison is decided by
+   mastery-growth efficiency alone.
+2. **Fixed-order greedy is not near-optimal under forgetting** *(tham lam không còn
+   gần tối ưu khi có quên)*: DQN beats it by +9% and DP by +19% mean return, because
+   the fixed order keeps re-practicing early skills at diminishing returns instead of
+   maximising marginal gain. The gaps are the "độ chính xác" column above, measured.
+
+Full report with the learning curve: `src/backend/ml/reports/dqn_poc.md`.
+
+## 7. Experiment protocol (executed with task 15)
 
 Purpose: put measured numbers behind §6, all four policies on **identical dynamics**.
-No code exists yet; this section is the specification task 15 executes.
+Executed by task 15 (2026-07-17); results in §6.1 and
+`src/backend/ml/reports/dqn_poc.md`; code under `src/backend/ml/lingoroad_ml/rl/`.
+Two protocol details changed during implementation — both flagged below.
 
 **Environment.** `ToyLearnerEnv` from task 15: n = 5 chained skills (skill *i* needs
 skill *i−1* ≥ 0.5), gain 0.15·(1−m) when unlocked else 0.01, decay 0.005/step for all
@@ -211,9 +238,18 @@ well-defined.
    policy; the toy-scale analogue of §3.1's rule pipeline: a fixed priority order,
    skipping mastered skills).
 3. **DP** — value iteration on the discretized env: k = 11 levels per skill
-   (0.0, 0.1, …, 1.0) → 11⁵ = 161,051 states; transitions from the true dynamics with
-   nearest-grid rounding; γ = 0.98; iterate until ‖V_{k+1} − V_k‖∞ < 1e-6; act greedily
-   w.r.t. V on the rounded state.
+   (0.0, 0.1, …, 1.0) → 11⁵ = 161,051 states; transitions from the true dynamics;
+   γ = 0.98; iterate until ‖V_{k+1} − V_k‖∞ < 1e-6.
+   *Amended in implementation:* the originally specified nearest-grid rounding is
+   degenerate at k = 11 — late-stage practice gains are smaller than half a grid cell
+   (0.7 → 0.74 rounds back to 0.7), making the goal unreachable in the rounded chain
+   and hiding the +1 bonus from every tabular reward; measured DP fell *below* greedy.
+   The implementation instead represents successors by multilinear interpolation over
+   their 2⁵ neighbouring grid points (Kushner–Dupuis Markov-chain approximation, exact
+   in expectation) and attaches the goal bonus to arrival in the goal set
+   (V(terminal) = 1, with zero continuation for true one-step goal transitions so the
+   bonus is never double-counted). The policy acts by one-step lookahead on the real
+   dynamics with interpolated V. See `lingoroad_ml/rl/dp.py`.
 4. **DQN** — as trained by task 15 (800 episodes, ε 1.0 → 0.05).
 
 **Protocol.** Task 15's `run_policy` evaluation: 100 episodes, seed 123. Report per
@@ -224,11 +260,16 @@ training wall-clock, zero for greedy/random; (e) per-decision latency.
 **Expected ordering:** DP ≥ DQN ≥ greedy > random on return. DP is the expected upper
 bound (exact for the discretized model); the gaps quantify how much optimality greedy
 and DQN sacrifice — the "độ chính xác" column of §6, measured.
+*Outcome:* the ordering held exactly (§6.1: 0.636 > 0.581 > 0.533 > 0.197). One
+pre-registered assumption did not: the goal is unreachable within the 60-step cap at
+n = 5 for *any* policy (§6.1, finding 1), so time-to-goal and goal-reach rate are
+degenerate (60.0 / 0.00 for all rows) and the return comparison rests on
+mastery-growth efficiency.
 
 **Deliverable:** extra rows (DP) and columns (time-to-goal, goal-reach rate, offline
-cost, latency) in `src/backend/ml/reports/dqn_poc.md`. Implementation note: the task-15
-file predates the QuestGraph → LingoRoad rename; create code under
-`src/backend/ml/lingoroad_ml/rl/`.
+cost, latency) in `src/backend/ml/reports/dqn_poc.md` — delivered, plus the measured
+table in §6.1. (The task-15 file predates the QuestGraph → LingoRoad rename; code
+lives under `src/backend/ml/lingoroad_ml/rl/`.)
 
 ## 8. Recommendation *(đề xuất)*
 
