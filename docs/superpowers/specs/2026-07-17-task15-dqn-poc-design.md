@@ -35,6 +35,18 @@ batch 64, target network synced every 200 train steps, smooth-L1 loss, ε-greedy
 ### `lingoroad_ml/rl/dp.py` — value iteration (the theory anchor)
 Per doc §7: k = 11 mastery levels per skill (0.0, 0.1, …, 1.0) → 11⁵ = 161,051 states.
 
+> **Amendment (found during implementation, 2026-07-17):** §7's "nearest-grid
+> rounding" is degenerate at k = 11 — practice gains near high mastery are smaller
+> than half a grid cell (0.7 → 0.74 rounds back to 0.7), so the goal is unreachable
+> in the rounded model and no tabular transition ever carries the +1 bonus; DP
+> collapsed below greedy. Fixed two ways: (1) successors are represented by
+> multilinear interpolation over their 2⁵ neighbouring grid points (Kushner–Dupuis
+> Markov-chain approximation), which preserves the expected successor exactly;
+> (2) the goal bonus is attached to arrival in the goal set — terminal grid states
+> hold V = 1.0, and true one-step goal transitions (possible at other k) keep the
+> bonus in their reward with zero continuation, so it is never double-counted.
+> `docs/learning-path-optimization.md` §7 is updated to match in the doc task.
+
 - **Dynamics identity by construction:** the transition table is built by calling the
   real `ToyLearnerEnv.step()` on each grid state (set `env.mastery` to the grid point,
   step, round the successor to the nearest grid point) — never a re-implemented copy of
