@@ -1,5 +1,28 @@
 # SDD progress ledger — LingoRoad plan
 
+## Session 2026-07-17 (task 15 completed)
+- Superpowers flow per user request: brainstorm → spec 107cbb4 → plan c549342
+  (docs/superpowers/{specs,plans}/2026-07-17-task15-dqn-poc*) → inline execution.
+  NOTE: superpowers plugin skills exist in the plugin cache but are NOT registered with
+  the session's Skill tool — read SKILL.md from
+  ~/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6/skills/ and follow manually.
+- Task 15: COMPLETE, well inside the 4-day box — 4d37487 (env), 59ec908 (dqn),
+  0c895bf (dp), 13c394f (experiment + reports), 826456b (doc §6.1/§7).
+  Measured (100 eps, seed 123): DP 0.636 > DQN 0.581 > greedy 0.533 > random 0.197 —
+  expected ordering held. Artifacts: ml/reports/dqn_poc.{png,md};
+  docs/learning-path-optimization.md §6.1 measured table.
+- Findings (all documented in dp.py docstring + spec/plan amendments b2eb61f):
+  (a) task-file DQN sketch has a SyntaxError (walrus on attribute) — fixed;
+  (b) §7's nearest-grid rounding is degenerate at k=11 (goal unreachable in rounded
+  chain, +1 bonus invisible; DP measured BELOW greedy) — replaced with multilinear
+  interpolation (Kushner–Dupuis) + goal bonus on arrival in the goal set;
+  (c) goal unreachable at n=5 within the 60-step cap for ANY policy (decay 0.025/step
+  outpaces late gains; needs ~80–90 steps) — comparison decided by mastery-growth
+  efficiency; fixed-order greedy is NOT near-optimal under forgetting (DQN +9%, DP +19%).
+- Tests: ml 31 passed (24 existing + 7 new in tests/test_rl.py). .NET untouched.
+- Next per task order: task-16 (demo e2e). Tasks 12-step-5 / 13 / 14 still BLOCKED on
+  Gemini credits (2026-07-13 blocker unchanged).
+
 ## Session 2026-07-15 (theory Mảng-3 docs)
 - User owns theory Mảng 3 = the whole of src/backend/.claude/theory-reqquirement.md
   (optimization + infrastructure). Brainstormed via superpowers; spec committed 10e74a2
