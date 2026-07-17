@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from pydantic import BaseModel
 from lingoroad_ml.llm import advisor, rag
+from lingoroad_ml.llm import exercises as ex_mod, awe as awe_mod
 
 router = APIRouter()
 INDEX = Path(os.environ.get("QG_RAG_INDEX", "data/corpus_index.npz"))
@@ -31,3 +32,19 @@ def llm_advisor(req: AdvisorReq):
     text = advisor.answer(req.question, [p.model_dump() for p in req.path],
                           retrieve_fn, _client())
     return {"answer": text}
+
+class ExerciseReq(BaseModel):
+    skill_code: str; skill_name: str; cefr: str; type: str = "mcq"; count: int = 3
+
+@router.post("/llm/exercises")
+def llm_exercises(req: ExerciseReq):
+    items = ex_mod.generate(_client(), req.skill_code, req.skill_name,
+                            req.cefr, req.type, req.count)
+    return {"exercises": items}
+
+class AweReq(BaseModel):
+    task_prompt: str; essay: str
+
+@router.post("/llm/awe")
+def llm_awe(req: AweReq):
+    return awe_mod.evaluate(_client(), req.task_prompt, req.essay)

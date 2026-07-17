@@ -11,4 +11,5 @@ matplotlib>=3.8
 pandas>=2.2
 pyarrow>=15
 scikit-learn>=1.4
+nltk>=3.8
 # torch: pip install torch --index-url https://download.pytorch.org/whl/cu128  (cu121 has no Python 3.13 wheels)
