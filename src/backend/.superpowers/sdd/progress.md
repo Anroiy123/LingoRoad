@@ -1,5 +1,22 @@
 # SDD progress ledger — LingoRoad plan
 
+## Session 2026-07-18 (task 12 fully complete — Gemini blocker cleared)
+- User topped up Gemini credits ("continue with gemini"). Verified with a 1-string
+  gemini-embedding-001 call (OK, 3072-dim) before spending on the full build.
+- Task-12 step 5 remainder DONE: (a) RAG index built — `python -m research.build_rag_index`
+  over the 12 corpus guides → ml/data/corpus_index.npz + .chunks.json (gitignored);
+  (b) live e2e advisor check — fresh user advisor-demo@lingoroad.test, GET /path sane
+  (A1-first, not_started), POST /path/advisor returned a grounded Vietnamese answer
+  citing the present_simple.md corpus content; sample committed 330acf1
+  (ml/reports/samples/advisor.md). Task 12 is now COMPLETE end to end.
+- Gotchas hit: (1) `dotnet run --no-launch-profile` breaks the API — JWT secret +
+  connection string live in appsettings.Development.json, so run with
+  `dotnet run --launch-profile http` (sets ASPNETCORE_ENVIRONMENT=Development);
+  (2) Vietnamese JSON bodies get mangled as inline curl -d args on Windows —
+  write the body to a UTF-8 file and use `--data-binary @file`.
+- 2026-07-13 Gemini blocker CLEARED for all tasks. Next per task order: task-13
+  (exercise generation & AWE, superpowers flow per user preference), then 14, 16.
+
 ## Session 2026-07-17 (task 15 completed)
 - Superpowers flow per user request: brainstorm → spec 107cbb4 → plan c549342
   (docs/superpowers/{specs,plans}/2026-07-17-task15-dqn-poc*) → inline execution.
