@@ -16,7 +16,7 @@ from lingoroad_ml.rl.dqn import DQNAgent
 from lingoroad_ml.rl.env import ToyLearnerEnv
 
 ROOT = Path(__file__).parents[1]
-EPISODES = 800
+EPISODES = 4000
 EPS_DECAY_EPISODES = 400
 N_SKILLS = 5
 
