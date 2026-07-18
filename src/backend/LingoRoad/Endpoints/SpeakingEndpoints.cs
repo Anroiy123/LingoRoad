@@ -18,7 +18,10 @@ public static class SpeakingEndpoints
         {
             var dir = Path.Combine(env.ContentRootPath, "wwwroot", "uploads");
             Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, $"{Guid.NewGuid():N}{Path.GetExtension(audio.FileName)}");
+            var ext = Path.GetExtension(audio.FileName).ToLowerInvariant();
+            if (ext is not (".webm" or ".mp3" or ".wav" or ".m4a" or ".ogg")) ext = ".bin";
+            var fileName = $"{Guid.NewGuid():N}{ext}";
+            var path = Path.Combine(dir, fileName);
             await using (var fs = File.Create(path))
                 await audio.CopyToAsync(fs);
 
@@ -28,7 +31,8 @@ public static class SpeakingEndpoints
                 var score = await ml.ScoreSpeakingAsync(stream, audio.FileName, promptText);
                 var attempt = new SpeakingAttempt
                 {
-                    UserId = user.UserId(), PromptText = promptText, AudioPath = path,
+                    UserId = user.UserId(), PromptText = promptText,
+                    AudioPath = Path.Combine("uploads", fileName),
                     Transcript = score.Transcript, Total = score.Total,
                     ScoresJson = JsonSerializer.Serialize(score)
                 };
@@ -38,7 +42,11 @@ public static class SpeakingEndpoints
                     score.Accuracy, score.Completeness, score.Fluency, score.Total,
                     feedbackVi = score.FeedbackVi });
             }
-            catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
+            catch (MlServiceUnavailableException)
+            {
+                try { File.Delete(path); } catch { /* best effort */ }
+                return ApiResults.MlUnavailable();
+            }
         }).DisableAntiforgery();
 
         g.MapGet("/attempts", async (System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
