@@ -17,6 +17,7 @@ from lingoroad_ml.rl.env import ToyLearnerEnv
 
 ROOT = Path(__file__).parents[1]
 EPISODES = 800
+EPS_DECAY_EPISODES = 400
 N_SKILLS = 5
 
 
@@ -47,7 +48,7 @@ def train_dqn():
     agent = DQNAgent(state_dim=N_SKILLS, n_actions=N_SKILLS, seed=0)
     curve = []
     for ep in range(EPISODES):
-        eps = max(0.05, 1.0 - ep / 400)
+        eps = max(0.05, 1.0 - ep / EPS_DECAY_EPISODES)
         s, total, done = env.reset(), 0.0, False
         while not done:
             a = agent.act(s, eps)
@@ -59,6 +60,55 @@ def train_dqn():
         if ep % 100 == 0:
             print(f"ep {ep}: mean return (last 100) {np.mean(curve[-100:]):.3f}", flush=True)
     return agent, curve
+
+
+def report_lines(results):
+    """Markdown report body. Every measured number comes from `results`."""
+    lines = [
+        "# DQN PoC — four-policy comparison on ToyLearnerEnv",
+        "",
+        "Protocol: `docs/learning-path-optimization.md` §7 — 100 eval episodes, seed 123,",
+        f"identical dynamics for all policies. DQN: {EPISODES} training episodes,",
+        f"eps 1.0 -> 0.05 over {EPS_DECAY_EPISODES}. DP: k=11 grid (11^5 = 161,051 states),",
+        "multilinear-interpolated successors (Kushner-Dupuis), goal bonus on arrival",
+        "in the goal set, gamma = 0.98, tol 1e-6 (offline cost includes building the",
+        "transition table).",
+        "",
+        "| Policy | Mean return | Mean episode length | Goal-reach rate | Offline cost (s) | Latency (ms/decision) |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name, (m, cost) in results.items():
+        lines.append(f"| {name} | {m['return']:.3f} | {m['length']:.1f} | "
+                     f"{m['goal_rate']:.2f} | {cost:.1f} | {m['latency_ms']:.3f} |")
+    greedy = results["Greedy (fixed order)"][0]["return"]
+    dqn_gap = results["DQN"][0]["return"] - greedy
+    dp_gap = results["DP (value iteration)"][0]["return"] - greedy
+    lines += [
+        "",
+        "Notes:",
+        "- Episode length is censored at the 60-step cap; goal-reach rate is the share",
+        "  of episodes ending with all skills >= 0.8 within the cap.",
+        "- **The goal is unreachable within the cap at n=5 for any policy** (all",
+        "  goal-reach rates 0.00, all lengths 60): total decay is 5 x 0.005 = 0.025/step",
+        "  while practice gains shrink as mastery rises (0.15 x (1-m)), so raising all",
+        "  five skills to >= 0.8 *simultaneously* needs ~80-90 steps. The +1 bonus never",
+        "  fires; the comparison is decided by mastery-growth efficiency. (At n=3 the",
+        "  goal is comfortably reachable — see tests/test_rl.py.) This also explains why",
+        "  greedy's front-to-back rule is not near-optimal here: it keeps re-practicing",
+        "  early skills at diminishing returns instead of maximising marginal gain.",
+        "- DP is exact for the *discretized* (k=11, interpolated) model, not the",
+        "  continuous env: discretization plus the ignored 60-step horizon make it an",
+        "  upper-bound approximation. Nearest-grid rounding (the original protocol",
+        "  wording) is degenerate at k=11 — the goal is unreachable in the rounded",
+        "  chain — hence the interpolated model; see lingoroad_ml/rl/dp.py.",
+        "- The a-priori expectation (task file) that a fixed-order heuristic is",
+        "  near-optimal on a 5-skill chain did not survive measurement under forgetting:",
+        f"  DQN beats greedy by {dqn_gap:+.3f} ({dqn_gap / greedy:+.0%}) and DP by",
+        f"  {dp_gap:+.3f} ({dp_gap / greedy:+.0%}) mean return. The gaps quantify what",
+        "  optimising marginal gain buys over a fixed order — the 'do chinh xac'",
+        "  (accuracy) column of doc §6, measured.",
+    ]
+    return lines
 
 
 def main():
@@ -97,47 +147,8 @@ def main():
     plt.tight_layout()
     plt.savefig(out / "dqn_poc.png", dpi=150)
 
-    lines = [
-        "# DQN PoC — four-policy comparison on ToyLearnerEnv",
-        "",
-        "Protocol: `docs/learning-path-optimization.md` §7 — 100 eval episodes, seed 123,",
-        f"identical dynamics for all policies. DQN: {EPISODES} training episodes,",
-        "eps 1.0 -> 0.05 over 400. DP: k=11 grid (11^5 = 161,051 states),",
-        "multilinear-interpolated successors (Kushner-Dupuis), goal bonus on arrival",
-        "in the goal set, gamma = 0.98, tol 1e-6 (offline cost includes building the",
-        "transition table).",
-        "",
-        "| Policy | Mean return | Mean episode length | Goal-reach rate | Offline cost (s) | Latency (ms/decision) |",
-        "|---|---|---|---|---|---|",
-    ]
-    for name, (m, cost) in results.items():
-        lines.append(f"| {name} | {m['return']:.3f} | {m['length']:.1f} | "
-                     f"{m['goal_rate']:.2f} | {cost:.1f} | {m['latency_ms']:.3f} |")
-    lines += [
-        "",
-        "Notes:",
-        "- Episode length is censored at the 60-step cap; goal-reach rate is the share",
-        "  of episodes ending with all skills >= 0.8 within the cap.",
-        "- **The goal is unreachable within the cap at n=5 for any policy** (all",
-        "  goal-reach rates 0.00, all lengths 60): total decay is 5 x 0.005 = 0.025/step",
-        "  while practice gains shrink as mastery rises (0.15 x (1-m)), so raising all",
-        "  five skills to >= 0.8 *simultaneously* needs ~80-90 steps. The +1 bonus never",
-        "  fires; the comparison is decided by mastery-growth efficiency. (At n=3 the",
-        "  goal is comfortably reachable — see tests/test_rl.py.) This also explains why",
-        "  greedy's front-to-back rule is not near-optimal here: it keeps re-practicing",
-        "  early skills at diminishing returns instead of maximising marginal gain.",
-        "- DP is exact for the *discretized* (k=11, interpolated) model, not the",
-        "  continuous env: discretization plus the ignored 60-step horizon make it an",
-        "  upper-bound approximation. Nearest-grid rounding (the original protocol",
-        "  wording) is degenerate at k=11 — the goal is unreachable in the rounded",
-        "  chain — hence the interpolated model; see lingoroad_ml/rl/dp.py.",
-        "- The a-priori expectation (task file) that a fixed-order heuristic is",
-        "  near-optimal on a 5-skill chain did not survive measurement under forgetting:",
-        "  DQN beats greedy by +0.048 (+9%) and DP by +0.103 (+19%) mean return. The",
-        "  gaps quantify what optimising marginal gain buys over a fixed order — the",
-        "  'do chinh xac' (accuracy) column of doc §6, measured.",
-    ]
-    (out / "dqn_poc.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out / "dqn_poc.md").write_text("\n".join(report_lines(results)) + "\n",
+                                    encoding="utf-8")
     for name, (m, cost) in results.items():
         print(f"{name}: return {m['return']:.3f}, len {m['length']:.1f}, "
               f"goal {m['goal_rate']:.2f}, offline {cost:.1f}s", flush=True)
