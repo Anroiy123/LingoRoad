@@ -1,6 +1,24 @@
 # SDD progress ledger — LingoRoad plan
 
-## Session 2026-07-18 overnight (tasks 13, 14, 16 complete — ALL 16 TASKS DONE)
+## Session 2026-07-18 evening (DQN extended training — NEGATIVE RESULT, 800-ep result stands)
+- First re-verified reproducibility of the published PoC: re-run landed on the exact
+  published numbers, dqn_poc.png byte-identical (seeds fully deterministic).
+- User asked to train the DQN longer (spec 2ea1208, plan e0117aa — superpowers flow,
+  inline execution). Gate: replace published result only if greedy-eval return >= 0.581.
+- Measured, both attempts FAILED the gate:
+  (a) 4000 eps, schedule unchanged (decay over 400): greedy-eval 0.559 < 0.581,
+      despite training-curve means of ~0.60-0.63 mid-run (peak ~0.627 near ep 3500);
+  (b) fallback decay over 2000: greedy-eval 0.449 — below even greedy's 0.533.
+  Finding: eps=0.05 training returns diverge from eps=0 eval — late-training drift on
+  the rolling 10k buffer; the final network is not the best network. If anyone chases
+  DP (0.636) again, add checkpoint selection (periodic greedy eval, keep best), not
+  more episodes.
+- Repo state: published 800-ep result UNCHANGED everywhere (report, EN/VN docs,
+  EVIDENCE). Kept f7d96a8 (report generation extracted to pure report_lines(), gap
+  sentence + eps-decay length now computed — report can no longer go stale on re-run);
+  9261fb2 (EPISODES=4000) reverted by e16900f so the committed script reproduces the
+  committed report. Tests: ml 46 passed (44 + 2 new in tests/test_dqn_poc_report.py);
+  .NET untouched.
 - User asleep; instructed: per task, writing-plans → subagent-driven execution (implementer →
   spec review → quality review, fixes looped back to the same implementer). Plans committed to
   docs/superpowers/plans/2026-07-18-task{13,14,16}-*.md, amended in lockstep when reviews
