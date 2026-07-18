@@ -17,7 +17,7 @@ from lingoroad_ml.rl.dqn import DQNAgent
 from lingoroad_ml.rl.env import ToyLearnerEnv
 
 ROOT = Path(__file__).parents[1]
-EPISODES = 800
+EPISODES = 4000
 EPS_DECAY_EPISODES = 400
 CHECKPOINT_EVERY = 100
 VAL_SEED = 42       # validation env for selection — NEVER the test seed 123
