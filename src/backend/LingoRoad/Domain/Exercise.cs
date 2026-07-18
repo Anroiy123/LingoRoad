@@ -12,4 +12,5 @@ public class Exercise
     public required string CorrectAnswer { get; set; }
     public string? ExplanationVi { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? AnsweredAt { get; set; }
 }

@@ -49,7 +49,12 @@ public static class ExerciseEndpoints
             if (ex is null) return Results.NotFound();
             var correct = string.Equals(req.Answer.Trim(), ex.CorrectAnswer.Trim(),
                 StringComparison.OrdinalIgnoreCase);
-            await masteries.RecordAnswerAsync(user.UserId(), ex.SkillId, correct);
+            if (ex.AnsweredAt is null)
+            {
+                ex.AnsweredAt = DateTime.UtcNow;
+                await masteries.RecordAnswerAsync(user.UserId(), ex.SkillId, correct);
+                await db.SaveChangesAsync();
+            }
             return Results.Ok(new { correct, correctAnswer = ex.CorrectAnswer,
                 explanationVi = ex.ExplanationVi });
         });

@@ -46,6 +46,23 @@ public class ExerciseTests : IClassFixture<PlacementFactory>
     }
 
     [Fact]
+    public async Task Resubmit_does_not_inflate_mastery()
+    {
+        await AuthAsync();
+        var gen = await _client.PostAsJsonAsync("/exercises/generate",
+            new { skillCode = "grammar.tenses.present_perfect" });
+        var list = await gen.Content.ReadFromJsonAsync<List<ExDto>>();
+        await _client.PostAsJsonAsync($"/exercises/{list![0].Id}/submit", new { answer = "has lived" });
+        var after1 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");
+        var submit2 = await _client.PostAsJsonAsync($"/exercises/{list[0].Id}/submit", new { answer = "has lived" });
+        var result2 = await submit2.Content.ReadFromJsonAsync<SubmitDto>();
+        Assert.True(result2!.Correct);                       // still graded
+        var after2 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");
+        Assert.Equal(System.Text.Json.JsonSerializer.Serialize(after1),
+                     System.Text.Json.JsonSerializer.Serialize(after2));   // mastery unchanged
+    }
+
+    [Fact]
     public async Task Writing_evaluate_proxies_awe()
     {
         await AuthAsync();
