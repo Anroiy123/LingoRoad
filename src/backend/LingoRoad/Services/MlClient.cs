@@ -18,10 +18,21 @@ public record AdvisorSkillContext(string Code, string Name, double Mastery, stri
 public record AdvisorRequest(string Question, List<AdvisorSkillContext> Path, string Locale);
 public record AdvisorResponse(string Answer);
 
+public record ExerciseGenRequest(string SkillCode, string SkillName, string Cefr, string Type, int Count);
+public record GeneratedExercise(string Stem, string[] Options, string CorrectAnswer, string? ExplanationVi);
+public record ExerciseGenResponse(List<GeneratedExercise> Exercises);
+
+public record AweRequest(string TaskPrompt, string Essay);
+public record AweScores(double TaskAchievement, double CoherenceCohesion, double LexicalResource, double GrammaticalAccuracy);
+public record AweFeedback(string Sentence, string Issue, string Suggestion);
+public record AweResponse(AweScores Scores, List<AweFeedback> Feedback, string OverallVi);
+
 public interface IMlClient
 {
     Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default);
     Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default);
+    Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default);
+    Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default);
 }
 
 public class MlClient(HttpClient http) : IMlClient
@@ -37,6 +48,12 @@ public class MlClient(HttpClient http) : IMlClient
 
     public async Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default)
         => await PostAsync<AdvisorRequest, AdvisorResponse>("/llm/advisor", req, ct);
+
+    public async Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default)
+        => await PostAsync<ExerciseGenRequest, ExerciseGenResponse>("/llm/exercises", req, ct);
+
+    public async Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)
+        => await PostAsync<AweRequest, AweResponse>("/llm/awe", req, ct);
 
     protected async Task<TRes> PostAsync<TReq, TRes>(string path, TReq body, CancellationToken ct)
     {

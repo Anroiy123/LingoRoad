@@ -51,6 +51,7 @@ app.MapPlacement();
 app.MapMastery();
 app.MapReviews();
 app.MapPath();
+app.MapExercises();
 
 app.Run();
 

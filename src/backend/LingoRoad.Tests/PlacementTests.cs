@@ -24,6 +24,17 @@ public class FakeMlClient : IMlClient
 
     public Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default)
         => Task.FromResult(new AdvisorResponse("Bạn nên học kỹ năng này vì nó là nền tảng."));
+
+    public Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default)
+        => Task.FromResult(new ExerciseGenResponse([
+            new GeneratedExercise("She ___ here since 2019.",
+                ["has lived", "lived", "lives", "living"], "has lived",
+                "Dùng thì hiện tại hoàn thành với 'since'.")]));
+
+    public Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)
+        => Task.FromResult(new AweResponse(new AweScores(6, 6, 5, 5),
+            [new AweFeedback("My hometown is Da Nang.", "Câu quá ngắn", "Thêm chi tiết mô tả.")],
+            "Bài viết ổn, cần phát triển ý."));
 }
 
 public class PlacementFactory : TestAppFactory
