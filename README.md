@@ -13,9 +13,9 @@ path — with explanations in Vietnamese.
 | Knowledge tracing | SAINT+ Transformer (vs DKT/DKVMN baselines) | Done |
 | Skill mastery | EMA with forgetting decay | Done |
 | Spaced repetition | FSRS-4.5 | Done |
-| Personalized learning path | Prerequisite-DAG rules; DQN PoC planned | Done / planned |
-| Vietnamese study advisor | RAG + Gemini | Done (code) |
-| Exercise generation, AWE, speaking | LLM + Whisper ASR | Planned |
+| Personalized learning path | Prerequisite-DAG rules; DQN PoC planned | Done (DQN PoC measured) |
+| Vietnamese study advisor | RAG + Gemini | Done |
+| Exercise generation, AWE, speaking | LLM + Whisper ASR | Done |
 
 Details and evidence: [docs/ai-theory-and-algorithms.md](docs/ai-theory-and-algorithms.md).
 
@@ -44,5 +44,7 @@ cd src/backend/ml && .venv/Scripts/uvicorn lingoroad_ml.serving.app:app --port 8
 ```
 
 Tests: `dotnet test src/backend` and `cd src/backend/ml && .venv/Scripts/python -m pytest tests/ -v`.
+
+End-to-end smoke (both services running): `cd src/backend && ml/.venv/Scripts/python ml/research/e2e_smoke.py`.
 
 Architecture, schema, and data flows: [docs/system-architecture.md](docs/system-architecture.md).
