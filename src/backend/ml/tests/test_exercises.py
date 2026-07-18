@@ -23,6 +23,10 @@ def test_wordnet_distractors_exclude_the_answer():
     ds = wordnet_distractors("happy", n=3)
     assert "happy" not in ds
     assert len(ds) <= 3
+    assert "unhappy" in ds
+
+def test_wordnet_distractors_n_zero_returns_empty():
+    assert wordnet_distractors("happy", 0) == []
 
 def test_awe_prompt_contains_ielts_criteria():
     msgs = build_awe_messages("Describe your hometown.", "My hometown is small...")
