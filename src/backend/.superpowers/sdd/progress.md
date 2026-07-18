@@ -1,5 +1,33 @@
 # SDD progress ledger — LingoRoad plan
 
+## Session 2026-07-19 (DQN checkpoint selection — GATE PASSED, 0.588 is the new headline)
+- Continuation of 2026-07-18's negative result, per its own ledger recommendation:
+  checkpoint selection instead of more episodes. Superpowers flow (spec 5cb2b7d,
+  plan b1b9514), inline execution.
+- Method: every 100 training episodes (of 4000, eps decay over 400 unchanged),
+  20-episode greedy eval on validation seed 42 (NEVER test seed 123); best
+  state_dict kept and loaded before the test eval. DQNAgent untouched — selection
+  lives in research/dqn_poc.py train_dqn(episodes, checkpoint_every), which now
+  returns (agent, curve, best_ep, best_val).
+- Measured: best checkpoint at ep 2800 (val 0.592) → test-eval 0.588 >= 0.581
+  GATE PASSED. Final ordering DP 0.636 > DQN 0.588 > greedy 0.533 > random 0.197
+  (baselines exact-reproduced). Gaps now +0.056 (+10%) vs greedy. Training
+  trajectory was wholly different from 2026-07-18 (validation evals consume the
+  shared random stream — expected); curve wandered ~0.1-0.4 for 1800 eps before
+  climbing, which is itself a nice robustness story: selection rescued a bad
+  trajectory. DQN offline cost now 466.2s (selection evals included).
+- Replaced everywhere: 302248a (dqn_poc.{md,png} — report protocol text names the
+  selection method + selected episode; plot marks it), 9de0468
+  (learning-path-optimization.md §6.1/§7, bao-cao-mang-3-vn.md A.6.1/A.7,
+  EVIDENCE.md row 7). Feature commits: 052c78d (selection + tests), 1357278
+  (EPISODES=4000).
+- Tests: ml 47 passed (46 + test_dqn_checkpoint.py: returned agent must exactly
+  reproduce best_val on the validation seed). .NET untouched. Stale-number grep
+  over published docs: zero hits.
+- Live-demo note for defense: full re-run now ~9 min (466s DQN + 53s DP + eval);
+  the 2.5-min quick demo of the old 800-ep result no longer matches published
+  numbers — re-run the full script if asked for a live reproduction.
+
 ## Session 2026-07-18 evening (DQN extended training — NEGATIVE RESULT, 800-ep result stands)
 - First re-verified reproducibility of the published PoC: re-run landed on the exact
   published numbers, dqn_poc.png byte-identical (seeds fully deterministic).
