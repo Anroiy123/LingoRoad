@@ -408,10 +408,43 @@ git commit -m "feat: speaking attempts upload endpoint with ML scoring proxy"
 
 ---
 
-### Task 3: Migration, live check with synthesized audio, report sample
+### Task 3: Review fixes, migration, live check with synthesized audio, report sample
 
 **Files:**
+- Modify: `src/backend/LingoRoad/Endpoints/SpeakingEndpoints.cs`
 - Create: migration `AddSpeakingAttempts` (generated), `src/backend/ml/reports/samples/speaking.md`
+
+- [ ] **Step 0: Code-review fixes (before the migration finalizes column semantics)**
+
+Task 2's quality review found three items to land now, all in `SpeakingEndpoints.cs`:
+
+1. **Orphaned uploads:** the file is saved before the ML call; on the 503 path it stays on disk forever. Delete it in the catch:
+
+```csharp
+catch (MlServiceUnavailableException)
+{
+    try { File.Delete(path); } catch { /* best effort */ }
+    return ApiResults.MlUnavailable();
+}
+```
+
+2. **Relative AudioPath:** persist `Path.Combine("uploads", fileName)` (the on-disk file name, not the client's) instead of the absolute path — absolute paths break on relocation and can't serve a frontend. Keep writing the file to the same absolute location; only the persisted string changes.
+
+3. **Extension whitelist:** don't trust the client extension (NTFS alternate-data-stream edge on Windows):
+
+```csharp
+var ext = Path.GetExtension(audio.FileName).ToLowerInvariant();
+if (ext is not (".webm" or ".mp3" or ".wav" or ".m4a" or ".ogg")) ext = ".bin";
+var fileName = $"{Guid.NewGuid():N}{ext}";
+var path = Path.Combine(dir, fileName);
+```
+
+Run the full .NET suite (expect 41 passed, unchanged — the happy-path test still passes; the changed semantics are not covered by tests, that gap is ledger-noted). Commit:
+
+```powershell
+git add LingoRoad/Endpoints/SpeakingEndpoints.cs
+git commit -m "fix: speaking upload — delete orphan on ML failure, relative AudioPath, extension whitelist"
+```
 
 - [ ] **Step 1: Add + apply the EF migration**
 
@@ -443,13 +476,17 @@ cd C:\Projects\LingoRoad\src\backend\LingoRoad
 dotnet run --launch-profile http
 ```
 
-Register a fresh user, then:
+**Pre-warm Whisper FIRST (review finding):** the .NET→ML HttpClient timeout is 30s, but the first `/speech/score` call downloads the ~460 MB model — going through the API first would return a false 503. Warm the model with a direct ML call and a long curl timeout, and only then exercise the API path:
 
 ```powershell
-curl -s -X POST http://localhost:5000/speaking/attempts -H "Authorization: Bearer $tok" -F "audio=@<scratchpad>\speaking_clip.mp3" -F "promptText=I have lived here for two years"
+curl -s -m 900 -X POST http://localhost:8001/speech/score -F "file=@$env:TEMP\speaking_clip.mp3" -F "prompt_text=I have lived here for two years"
 ```
 
-First call downloads the Whisper "small" model (~460 MB) — allow a few minutes; bump curl timeout accordingly. Verify: transcript ≈ the prompt, accuracy near 1.0, sensible fluency, Vietnamese `feedbackVi`; then `GET /speaking/attempts` shows the row. Also verify the direct ML route once (`POST http://localhost:8001/speech/score` multipart) so the sample can show both layers.
+Then register a fresh user and go through the API:
+
+```powershell
+curl -s -X POST http://localhost:5000/speaking/attempts -H "Authorization: Bearer $tok" -F "audio=@$env:TEMP\speaking_clip.mp3" -F "promptText=I have lived here for two years"
+``` Verify: transcript ≈ the prompt, accuracy near 1.0, sensible fluency, Vietnamese `feedbackVi`; then `GET /speaking/attempts` shows the row. Also verify the direct ML route once (`POST http://localhost:8001/speech/score` multipart) so the sample can show both layers.
 
 - [ ] **Step 4: Save the report sample**
 
