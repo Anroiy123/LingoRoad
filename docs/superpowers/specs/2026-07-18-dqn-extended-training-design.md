@@ -45,6 +45,9 @@ result everywhere it is published.
 - `docs/learning-path-optimization.md` — §6.1 measured table refreshed wholesale
   from the new run (baseline returns won't change, but their timing columns
   jitter), plus any prose citing 0.581 / 800 episodes.
+- `docs/bao-cao-mang-3-vn.md` — the Vietnamese report mirrors the same table
+  (§A.6.1) and prose (§A.7); update in lockstep. (Found during planning; added
+  to keep the change surface complete.)
 - `ml/reports/EVIDENCE.md` — DQN PoC numbers.
 - `src/backend/.superpowers/sdd/progress.md` — session ledger entry.
 
