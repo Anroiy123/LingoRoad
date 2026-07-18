@@ -198,9 +198,9 @@ the others*. RL is the only method that both scales and optimizes long-horizon e
 
 | Policy | Mean return | Mean episode length | Goal-reach rate | Offline cost (s) | Latency (ms/decision) |
 |---|---|---|---|---|---|
-| DP (value iteration) | 0.636 | 60.0 | 0.00 | 50.2 | 0.149 |
-| DQN | 0.581 | 60.0 | 0.00 | 82.3 | 0.071 |
-| Greedy (fixed order) | 0.533 | 60.0 | 0.00 | 0.0 | 0.002 |
+| DP (value iteration) | 0.636 | 60.0 | 0.00 | 53.3 | 0.142 |
+| DQN | 0.588 | 60.0 | 0.00 | 466.2 | 0.067 |
+| Greedy (fixed order) | 0.533 | 60.0 | 0.00 | 0.0 | 0.003 |
 | Random | 0.197 | 60.0 | 0.00 | 0.0 | 0.002 |
 
 100 eval episodes, seed 123, identical dynamics for all policies (protocol §7). The
@@ -213,7 +213,7 @@ quoting:
    policy (goal-reach 0.00 across the board). The comparison is decided by
    mastery-growth efficiency alone.
 2. **Fixed-order greedy is not near-optimal under forgetting** *(tham lam không còn
-   gần tối ưu khi có quên)*: DQN beats it by +9% and DP by +19% mean return, because
+   gần tối ưu khi có quên)*: DQN beats it by +10% and DP by +19% mean return, because
    the fixed order keeps re-practicing early skills at diminishing returns instead of
    maximising marginal gain. The gaps are the "độ chính xác" column above, measured.
 
@@ -222,7 +222,8 @@ Full report with the learning curve: `src/backend/ml/reports/dqn_poc.md`.
 ## 7. Experiment protocol (executed with task 15)
 
 Purpose: put measured numbers behind §6, all four policies on **identical dynamics**.
-Executed by task 15 (2026-07-17); results in §6.1 and
+Executed by task 15 (2026-07-17); DQN retrained with checkpoint selection
+(2026-07-19); results in §6.1 and
 `src/backend/ml/reports/dqn_poc.md`; code under `src/backend/ml/lingoroad_ml/rl/`.
 Two protocol details changed during implementation — both flagged below.
 
@@ -250,7 +251,9 @@ well-defined.
    (V(terminal) = 1, with zero continuation for true one-step goal transitions so the
    bonus is never double-counted). The policy acts by one-step lookahead on the real
    dynamics with interpolated V. See `lingoroad_ml/rl/dp.py`.
-4. **DQN** — as trained by task 15 (800 episodes, ε 1.0 → 0.05).
+4. **DQN** — retrained 2026-07-19: 4000 episodes, ε 1.0 → 0.05 over 400,
+   checkpoint selection (greedy 20-episode validation eval on seed 42 every 100
+   episodes, best network kept — selected at episode 2800).
 
 **Protocol.** Task 15's `run_policy` evaluation: 100 episodes, seed 123. Report per
 policy: (a) mean return; (b) mean episode length (time-to-goal, censored at the 60-step
@@ -260,7 +263,7 @@ training wall-clock, zero for greedy/random; (e) per-decision latency.
 **Expected ordering:** DP ≥ DQN ≥ greedy > random on return. DP is the expected upper
 bound (exact for the discretized model); the gaps quantify how much optimality greedy
 and DQN sacrifice — the "độ chính xác" column of §6, measured.
-*Outcome:* the ordering held exactly (§6.1: 0.636 > 0.581 > 0.533 > 0.197). One
+*Outcome:* the ordering held exactly (§6.1: 0.636 > 0.588 > 0.533 > 0.197). One
 pre-registered assumption did not: the goal is unreachable within the 60-step cap at
 n = 5 for *any* policy (§6.1, finding 1), so time-to-goal and goal-reach rate are
 degenerate (60.0 / 0.00 for all rows) and the return comparison rests on

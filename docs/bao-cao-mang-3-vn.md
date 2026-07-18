@@ -118,21 +118,21 @@ Kết luận: greedy là phương pháp duy nhất có chi phí bằng không, k
 
 | Chính sách | Return trung bình | Độ dài episode TB | Tỉ lệ đạt mục tiêu | Chi phí ngoại tuyến (s) | Độ trễ (ms/quyết định) |
 |---|---|---|---|---|---|
-| DP (value iteration) | 0.636 | 60.0 | 0.00 | 50.2 | 0.149 |
-| DQN | 0.581 | 60.0 | 0.00 | 82.3 | 0.071 |
-| Greedy (thứ tự cố định) | 0.533 | 60.0 | 0.00 | 0.0 | 0.002 |
+| DP (value iteration) | 0.636 | 60.0 | 0.00 | 53.3 | 0.142 |
+| DQN | 0.588 | 60.0 | 0.00 | 466.2 | 0.067 |
+| Greedy (thứ tự cố định) | 0.533 | 60.0 | 0.00 | 0.0 | 0.003 |
 | Ngẫu nhiên | 0.197 | 60.0 | 0.00 | 0.0 | 0.002 |
 
 100 episode đánh giá, seed 123, động lực học giống hệt nhau cho mọi chính sách (giao thức A.7). Thứ tự kỳ vọng **DP ≥ DQN ≥ greedy > ngẫu nhiên** được xác nhận. Hai phát hiện đo được đáng trích dẫn:
 
 1. **Mục tiêu không bao giờ đạt được ở n = 5.** Tổng suy giảm do quên là 5 × 0.005 = 0.025/bước trong khi lợi ích luyện tập co lại khi độ thành thạo tăng (0.15·(1−m)), nên đẩy cả năm kỹ năng lên ≥ 0.8 *đồng thời* cần ~80–90 bước — vượt trần 60 bước, với *mọi* chính sách (tỉ lệ đạt mục tiêu 0.00 toàn bảng). Phép so sánh do đó được quyết định thuần túy bởi hiệu suất tăng trưởng độ thành thạo.
-2. **Greedy thứ tự cố định không còn gần tối ưu khi có sự quên:** DQN vượt nó +9% và DP vượt +19% return trung bình, vì thứ tự cố định cứ luyện lại các kỹ năng đầu với lợi ích cận biên giảm dần thay vì tối đa hóa lợi ích cận biên. Các khoảng cách này chính là cột "độ chính xác" ở bảng trên, được đo bằng số.
+2. **Greedy thứ tự cố định không còn gần tối ưu khi có sự quên:** DQN vượt nó +10% và DP vượt +19% return trung bình, vì thứ tự cố định cứ luyện lại các kỹ năng đầu với lợi ích cận biên giảm dần thay vì tối đa hóa lợi ích cận biên. Các khoảng cách này chính là cột "độ chính xác" ở bảng trên, được đo bằng số.
 
 Báo cáo đầy đủ kèm đường cong học: `src/backend/ml/reports/dqn_poc.md`.
 
 ## A.7. Giao thức thí nghiệm (đã thực hiện cùng task 15)
 
-Mục đích: đặt số liệu đo được phía sau A.6 — cả bốn chính sách trên **cùng một động lực học**. Đã thực hiện ngày 17/07/2026; kết quả ở A.6.1 và `src/backend/ml/reports/dqn_poc.md`; mã nguồn tại `src/backend/ml/lingoroad_ml/rl/`. Hai chi tiết giao thức đã thay đổi trong lúc hiện thực — đều được ghi chú bên dưới.
+Mục đích: đặt số liệu đo được phía sau A.6 — cả bốn chính sách trên **cùng một động lực học**. Đã thực hiện ngày 17/07/2026; DQN huấn luyện lại với checkpoint selection ngày 19/07/2026; kết quả ở A.6.1 và `src/backend/ml/reports/dqn_poc.md`; mã nguồn tại `src/backend/ml/lingoroad_ml/rl/`. Hai chi tiết giao thức đã thay đổi trong lúc hiện thực — đều được ghi chú bên dưới.
 
 **Môi trường.** `ToyLearnerEnv` của task 15: n = 5 kỹ năng nối chuỗi (kỹ năng *i* cần kỹ năng *i−1* ≥ 0.5), lợi ích 0.15·(1−m) khi đã mở khóa, ngược lại 0.01; suy giảm 0.005/bước cho mọi kỹ năng; episode kết thúc khi tất cả ≥ 0.8 (thưởng +1) hoặc sau 60 bước. Lưu ý các phép chuyển là tất định — chỉ `reset()` là ngẫu nhiên — nên nghiệm DP chính xác được định nghĩa rõ.
 
@@ -141,12 +141,12 @@ Mục đích: đặt số liệu đo được phía sau A.6 — cả bốn chín
 2. **Greedy** — kỹ năng đầu tiên có độ thành thạo < 0.8, từ trước ra sau (chính sách thứ tự cố định của task 15; bản thu nhỏ của pipeline luật ở A.3.1: một thứ tự ưu tiên cố định, bỏ qua kỹ năng đã thành thạo).
 3. **DP** — value iteration trên môi trường rời rạc hóa: k = 11 mức mỗi kỹ năng (0.0, 0.1, …, 1.0) → 11⁵ = 161.051 trạng thái; phép chuyển lấy từ động lực học thật; γ = 0.98; lặp đến khi ‖V_{k+1} − V_k‖∞ < 1e-6.
    *Điều chỉnh trong lúc hiện thực:* phép làm tròn về nút lưới gần nhất như đặc tả ban đầu bị **suy biến** ở k = 11 — lợi ích luyện tập ở vùng thành thạo cao nhỏ hơn nửa ô lưới (0.7 → 0.74 lại tròn về 0.7), khiến mục tiêu không thể đạt trong chuỗi đã làm tròn và phần thưởng +1 biến mất khỏi mọi phép chuyển dạng bảng; DP đo được khi đó *thấp hơn* greedy. Bản hiện thực thay vào đó biểu diễn trạng thái kế bằng **nội suy đa tuyến** trên 2⁵ nút lưới lân cận (xấp xỉ chuỗi Markov kiểu Kushner–Dupuis, chính xác theo kỳ vọng) và gắn phần thưởng mục tiêu vào *thời điểm đi vào tập mục tiêu* (V(terminal) = 1, các phép chuyển một bước thật sự chạm mục tiêu giữ thưởng trong r với trọng số tiếp diễn bằng 0 để không tính trùng). Chính sách hành động bằng lookahead một bước trên động lực học thật với V nội suy. Xem `lingoroad_ml/rl/dp.py`.
-4. **DQN** — như task 15 huấn luyện (800 episode, ε 1.0 → 0.05).
+4. **DQN** — huấn luyện lại ngày 19/07/2026: 4000 episode, ε 1.0 → 0.05 trong 400 episode đầu, checkpoint selection (đánh giá greedy 20 episode trên seed kiểm định 42 mỗi 100 episode, giữ mạng tốt nhất — chọn tại episode 2800).
 
 **Giao thức đo.** Đánh giá 100 episode, seed 123. Báo cáo cho từng chính sách: (a) return trung bình; (b) độ dài episode trung bình (thời-gian-tới-mục-tiêu, chặn trần 60 bước); (c) tỉ lệ đạt mục tiêu trong trần; (d) chi phí ngoại tuyến — thời gian giải DP, thời gian huấn luyện DQN, bằng 0 với greedy/ngẫu nhiên; (e) độ trễ mỗi quyết định.
 
 **Thứ tự kỳ vọng:** DP ≥ DQN ≥ greedy > ngẫu nhiên theo return. DP là cận trên kỳ vọng (chính xác cho mô hình rời rạc hóa); các khoảng cách định lượng mức tối ưu mà greedy và DQN hy sinh — cột "độ chính xác" của A.6, đo bằng số.
-*Kết quả:* thứ tự đúng chính xác như kỳ vọng (A.6.1: 0.636 > 0.581 > 0.533 > 0.197). Một giả định đăng ký trước không đúng: mục tiêu không thể đạt trong trần 60 bước ở n = 5 với *mọi* chính sách (A.6.1, phát hiện 1), nên thời-gian-tới-mục-tiêu và tỉ lệ đạt mục tiêu suy biến (60.0 / 0.00 mọi hàng) và phép so sánh return dựa trên hiệu suất tăng trưởng độ thành thạo.
+*Kết quả:* thứ tự đúng chính xác như kỳ vọng (A.6.1: 0.636 > 0.588 > 0.533 > 0.197). Một giả định đăng ký trước không đúng: mục tiêu không thể đạt trong trần 60 bước ở n = 5 với *mọi* chính sách (A.6.1, phát hiện 1), nên thời-gian-tới-mục-tiêu và tỉ lệ đạt mục tiêu suy biến (60.0 / 0.00 mọi hàng) và phép so sánh return dựa trên hiệu suất tăng trưởng độ thành thạo.
 
 ## A.8. Đề xuất
 

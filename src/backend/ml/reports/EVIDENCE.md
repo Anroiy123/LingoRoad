@@ -8,7 +8,7 @@
 | 4 | Knowledge graph: 174 skill nodes (156 leaf micro-skills + 18 containers) + prerequisite edges | `GET /skills/graph`, `LingoRoad/Data/Seed/skills.json` | 1.2 |
 | 5 | Live SAINT+ inference | `POST /kt/predict` demo (QG_KT_CHECKPOINT=ml/checkpoints/saint_plus.pt) | 1.2 |
 | 6 | Rule-based path + FSRS schedule | `GET /path`, `/reviews/*` (exercised by e2e smoke) | 1.3 |
-| 7 | DQN PoC (100 eps, seed 123): DP 0.636 > DQN 0.581 > greedy 0.533 > random 0.197 | `ml/reports/dqn_poc.{md,png}`, `docs/learning-path-optimization.md` §6.1 | 1.3 |
+| 7 | DQN PoC (100 eps, seed 123; DQN 4000 eps + checkpoint selection): DP 0.636 > DQN 0.588 > greedy 0.533 > random 0.197 | `ml/reports/dqn_poc.{md,png}`, `docs/learning-path-optimization.md` §6.1 | 1.3 |
 | 8 | Advisor sample (Vietnamese, RAG-grounded) | `ml/reports/samples/advisor.md` | 1.3 |
 | 9 | Generated exercises + WordNet distractors sample | `ml/reports/samples/exercises.md` | 1.4 |
 | 10 | AWE sample (IELTS rubric, Vietnamese feedback) | `ml/reports/samples/awe.md` | 1.4 |
