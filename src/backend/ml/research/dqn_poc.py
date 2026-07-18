@@ -3,6 +3,7 @@
 Protocol: docs/learning-path-optimization.md §7. Run as a module from ml/:
     .venv/Scripts/python -m research.dqn_poc
 """
+import copy
 import time
 from pathlib import Path
 
@@ -18,6 +19,9 @@ from lingoroad_ml.rl.env import ToyLearnerEnv
 ROOT = Path(__file__).parents[1]
 EPISODES = 800
 EPS_DECAY_EPISODES = 400
+CHECKPOINT_EVERY = 100
+VAL_SEED = 42       # validation env for selection — NEVER the test seed 123
+VAL_EPISODES = 20
 N_SKILLS = 5
 
 
@@ -43,11 +47,21 @@ def evaluate(policy, episodes=100, seed=123):
             "latency_ms": float(np.mean(latencies) * 1e3)}
 
 
-def train_dqn():
+def train_dqn(episodes=EPISODES, checkpoint_every=CHECKPOINT_EVERY):
     env = ToyLearnerEnv(n_skills=N_SKILLS, seed=0)
     agent = DQNAgent(state_dim=N_SKILLS, n_actions=N_SKILLS, seed=0)
     curve = []
-    for ep in range(EPISODES):
+    best_val, best_ep, best_state = float("-inf"), 0, None
+
+    def validate(after_ep):
+        nonlocal best_val, best_ep, best_state
+        val = evaluate(lambda s: agent.act(s, eps=0.0),
+                       episodes=VAL_EPISODES, seed=VAL_SEED)["return"]
+        if val > best_val:
+            best_val, best_ep = val, after_ep
+            best_state = copy.deepcopy(agent.q.state_dict())
+
+    for ep in range(episodes):
         eps = max(0.05, 1.0 - ep / EPS_DECAY_EPISODES)
         s, total, done = env.reset(), 0.0, False
         while not done:
@@ -59,17 +73,26 @@ def train_dqn():
         curve.append(total)
         if ep % 100 == 0:
             print(f"ep {ep}: mean return (last 100) {np.mean(curve[-100:]):.3f}", flush=True)
-    return agent, curve
+        if (ep + 1) % checkpoint_every == 0:
+            validate(ep + 1)
+    if episodes % checkpoint_every:
+        validate(episodes)
+    agent.q.load_state_dict(best_state)
+    agent.target.load_state_dict(best_state)
+    return agent, curve, best_ep, best_val
 
 
-def report_lines(results):
+def report_lines(results, best_ep):
     """Markdown report body. Every measured number comes from `results`."""
     lines = [
         "# DQN PoC — four-policy comparison on ToyLearnerEnv",
         "",
         "Protocol: `docs/learning-path-optimization.md` §7 — 100 eval episodes, seed 123,",
         f"identical dynamics for all policies. DQN: {EPISODES} training episodes,",
-        f"eps 1.0 -> 0.05 over {EPS_DECAY_EPISODES}. DP: k=11 grid (11^5 = 161,051 states),",
+        f"eps 1.0 -> 0.05 over {EPS_DECAY_EPISODES}; checkpoint selection — greedy eval",
+        f"({VAL_EPISODES} episodes, validation seed {VAL_SEED}, never the test seed) every",
+        f"{CHECKPOINT_EVERY} episodes, best network kept (selected at episode {best_ep}).",
+        "DP: k=11 grid (11^5 = 161,051 states),",
         "multilinear-interpolated successors (Kushner-Dupuis), goal bonus on arrival",
         "in the goal set, gamma = 0.98, tol 1e-6 (offline cost includes building the",
         "transition table).",
@@ -113,9 +136,10 @@ def report_lines(results):
 
 def main():
     t0 = time.perf_counter()
-    agent, curve = train_dqn()
+    agent, curve, best_ep, best_val = train_dqn()
     dqn_cost = time.perf_counter() - t0
-    print(f"DQN trained in {dqn_cost:.1f}s", flush=True)
+    print(f"DQN trained in {dqn_cost:.1f}s (best checkpoint: ep {best_ep}, "
+          f"val return {best_val:.3f})", flush=True)
 
     t0 = time.perf_counter()
     dp = solve(n_skills=N_SKILLS, k=11)
@@ -136,6 +160,7 @@ def main():
     smooth = np.convolve(curve, np.ones(20) / 20, mode="valid")
     plt.figure(figsize=(7, 4))
     plt.plot(smooth, label="DQN (smoothed)")
+    plt.axvline(best_ep, color="tab:red", ls=":", lw=1, label=f"selected ep {best_ep}")
     for name, color, ls in [("Random", "gray", ":"),
                             ("Greedy (fixed order)", "tab:orange", "--"),
                             ("DP (value iteration)", "tab:green", "-.")]:
@@ -147,7 +172,7 @@ def main():
     plt.tight_layout()
     plt.savefig(out / "dqn_poc.png", dpi=150)
 
-    (out / "dqn_poc.md").write_text("\n".join(report_lines(results)) + "\n",
+    (out / "dqn_poc.md").write_text("\n".join(report_lines(results, best_ep)) + "\n",
                                     encoding="utf-8")
     for name, (m, cost) in results.items():
         print(f"{name}: return {m['return']:.3f}, len {m['length']:.1f}, "
