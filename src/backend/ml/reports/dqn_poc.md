@@ -1,17 +1,20 @@
 # DQN PoC — four-policy comparison on ToyLearnerEnv
 
 Protocol: `docs/learning-path-optimization.md` §7 — 100 eval episodes, seed 123,
-identical dynamics for all policies. DQN: 800 training episodes,
-eps 1.0 -> 0.05 over 400. DP: k=11 grid (11^5 = 161,051 states),
+identical dynamics for all policies. DQN: 4000 training episodes,
+eps 1.0 -> 0.05 over 400; checkpoint selection — greedy eval
+(20 episodes, validation seed 42, never the test seed) every
+100 episodes, best network kept (selected at episode 2800).
+DP: k=11 grid (11^5 = 161,051 states),
 multilinear-interpolated successors (Kushner-Dupuis), goal bonus on arrival
 in the goal set, gamma = 0.98, tol 1e-6 (offline cost includes building the
 transition table).
 
 | Policy | Mean return | Mean episode length | Goal-reach rate | Offline cost (s) | Latency (ms/decision) |
 |---|---|---|---|---|---|
-| DP (value iteration) | 0.636 | 60.0 | 0.00 | 50.2 | 0.149 |
-| DQN | 0.581 | 60.0 | 0.00 | 82.3 | 0.071 |
-| Greedy (fixed order) | 0.533 | 60.0 | 0.00 | 0.0 | 0.002 |
+| DP (value iteration) | 0.636 | 60.0 | 0.00 | 53.3 | 0.142 |
+| DQN | 0.588 | 60.0 | 0.00 | 466.2 | 0.067 |
+| Greedy (fixed order) | 0.533 | 60.0 | 0.00 | 0.0 | 0.003 |
 | Random | 0.197 | 60.0 | 0.00 | 0.0 | 0.002 |
 
 Notes:
@@ -32,6 +35,7 @@ Notes:
   chain — hence the interpolated model; see lingoroad_ml/rl/dp.py.
 - The a-priori expectation (task file) that a fixed-order heuristic is
   near-optimal on a 5-skill chain did not survive measurement under forgetting:
-  DQN beats greedy by +0.048 (+9%) and DP by +0.103 (+19%) mean return. The
-  gaps quantify what optimising marginal gain buys over a fixed order — the
-  'do chinh xac' (accuracy) column of doc §6, measured.
+  DQN beats greedy by +0.056 (+10%) and DP by
+  +0.104 (+19%) mean return. The gaps quantify what
+  optimising marginal gain buys over a fixed order — the 'do chinh xac'
+  (accuracy) column of doc §6, measured.
