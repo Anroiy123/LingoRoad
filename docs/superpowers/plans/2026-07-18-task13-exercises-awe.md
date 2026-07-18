@@ -456,10 +456,59 @@ git commit -m "feat: exercise generate/submit endpoints and writing evaluation v
 
 ---
 
-### Task 3: Migration, live check with real Gemini, report samples
+### Task 3: Submit-replay fix, migration, live check with real Gemini, report samples
 
 **Files:**
+- Modify: `src/backend/LingoRoad/Domain/Exercise.cs`, `src/backend/LingoRoad/Endpoints/ExerciseEndpoints.cs`, `src/backend/LingoRoad.Tests/ExerciseTests.cs`
 - Create: migration `AddExercises` (generated), `src/backend/ml/reports/samples/exercises.md`, `src/backend/ml/reports/samples/awe.md`
+
+- [ ] **Step 0: Submit idempotency (code-review follow-up — replayable submit inflated mastery)**
+
+Task 2's quality review found that re-POSTing `/exercises/{id}/submit` with the revealed answer re-runs `RecordAnswerAsync` each time, letting a learner ratchet mastery. Fix before generating the migration so the schema change rides along:
+
+1. `Exercise.cs`: add `public DateTime? AnsweredAt { get; set; }` after `CreatedAt`.
+2. `ExerciseEndpoints.cs` submit handler: keep grading as-is, but only record mastery on the FIRST submit:
+
+```csharp
+var correct = string.Equals(req.Answer.Trim(), ex.CorrectAnswer.Trim(),
+    StringComparison.OrdinalIgnoreCase);
+if (ex.AnsweredAt is null)
+{
+    ex.AnsweredAt = DateTime.UtcNow;
+    await masteries.RecordAnswerAsync(user.UserId(), ex.SkillId, correct);
+    await db.SaveChangesAsync();
+}
+return Results.Ok(new { correct, correctAnswer = ex.CorrectAnswer,
+    explanationVi = ex.ExplanationVi });
+```
+
+3. Failing test first in `ExerciseTests.cs` (red: second submit currently changes mastery):
+
+```csharp
+[Fact]
+public async Task Resubmit_does_not_inflate_mastery()
+{
+    await AuthAsync();
+    var gen = await _client.PostAsJsonAsync("/exercises/generate",
+        new { skillCode = "grammar.tenses.present_perfect" });
+    var list = await gen.Content.ReadFromJsonAsync<List<ExDto>>();
+    await _client.PostAsJsonAsync($"/exercises/{list![0].Id}/submit", new { answer = "has lived" });
+    var after1 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");
+    var submit2 = await _client.PostAsJsonAsync($"/exercises/{list[0].Id}/submit", new { answer = "has lived" });
+    var result2 = await submit2.Content.ReadFromJsonAsync<SubmitDto>();
+    Assert.True(result2!.Correct);                       // still graded
+    var after2 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");
+    Assert.Equal(System.Text.Json.JsonSerializer.Serialize(after1),
+                 System.Text.Json.JsonSerializer.Serialize(after2));   // mastery unchanged
+}
+```
+
+Run red → implement → `dotnet test LingoRoad.Tests` all green (expect 40) → commit:
+
+```powershell
+git add LingoRoad/Domain/Exercise.cs LingoRoad/Endpoints/ExerciseEndpoints.cs LingoRoad.Tests/ExerciseTests.cs
+git commit -m "fix: exercise submit records mastery only once (replay guard)"
+```
 
 - [ ] **Step 1: Add + apply the EF migration**
 
