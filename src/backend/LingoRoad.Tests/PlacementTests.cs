@@ -35,6 +35,11 @@ public class FakeMlClient : IMlClient
         => Task.FromResult(new AweResponse(new AweScores(6, 6, 5, 5),
             [new AweFeedback("My hometown is Da Nang.", "Câu quá ngắn", "Thêm chi tiết mô tả.")],
             "Bài viết ổn, cần phát triển ý."));
+
+    public Task<SpeakingScoreResponse> ScoreSpeakingAsync(Stream audio, string fileName,
+        string promptText, CancellationToken ct = default)
+        => Task.FromResult(new SpeakingScoreResponse(promptText, 0.9, 1.0, 0.8, 0.88,
+            "Phát âm tốt, chú ý âm cuối."));
 }
 
 public class PlacementFactory : TestAppFactory

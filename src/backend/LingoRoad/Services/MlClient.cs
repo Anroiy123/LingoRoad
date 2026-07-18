@@ -27,12 +27,17 @@ public record AweScores(double TaskAchievement, double CoherenceCohesion, double
 public record AweFeedback(string Sentence, string Issue, string Suggestion);
 public record AweResponse(AweScores Scores, List<AweFeedback> Feedback, string OverallVi);
 
+public record SpeakingScoreResponse(string Transcript, double Accuracy, double Completeness,
+    double Fluency, double Total,
+    [property: JsonPropertyName("feedback_vi")] string FeedbackVi);
+
 public interface IMlClient
 {
     Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default);
     Task<AdvisorResponse> AdvisorAsync(AdvisorRequest req, CancellationToken ct = default);
     Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default);
     Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default);
+    Task<SpeakingScoreResponse> ScoreSpeakingAsync(Stream audio, string fileName, string promptText, CancellationToken ct = default);
 }
 
 public class MlClient(HttpClient http) : IMlClient
@@ -54,6 +59,26 @@ public class MlClient(HttpClient http) : IMlClient
 
     public async Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)
         => await PostAsync<AweRequest, AweResponse>("/llm/awe", req, ct);
+
+    public async Task<SpeakingScoreResponse> ScoreSpeakingAsync(Stream audio, string fileName,
+        string promptText, CancellationToken ct = default)
+    {
+        try
+        {
+            using var form = new MultipartFormDataContent
+            {
+                { new StreamContent(audio), "file", fileName },
+                { new StringContent(promptText), "prompt_text" }
+            };
+            var res = await http.PostAsync("/speech/score", form, ct);
+            res.EnsureSuccessStatusCode();
+            return (await res.Content.ReadFromJsonAsync<SpeakingScoreResponse>(Json, ct))!;
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+        {
+            throw new MlServiceUnavailableException(e);
+        }
+    }
 
     protected async Task<TRes> PostAsync<TReq, TRes>(string path, TReq body, CancellationToken ct)
     {

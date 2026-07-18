@@ -29,6 +29,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
     });
 builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery();
 
 var app = builder.Build();
 
@@ -52,6 +53,7 @@ app.MapMastery();
 app.MapReviews();
 app.MapPath();
 app.MapExercises();
+app.MapSpeaking();
 
 app.Run();
 

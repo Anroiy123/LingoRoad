@@ -14,6 +14,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Mastery> Masteries => Set<Mastery>();
     public DbSet<ReviewCard> ReviewCards => Set<ReviewCard>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
+    public DbSet<SpeakingAttempt> SpeakingAttempts => Set<SpeakingAttempt>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
