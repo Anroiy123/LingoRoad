@@ -18,3 +18,20 @@ def test_fluency_peaks_in_natural_range_and_clamps():
     assert 0 <= fluency_from_wpm(30) < 1.0
     assert 0 <= fluency_from_wpm(300) < 1.0
     assert fluency_from_wpm(0) == 0.0
+
+def test_digits_match_spelled_numbers():
+    s = word_scores("I have lived here for two years", "I have lived here for 2 years")
+    assert s["accuracy"] == 1.0 and s["missing_words"] == []
+
+def test_contractions_match_expanded_forms():
+    s = word_scores("I have not been there", "I haven't been there")
+    assert s["accuracy"] == 1.0 and s["missing_words"] == []
+
+def test_empty_transcript_scores_zero():
+    s = word_scores("hello world", "")
+    assert s["accuracy"] == 0.0 and s["completeness"] == 0.0
+    assert s["missing_words"] == ["hello", "world"]
+
+def test_repeated_words_count_each_occurrence():
+    s = word_scores("I really really like it", "I really like it")
+    assert s["missing_words"] == ["really"]

@@ -2,8 +2,29 @@
 import re
 from difflib import SequenceMatcher
 
+_CONTRACTIONS = [
+    (re.compile(r"\bwon't\b"), "will not"),
+    (re.compile(r"\bcan't\b"), "can not"),
+    (re.compile(r"(\w+)n't\b"), r"\1 not"),
+    (re.compile(r"(\w+)'re\b"), r"\1 are"),
+    (re.compile(r"(\w+)'ve\b"), r"\1 have"),
+    (re.compile(r"(\w+)'ll\b"), r"\1 will"),
+    (re.compile(r"(\w+)'m\b"), r"\1 am"),
+    (re.compile(r"(\w+)'d\b"), r"\1 would"),
+]
+_NUMBERS = {"0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+            "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
+            "10": "ten", "11": "eleven", "12": "twelve", "13": "thirteen",
+            "14": "fourteen", "15": "fifteen", "16": "sixteen", "17": "seventeen",
+            "18": "eighteen", "19": "nineteen", "20": "twenty", "30": "thirty",
+            "40": "forty", "50": "fifty", "60": "sixty", "70": "seventy",
+            "80": "eighty", "90": "ninety", "100": "hundred"}
+
 def _words(text: str) -> list[str]:
-    return re.findall(r"[a-z']+", text.lower())
+    text = text.lower()
+    for pat, rep in _CONTRACTIONS:
+        text = pat.sub(rep, text)
+    return [_NUMBERS.get(t, t) for t in re.findall(r"[a-z']+|\d+", text)]
 
 def word_scores(expected: str, transcript: str) -> dict:
     exp, got = _words(expected), _words(transcript)

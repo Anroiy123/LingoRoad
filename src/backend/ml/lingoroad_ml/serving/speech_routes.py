@@ -32,10 +32,14 @@ async def speech_score(file: UploadFile, prompt_text: str = Form(...)):
     fluency = fluency_from_wpm(wpm)
     total = round(0.6 * s["accuracy"] + 0.2 * s["completeness"] + 0.2 * fluency, 3)
 
-    fb = _client().chat.completions.create(model="gemini-2.5-flash", temperature=0.4, messages=[
-        {"role": "user", "content": FEEDBACK_PROMPT.format(
-            expected=prompt_text, transcript=transcript,
-            missing=", ".join(s["missing_words"]) or "không có")}])
+    try:
+        fb = _client().chat.completions.create(model="gemini-2.5-flash", temperature=0.4, messages=[
+            {"role": "user", "content": FEEDBACK_PROMPT.format(
+                expected=prompt_text, transcript=transcript,
+                missing=", ".join(s["missing_words"]) or "không có")}])
+        feedback = fb.choices[0].message.content
+    except Exception:
+        feedback = "Phản hồi chi tiết tạm thời không khả dụng."
     return {"transcript": transcript, "accuracy": s["accuracy"],
             "completeness": s["completeness"], "fluency": fluency,
-            "total": total, "feedback_vi": fb.choices[0].message.content}
+            "total": total, "feedback_vi": feedback}
