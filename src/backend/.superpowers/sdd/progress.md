@@ -1,5 +1,41 @@
 # SDD progress ledger — LingoRoad plan
 
+## Session 2026-07-18 overnight (tasks 13, 14, 16 complete — ALL 16 TASKS DONE)
+- User asleep; instructed: per task, writing-plans → subagent-driven execution (implementer →
+  spec review → quality review, fixes looped back to the same implementer). Plans committed to
+  docs/superpowers/plans/2026-07-18-task{13,14,16}-*.md, amended in lockstep when reviews
+  changed scope. NOTE: superpowers plugin skills ARE registered with the Skill tool again
+  (the 2026-07-17 "read from plugin cache" workaround is no longer needed).
+- Task 13 (exercises/AWE): COMPLETE — 33b5970+1a364c6 (ml modules/routes + review polish),
+  e5ce075 (.NET endpoints), 4513bfd (submit replay guard — review catch: resubmit inflated
+  mastery; AnsweredAt gate), 4a1915c (AddExercises migration + live samples). Plan-defect
+  found by implementer: task-file test asserting DoesNotContain("has lived") was
+  unsatisfiable (correct answer legitimately appears in options); replaced with field-name
+  leak check, adjudicated correct by spec review.
+- Task 14 (speaking): COMPLETE — db0e66e (scoring + /speech/score), fedf0d0 (review catch:
+  digit/contraction normalization — Whisper writes "2" for "two", perfect reads scored 0.857;
+  + feedback-call degradation so a Gemini blip can't discard a transcription), bd7f375
+  (.NET upload endpoint), 637663d (review fixes: orphan delete on 503, relative AudioPath,
+  extension whitelist), a9bc23c (AddSpeakingAttempts migration + live sample). Live check:
+  edge-tts clip (user asleep — TTS stand-in, noted in sample), Whisper on CUDA float16,
+  1.0 across all scores through both ML-direct and API paths. Whisper cold-start ~34s
+  exceeds MlClient's 30s timeout → PRE-WARM /speech/score directly before any API-path call.
+- Task 16 (demo e2e): COMPLETE — 0ecbe20 (e2e_smoke.py; live run SMOKE OK: 617 items,
+  placement 30 items → C2 θ3.47 on perfect answers, 19 mastery rows, FSRS, advisor/exercises/
+  AWE via real Gemini), 81a9e4b (EVIDENCE.md, real measured numbers + transcript),
+  6f2f77f (README status refresh). Script needed a stdout UTF-8 shim (Windows cp1252
+  console vs Vietnamese); PowerShell Tee-Object mangles UTF-8 — capture via bash redirection.
+- Deferred review minors (conscious, ledger-tracked): 503-degradation branches of the new
+  exercise/writing/speaking endpoints untested (FakeMlClient Throw only gates CatSelect);
+  speech completeness metric rewards verbosity; exercise count unbounded on the internal
+  route; upload size unbounded; generate leak-test is substring- not keyset-based;
+  null-Answer NRE mirrors existing house pattern; _client promotion to shared module
+  if a third caller appears.
+- Test counts: .NET 41 passed; ml 44 passed. DB schema through AddSpeakingAttempts.
+  Environment: docker lingoroad-db-1 RUNNING; uvicorn/dotnet stopped, ports 5000/8001 free.
+- The 16-task QuestGraph/LingoRoad plan is fully implemented. Remaining known debt:
+  NU1903 NuGet warns (Microsoft.OpenApi 2.0.0, SQLitePCLRaw 2.1.11) — bump when convenient.
+
 ## Session 2026-07-18 (task 12 fully complete — Gemini blocker cleared)
 - User topped up Gemini credits ("continue with gemini"). Verified with a 1-string
   gemini-embedding-001 call (OK, 3072-dim) before spending on the full build.
