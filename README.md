@@ -52,15 +52,21 @@ Architecture, schema, and data flows: [docs/system-architecture.md](docs/system-
 ## Flutter mobile
 
 Ứng dụng Flutter lingoRoad nằm tại `src/mobile`, gồm 5 tab chính: Học, Lộ trình,
-Ôn tập, Tiến độ và Hồ sơ. Theme được xây dựng theo `DESIGN.md`; dữ liệu hiện
-dùng mock repository có type.
+Ôn tập, Tiến độ và Hồ sơ. Theme được xây dựng theo `DESIGN.md`; các tab học tập
+hiện dùng mock repository có type, còn đăng ký/đăng nhập kết nối API thật.
 
 ```powershell
 cd src/mobile
 flutter pub get
 flutter analyze
 flutter test
+
+# Android Emulator (API mặc định: http://10.0.2.2:5000)
 flutter run
+
+# Web hoặc Windows
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5000
+flutter run -d windows --dart-define=API_BASE_URL=http://localhost:5000
 ```
 
 Xem thêm hướng dẫn và cấu hình môi trường tại

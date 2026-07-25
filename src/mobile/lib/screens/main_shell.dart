@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/screens/home_screen.dart';
 import 'package:lingoroad_mobile/screens/learning_path_screen.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
@@ -7,7 +8,9 @@ import 'package:lingoroad_mobile/screens/review_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({required this.sessionController, super.key});
+
+  final SessionController sessionController;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -15,13 +18,19 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
-  final _screens = const [
-    HomeScreen(),
-    LearningPathScreen(),
-    ReviewScreen(),
-    ProgressScreen(),
-    ProfileScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeScreen(),
+      const LearningPathScreen(),
+      const ReviewScreen(),
+      const ProgressScreen(),
+      ProfileScreen(sessionController: widget.sessionController),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

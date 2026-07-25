@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({required this.sessionController, super.key});
+
+  final SessionController sessionController;
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -108,7 +111,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: const Text('Hủy'),
                   ),
                   FilledButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      await widget.sessionController.logout();
+                    },
                     child: const Text('Đồng ý'),
                   ),
                 ],

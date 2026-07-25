@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lingoroad_mobile/main.dart';
+import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:lingoroad_mobile/core/session/session_store.dart';
+import 'package:lingoroad_mobile/screens/main_shell.dart';
+import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 
 void main() {
   testWidgets('hiển thị đủ năm tab chính', (tester) async {
-    await tester.pumpWidget(const LingoRoadApp());
+    final session = SessionController(MemorySessionStore('token'));
+    await session.restore();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MainShell(sessionController: session),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
     expect(find.text('Lộ trình'), findsOneWidget);
