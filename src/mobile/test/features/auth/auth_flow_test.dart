@@ -7,6 +7,7 @@ import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 import 'package:lingoroad_mobile/main.dart';
+import 'package:lingoroad_mobile/widgets/brand_logo.dart';
 
 class FlowAuthRepository implements AuthRepository {
   @override
@@ -54,7 +55,8 @@ void main() {
     );
 
     await tester.pumpWidget(LingoRoadApp(routerConfig: router));
-    expect(find.text('lingoRoad'), findsOneWidget);
+    expect(find.byType(BrandLogo), findsOneWidget);
+    expect(find.bySemanticsLabel('Logo LingoRoad'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await session.restore();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:lingoroad_mobile/widgets/brand_logo.dart';
 
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
@@ -25,20 +26,7 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.route_rounded,
-                    size: 52,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'lingoRoad',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
+                  const BrandLogo(),
                   const SizedBox(height: AppSpacing.lg),
                   Text(title, style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: AppSpacing.xs),
