@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lingoroad_mobile/theme/app_theme.dart';
 
 class BrandLogo extends StatelessWidget {
   const BrandLogo({
@@ -7,7 +6,7 @@ class BrandLogo extends StatelessWidget {
     super.key,
   });
 
-  static const assetPath = 'assets/images/logo.png';
+  static const assetPath = 'assets/images/logo_black.png';
 
   final double height;
 
@@ -18,20 +17,14 @@ class BrandLogo extends StatelessWidget {
       label: 'Logo LingoRoad',
       child: ExcludeSemantics(
         child: Align(
-          child: Container(
-            height: height,
+          child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: height * 1.9),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.text,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Image.asset(
-              assetPath,
-              fit: BoxFit.contain,
+            child: SizedBox(
+              height: height,
+              child: Image.asset(
+                assetPath,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),
