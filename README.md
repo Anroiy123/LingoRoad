@@ -48,3 +48,20 @@ Tests: `dotnet test src/backend` and `cd src/backend/ml && .venv/Scripts/python 
 End-to-end smoke (both services running): `cd src/backend && ml/.venv/Scripts/python ml/research/e2e_smoke.py`.
 
 Architecture, schema, and data flows: [docs/system-architecture.md](docs/system-architecture.md).
+
+## Flutter mobile
+
+Ứng dụng Flutter lingoRoad nằm tại `src/mobile`, gồm 5 tab chính: Học, Lộ trình,
+Ôn tập, Tiến độ và Hồ sơ. Theme được xây dựng theo `DESIGN.md`; dữ liệu hiện
+dùng mock repository có type.
+
+```powershell
+cd src/mobile
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+```
+
+Xem thêm hướng dẫn và cấu hình môi trường tại
+[`src/mobile/README.md`](src/mobile/README.md).

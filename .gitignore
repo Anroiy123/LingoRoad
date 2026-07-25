@@ -1,2 +1,7 @@
 # JetBrains IDE config
 .idea/
+
+.agents
+.codex
+context.md
+/.claude/skills/gitnexus/
