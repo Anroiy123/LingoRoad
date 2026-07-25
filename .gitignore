@@ -3,5 +3,6 @@
 
 .agents
 .codex
+/.claude/
 context.md
-/.claude/skills/gitnexus/
+/docs/superpowers/
