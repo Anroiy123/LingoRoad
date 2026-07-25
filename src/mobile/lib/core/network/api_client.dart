@@ -21,6 +21,16 @@ class ApiClient {
   final http.Client _httpClient;
   final Duration defaultTimeout;
 
+  Uri resolveUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    if (uri != null &&
+        uri.hasScheme &&
+        (uri.scheme == 'http' || uri.scheme == 'https')) {
+      return uri;
+    }
+    return _config.resolve(value);
+  }
+
   Future<Object?> get(
     String path, {
     bool authenticated = true,

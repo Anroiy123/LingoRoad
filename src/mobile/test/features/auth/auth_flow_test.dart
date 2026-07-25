@@ -4,6 +4,8 @@ import 'package:lingoroad_mobile/app_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
+import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 import 'package:lingoroad_mobile/main.dart';
 
 class FlowAuthRepository implements AuthRepository {
@@ -23,6 +25,24 @@ class FlowAuthRepository implements AuthRepository {
       'register-token';
 }
 
+class AuthFlowPlacementRepository implements PlacementRepository {
+  @override
+  Future<PlacementStart> start() =>
+      throw UnimplementedError('Không gọi trong auth flow test');
+
+  @override
+  Future<PlacementStep> answer({
+    required String sessionId,
+    required String itemId,
+    required String answer,
+  }) =>
+      throw UnimplementedError('Không gọi trong auth flow test');
+
+  @override
+  Future<PlacementResult> result(String sessionId) =>
+      throw UnimplementedError('Không gọi trong auth flow test');
+}
+
 void main() {
   testWidgets('checking hiển thị splash rồi unauthenticated về login',
       (tester) async {
@@ -30,6 +50,7 @@ void main() {
     final router = createAppRouter(
       session: session,
       authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(),
     );
 
     await tester.pumpWidget(LingoRoadApp(routerConfig: router));
@@ -42,23 +63,23 @@ void main() {
     router.dispose();
   });
 
-  testWidgets('authenticated vào main tabs và logout về login',
-      (tester) async {
+  testWidgets('authenticated vào placement và logout về login', (tester) async {
     final session = SessionController(MemorySessionStore('saved-token'));
     await session.restore();
     final router = createAppRouter(
       session: session,
       authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(),
     );
 
     await tester.pumpWidget(LingoRoadApp(routerConfig: router));
     await tester.pumpAndSettle();
-    expect(find.text('Học'), findsOneWidget);
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
 
     await session.logout();
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
-    expect(find.text('Học'), findsNothing);
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
     router.dispose();
   });
 
@@ -68,6 +89,7 @@ void main() {
     final router = createAppRouter(
       session: session,
       authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(),
       initialLocation: '/login',
     );
 
@@ -88,7 +110,34 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pumpAndSettle();
-    expect(find.text('Học'), findsOneWidget);
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    router.dispose();
+  });
+
+  testWidgets('register thành công chuyển vào placement', (tester) async {
+    final session = SessionController(MemorySessionStore());
+    await session.restore();
+    final router = createAppRouter(
+      session: session,
+      authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(),
+      initialLocation: '/register',
+    );
+
+    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('register_email')),
+      'new@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_password')),
+      'password123',
+    );
+    await tester.tap(find.byKey(const Key('register_submit')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
     router.dispose();
   });
 
@@ -98,6 +147,7 @@ void main() {
     final router = createAppRouter(
       session: session,
       authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(),
       initialLocation: '/login',
     );
 

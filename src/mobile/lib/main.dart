@@ -8,6 +8,7 @@ import 'package:lingoroad_mobile/core/network/api_client.dart';
 import 'package:lingoroad_mobile/core/session/secure_session_store.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 
 void main() {
@@ -18,9 +19,11 @@ void main() {
     session: session,
   );
   final authRepository = ApiAuthRepository(apiClient);
+  final placementRepository = ApiPlacementRepository(apiClient);
   final router = createAppRouter(
     session: session,
     authRepository: authRepository,
+    placementRepository: placementRepository,
   );
 
   runApp(LingoRoadApp(routerConfig: router));
