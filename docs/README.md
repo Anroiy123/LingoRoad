@@ -8,7 +8,7 @@
 | [bao-cao-mang-3-vn.md](bao-cao-mang-3-vn.md) | Vietnamese consolidation of the two Mảng 3 documents above (Part A optimization + Part B architecture) |
 | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) | Shared team theory doc (VN): the three-area assignment, each member's results in full (Mảng 1 & 2), Mảng 3 summary, and a theory↔implementation cross-link table |
 | [bao-cao-tien-do.md](bao-cao-tien-do.md) | Progress report (VN): theory + implementation status per module with measured evidence, and the khó khăn log — blockers hit during implementation and how each was resolved |
-| `superpowers/` | Design specs and implementation plans produced during development |
+| [mobile-local-development.md](mobile-local-development.md) | Hướng dẫn phát triển Flutter mobile trên máy local: khởi động stack, chọn API URL cho web/Android, kết nối thiết bị, kiểm tra health và xử lý sự cố |
 
 ## Mapping to the theory requirement
 
