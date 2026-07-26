@@ -71,6 +71,17 @@ public class PlacementTests : IClassFixture<PlacementFactory>
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
+    [Fact]
+    public async Task Status_is_false_when_user_has_not_completed_placement()
+    {
+        await AuthenticateAsync();
+
+        var status = await _client.GetFromJsonAsync<StatusDto>("/placement/status");
+
+        Assert.NotNull(status);
+        Assert.False(status.Completed);
+    }
+
     private async Task SeedItemsAsync(int count = 12)
     {
         var items = Enumerable.Range(0, count).Select(i => new
@@ -116,6 +127,10 @@ public class PlacementTests : IClassFixture<PlacementFactory>
         var result = await _client.GetFromJsonAsync<ResultDto>($"/placement/{sessionId}/result");
         Assert.Equal("completed", result!.Status);
         Assert.Contains(result.Cefr, new[] { "A1", "A2", "B1", "B2", "C1", "C2" });
+
+        var status = await _client.GetFromJsonAsync<StatusDto>("/placement/status");
+        Assert.NotNull(status);
+        Assert.True(status.Completed);
     }
 
     [Fact]
@@ -139,6 +154,7 @@ public class PlacementTests : IClassFixture<PlacementFactory>
     }
 
     private record PlacementItem(Guid Id, string Type, string Stem, string[] Options, string? AudioUrl);
+    private record StatusDto(bool Completed);
     private record StartDto(Guid SessionId, PlacementItem Item);
     private record StepDto(bool Done, PlacementItem? Item, double? Theta, string? Cefr);
     private record ResultDto(double Theta, double Se, string Cefr, int ItemsAnswered, string Status);

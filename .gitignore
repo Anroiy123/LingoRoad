@@ -1,2 +1,8 @@
 # JetBrains IDE config
 .idea/
+
+.agents
+.codex
+/.claude/
+context.md
+/docs/superpowers/
