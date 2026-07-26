@@ -39,6 +39,14 @@ public static class PlacementEndpoints
     {
         var g = app.MapGroup("/placement").RequireAuthorization();
 
+        g.MapGet("/status", async (System.Security.Claims.ClaimsPrincipal user,
+            AppDbContext db) =>
+        {
+            var completed = await db.TestSessions.AnyAsync(
+                s => s.UserId == user.UserId() && s.Status == "completed");
+            return Results.Ok(new { completed });
+        });
+
         g.MapPost("/start", async (System.Security.Claims.ClaimsPrincipal user,
             AppDbContext db, IMlClient ml) =>
         {

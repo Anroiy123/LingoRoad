@@ -8,6 +8,7 @@ import 'package:lingoroad_mobile/features/placement/data/placement_repository.da
 import 'package:lingoroad_mobile/features/placement/presentation/placement_intro_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_question_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_result_screen.dart';
+import 'package:lingoroad_mobile/features/placement/presentation/placement_status_error_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 
@@ -17,6 +18,7 @@ GoRouter createAppRouter({
   required PlacementRepository placementRepository,
   String initialLocation = '/splash',
 }) {
+  session.configurePlacementStatusLoader(placementRepository.isCompleted);
   final placement = PlacementViewModel(placementRepository);
   return GoRouter(
     initialLocation: initialLocation,
@@ -31,7 +33,26 @@ GoRouter createAppRouter({
         case SessionStatus.unauthenticated:
           return isAuthRoute ? null : '/login';
         case SessionStatus.authenticated:
-          if (location == '/splash' || isAuthRoute) {
+          if (session.placementStatus == PlacementOnboardingStatus.unknown ||
+              session.placementStatus == PlacementOnboardingStatus.checking) {
+            return location == '/splash' ? null : '/splash';
+          }
+          if (session.placementStatus == PlacementOnboardingStatus.error) {
+            return location == '/placement/status-error'
+                ? null
+                : '/placement/status-error';
+          }
+          if (session.placementStatus == PlacementOnboardingStatus.completed) {
+            if (location == '/splash' ||
+                isAuthRoute ||
+                location == '/placement' ||
+                location == '/placement/status-error') {
+              return '/home';
+            }
+          } else if (location == '/splash' ||
+              isAuthRoute ||
+              location == '/home' ||
+              location == '/placement/status-error') {
             return '/placement';
           }
           if (location == '/placement/question' &&
@@ -68,14 +89,21 @@ GoRouter createAppRouter({
         builder: (context, state) => PlacementIntroScreen(viewModel: placement),
       ),
       GoRoute(
+        path: '/placement/status-error',
+        builder: (context, state) =>
+            PlacementStatusErrorScreen(sessionController: session),
+      ),
+      GoRoute(
         path: '/placement/question',
         builder: (context, state) =>
             PlacementQuestionScreen(viewModel: placement),
       ),
       GoRoute(
         path: '/placement/result',
-        builder: (context, state) =>
-            PlacementResultScreen(viewModel: placement),
+        builder: (context, state) => PlacementResultScreen(
+          viewModel: placement,
+          sessionController: session,
+        ),
       ),
       GoRoute(
         path: '/home',

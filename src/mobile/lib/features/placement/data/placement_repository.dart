@@ -1,7 +1,10 @@
 import 'package:lingoroad_mobile/core/network/api_client.dart';
+import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 
 abstract interface class PlacementRepository {
+  Future<bool> isCompleted();
+
   Future<PlacementStart> start();
 
   Future<PlacementStep> answer({
@@ -17,6 +20,18 @@ class ApiPlacementRepository implements PlacementRepository {
   const ApiPlacementRepository(this._apiClient);
 
   final ApiClient _apiClient;
+
+  @override
+  Future<bool> isCompleted() async {
+    final response = await _apiClient.get('/placement/status');
+    if (response is! Map<String, dynamic> || response['completed'] is! bool) {
+      throw const ApiException(
+        code: 'malformed_response',
+        message: 'Phản hồi trạng thái placement không hợp lệ',
+      );
+    }
+    return response['completed'] as bool;
+  }
 
   @override
   Future<PlacementStart> start() async {

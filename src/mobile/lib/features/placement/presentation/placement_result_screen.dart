@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 
 class PlacementResultScreen extends StatelessWidget {
-  const PlacementResultScreen({required this.viewModel, super.key});
+  const PlacementResultScreen({
+    required this.viewModel,
+    required this.sessionController,
+    super.key,
+  });
 
   final PlacementViewModel viewModel;
+  final SessionController sessionController;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +113,10 @@ class PlacementResultScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     key: const Key('placement_result_continue'),
-                    onPressed: () => context.go('/home'),
+                    onPressed: () {
+                      sessionController.markPlacementCompleted();
+                      context.go('/home');
+                    },
                     child: const Text('Bắt đầu lộ trình'),
                   ),
                 ],

@@ -78,6 +78,10 @@ void main() {
     );
 
     expect(repository.receivedName, isNull);
+    expect(
+      session.placementStatus,
+      PlacementOnboardingStatus.required,
+    );
   });
 
   test('map lỗi email_taken thành thông báo tiếng Việt', () async {

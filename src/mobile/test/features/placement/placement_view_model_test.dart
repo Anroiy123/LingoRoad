@@ -38,6 +38,9 @@ class FakePlacementRepository implements PlacementRepository {
   String? receivedAnswer;
 
   @override
+  Future<bool> isCompleted() async => false;
+
+  @override
   Future<PlacementStart> start() async {
     startCalls++;
     if (error != null) {

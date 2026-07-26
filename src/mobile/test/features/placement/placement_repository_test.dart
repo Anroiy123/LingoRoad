@@ -24,6 +24,43 @@ void main() {
     return ApiPlacementRepository(apiClient);
   }
 
+  test('status đọc completed bool', () async {
+    final repository = await createRepository(
+      MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/placement/status');
+        return http.Response(
+          jsonEncode({'completed': true}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    expect(await repository.isCompleted(), isTrue);
+  });
+
+  test('status thiếu completed bool thành malformed_response', () async {
+    final repository = await createRepository(
+      MockClient((_) async => http.Response(
+            jsonEncode({'completed': 'yes'}),
+            200,
+            headers: {'content-type': 'application/json'},
+          )),
+    );
+
+    await expectLater(
+      repository.isCompleted(),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.code,
+          'code',
+          'malformed_response',
+        ),
+      ),
+    );
+  });
+
   test('start đọc session và câu hỏi đầu tiên', () async {
     final repository = await createRepository(
       MockClient((request) async {

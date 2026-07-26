@@ -28,6 +28,7 @@ class AuthViewModel extends ChangeNotifier {
           email: normalizeEmail(email),
           password: password,
         ),
+        checkPlacement: true,
       );
 
   Future<bool> register({
@@ -41,9 +42,13 @@ class AuthViewModel extends ChangeNotifier {
           password: password,
           name: _normalizeOptional(name),
         ),
+        checkPlacement: false,
       );
 
-  Future<bool> _submit(Future<String> Function() request) async {
+  Future<bool> _submit(
+    Future<String> Function() request, {
+    required bool checkPlacement,
+  }) async {
     if (_isSubmitting) {
       return false;
     }
@@ -52,7 +57,10 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final token = await request();
-      await _sessionController.authenticate(token);
+      await _sessionController.authenticate(
+        token,
+        checkPlacement: checkPlacement,
+      );
       return true;
     } on ApiException catch (error) {
       _errorMessage = messageFor(error);
@@ -73,8 +81,7 @@ class AuthViewModel extends ChangeNotifier {
     if (normalized.isEmpty) {
       return 'Vui lòng nhập email';
     }
-    final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-        .hasMatch(normalized);
+    final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(normalized);
     return valid ? null : 'Email không hợp lệ';
   }
 

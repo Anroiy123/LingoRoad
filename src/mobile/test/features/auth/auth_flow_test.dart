@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/app_router.dart';
@@ -27,6 +29,26 @@ class FlowAuthRepository implements AuthRepository {
 }
 
 class AuthFlowPlacementRepository implements PlacementRepository {
+  AuthFlowPlacementRepository({
+    this.completed = false,
+    this.pendingStatus,
+  });
+
+  final bool completed;
+  final Future<bool>? pendingStatus;
+  Object? statusError;
+  int statusCalls = 0;
+
+  @override
+  Future<bool> isCompleted() async {
+    statusCalls++;
+    if (statusError != null) {
+      throw statusError!;
+    }
+    final pending = pendingStatus;
+    return pending == null ? completed : await pending;
+  }
+
   @override
   Future<PlacementStart> start() =>
       throw UnimplementedError('Không gọi trong auth flow test');
@@ -85,6 +107,78 @@ void main() {
     router.dispose();
   });
 
+  testWidgets('restore giữ splash trong lúc chờ trạng thái rồi vào placement',
+      (tester) async {
+    final status = Completer<bool>();
+    final session = SessionController(MemorySessionStore('saved-token'));
+    final router = createAppRouter(
+      session: session,
+      authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(
+        pendingStatus: status.future,
+      ),
+    );
+
+    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    final restore = session.restore();
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(session.placementStatus, PlacementOnboardingStatus.checking);
+
+    status.complete(false);
+    await restore;
+    await tester.pumpAndSettle();
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    router.dispose();
+  });
+
+  testWidgets('lookup lỗi hiện retry và thử lại thành công vào placement',
+      (tester) async {
+    final repository = AuthFlowPlacementRepository()
+      ..statusError = StateError('offline');
+    final session = SessionController(MemorySessionStore('saved-token'));
+    final router = createAppRouter(
+      session: session,
+      authRepository: FlowAuthRepository(),
+      placementRepository: repository,
+    );
+
+    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await session.restore();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('placement_status_error')), findsOneWidget);
+    expect(repository.statusCalls, 2);
+
+    repository.statusError = null;
+    await tester.tap(find.byKey(const Key('placement_status_retry')));
+    await tester.pumpAndSettle();
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    router.dispose();
+  });
+
+  testWidgets(
+      'restore user đã hoàn thành placement vào home rồi logout về login',
+      (tester) async {
+    final session = SessionController(MemorySessionStore('saved-token'));
+    final router = createAppRouter(
+      session: session,
+      authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(completed: true),
+    );
+
+    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await session.restore();
+    await tester.pumpAndSettle();
+    expect(find.text('Học'), findsOneWidget);
+    expect(session.placementStatus, PlacementOnboardingStatus.completed);
+
+    await session.logout();
+    await tester.pumpAndSettle();
+    expect(find.text('Chào mừng trở lại'), findsOneWidget);
+    expect(session.placementStatus, PlacementOnboardingStatus.unknown);
+    router.dispose();
+  });
+
   testWidgets('login validation và submit thành công', (tester) async {
     final session = SessionController(MemorySessionStore());
     await session.restore();
@@ -113,6 +207,34 @@ void main() {
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    router.dispose();
+  });
+
+  testWidgets('login user đã hoàn thành placement chuyển vào home',
+      (tester) async {
+    final session = SessionController(MemorySessionStore());
+    await session.restore();
+    final router = createAppRouter(
+      session: session,
+      authRepository: FlowAuthRepository(),
+      placementRepository: AuthFlowPlacementRepository(completed: true),
+      initialLocation: '/login',
+    );
+
+    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.enterText(
+      find.byKey(const Key('login_email')),
+      'returning@example.com',
+    );
+    await tester.enterText(
+      find.byKey(const Key('login_password')),
+      'password123',
+    );
+    await tester.tap(find.byKey(const Key('login_submit')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Học'), findsOneWidget);
+    expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
     router.dispose();
   });
 

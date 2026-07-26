@@ -32,6 +32,9 @@ class FlowPlacementRepository implements PlacementRepository {
   var answerCalls = 0;
 
   @override
+  Future<bool> isCompleted() async => false;
+
+  @override
   Future<PlacementStart> start() async => const PlacementStart(
         sessionId: 'session-1',
         item: PlacementItem(
@@ -189,6 +192,9 @@ void main() {
 }
 
 class _ListeningPlacementRepository implements PlacementRepository {
+  @override
+  Future<bool> isCompleted() async => false;
+
   @override
   Future<PlacementStart> start() async => const PlacementStart(
         sessionId: 'listening-session',
