@@ -222,7 +222,7 @@ MVP nên hỗ trợ trước: **A1, A2, B1, B2**.
 ```mermaid
 sequenceDiagram
     actor Learner
-    participant Mobile as lingoRoad React Native App
+    participant Mobile as lingoRoad Flutter App
     participant API as .NET Backend
     participant DB as PostgreSQL
     participant AI as LLM API
@@ -332,8 +332,8 @@ flowchart TD
 
 | Thành phần | Công nghệ đề xuất |
 |---|---|
-| Mobile app | React Native |
-| Admin web | Flutter Web |
+| Mobile app | Flutter |
+| Admin web | React Web |
 | Backend | ASP.NET Core Web API |
 | Database | PostgreSQL |
 | ORM | Entity Framework Core |
@@ -865,7 +865,7 @@ srs_items
 
 Chi tiết sử dụng logo, màu sắc và giọng điệu UI được quản lý tại [`docs/product/brand.md`](docs/product/brand.md).
 
-## 8.2. lingoRoad Mobile App - React Native
+## 8.2. lingoRoad Mobile App - Flutter
 
 | Màn hình | Mô tả |
 |---|---|
@@ -923,7 +923,7 @@ flowchart TD
     ExerciseResult --> Dashboard
 ```
 
-## 8.4. lingoRoad Admin Web - Flutter Web
+## 8.4. lingoRoad Admin Web - React Web
 
 | Màn hình | Mô tả |
 |---|---|
@@ -1205,7 +1205,7 @@ GET    /api/admin/analytics/question-error-rate
 
 # 12. Chia việc theo team 3 người
 
-## 12.1. Người 1 - React Native
+## 12.1. Người 1 - Flutter
 
 Phụ trách mobile app người học.
 
@@ -1220,13 +1220,13 @@ Phụ trách mobile app người học.
 | Tuần 7 | API integration, bug fixing |
 | Tuần 8 | Demo flow, polish UI |
 
-## 12.2. Người 2 - Flutter
+## 12.2. Người 2 - React Web
 
 Phụ trách admin web và hỗ trợ nội dung.
 
 | Giai đoạn | Task |
 |---|---|
-| Tuần 1 | Setup Flutter Web admin |
+| Tuần 1 | Setup React Web admin |
 | Tuần 2 | Admin login, layout dashboard |
 | Tuần 3 | Skill management |
 | Tuần 4 | Lesson management |
@@ -1376,7 +1376,7 @@ gantt
 | Scope quá rộng | Không hoàn thành MVP | Chỉ làm core flow, bỏ AI nặng |
 | Thiếu dữ liệu câu hỏi | App không có nội dung học | Tạo 100–200 câu hỏi mẫu thủ công + import CSV |
 | LLM API tốn phí | Không ổn định demo | Có fallback explanation mẫu trong database |
-| React Native và Flutter lệch UI | Mất thời gian đồng bộ | React Native làm app, Flutter chỉ làm admin |
+| Flutter và React Web lệch UI | Mất thời gian đồng bộ | Flutter làm app, React Web chỉ làm admin |
 | Backend quá tải task | Chậm API integration | Ưu tiên API core trước, analytics sau |
 | Placement Test chưa chuẩn | Kết quả chưa chính xác | Ghi rõ là heuristic MVP, không phải test chuẩn Cambridge |
 | Learning path chưa tối ưu | Gợi ý còn đơn giản | Dùng prerequisite + weak skill là đủ cho MVP |
@@ -1439,7 +1439,7 @@ Admin
 Analytics
 ```
 
-## Mobile React Native
+## Mobile Flutter
 
 ```text
 auth
@@ -1455,7 +1455,7 @@ profile
 shared
 ```
 
-## Flutter Web Admin
+## React Web Admin
 
 ```text
 auth
@@ -1474,11 +1474,11 @@ shared
 Với team 3 người:
 
 ```text
-React Native developer
+Flutter developer
 → Làm app mobile cho người học.
 
-Flutter developer
-→ Làm Flutter Web Admin để quản lý nội dung.
+React developer
+→ Làm React Web Admin để quản lý nội dung.
 
 Backend .NET developer
 → Làm API, database, logic placement, mastery, learning path, SRS, AI explanation.
