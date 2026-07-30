@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_audio_player.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
@@ -57,7 +58,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
     } catch (_) {
       if (mounted) {
         setState(() {
-          _audioError = 'Không thể phát âm thanh. Vui lòng thử lại.';
+          _audioError = 'placement.question.audio_error';
         });
       }
     } finally {
@@ -84,6 +85,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<PlacementViewModel>();
+    final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: SafeArea(
         child: Builder(
@@ -110,12 +112,12 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                           Row(
                             children: [
                               Text(
-                                'Câu ${viewModel.questionNumber}',
+                                l10n.translate('placement.question.title', [viewModel.questionNumber]),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const Spacer(),
                               Text(
-                                'Tối đa 30 câu',
+                                l10n.translate('placement.question.max_questions'),
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelSmall
@@ -149,9 +151,9 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                         color: AppColors.primary,
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
-                                      const Expanded(
+                                      Expanded(
                                         child: Text(
-                                          'Nghe đoạn âm thanh rồi chọn đáp án.',
+                                          l10n.translate('placement.question.audio_instruction'),
                                         ),
                                       ),
                                       FilledButton.tonalIcon(
@@ -172,14 +174,14 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                             : const Icon(
                                                 Icons.play_arrow_rounded,
                                               ),
-                                        label: const Text('Nghe'),
+                                        label: Text(l10n.translate('placement.question.listen')),
                                       ),
                                     ],
                                   ),
                                   if (_audioError != null) ...[
                                     const SizedBox(height: AppSpacing.sm),
                                     Text(
-                                      _audioError!,
+                                      l10n.translate(_audioError!),
                                       key: const Key(
                                         'placement_audio_error',
                                       ),
@@ -217,7 +219,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                           if (viewModel.errorMessage != null) ...[
                             const SizedBox(height: AppSpacing.md),
                             Text(
-                              viewModel.errorMessage!,
+                              l10n.translate(viewModel.errorMessage!),
                               key: const Key('placement_question_error'),
                               style: const TextStyle(color: AppColors.error),
                             ),
@@ -252,7 +254,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Trả lời'),
+                              : Text(l10n.translate('placement.question.submit')),
                         ),
                       ),
                     ),

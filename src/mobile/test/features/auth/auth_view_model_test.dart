@@ -97,7 +97,7 @@ void main() {
     );
 
     expect(success, isFalse);
-    expect(viewModel.errorMessage, 'Email đã được sử dụng');
+    expect(viewModel.errorMessage, 'auth.error.email_taken');
   });
 
   test('chặn double submit', () async {
@@ -119,11 +119,11 @@ void main() {
   });
 
   test('validation email và mật khẩu', () {
-    expect(AuthViewModel.validateEmail('bad-email'), 'Email không hợp lệ');
+    expect(AuthViewModel.validateEmail('bad-email'), 'auth.validation.email_invalid');
     expect(AuthViewModel.validateEmail('a@b.com'), isNull);
     expect(
       AuthViewModel.validatePassword('short'),
-      'Mật khẩu cần ít nhất 8 ký tự',
+      'auth.validation.password_too_short',
     );
     expect(AuthViewModel.validatePassword('password'), isNull);
   });

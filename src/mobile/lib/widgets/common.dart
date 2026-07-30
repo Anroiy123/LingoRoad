@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 class AppPage extends StatelessWidget {
   const AppPage({required this.children, super.key});
@@ -119,9 +121,17 @@ class AppProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = value.clamp(0, 1).toDouble();
+    final percent = (safe * 100).round();
+    String label;
+    try {
+      final l10n = context.watch<AppLanguageProvider>();
+      label = l10n.translate('common.progress_percent', [percent]);
+    } catch (_) {
+      label = 'Tiến độ $percent phần trăm';
+    }
     return Semantics(
-      label: 'Tiến độ ${(safe * 100).round()} phần trăm',
-      value: '${(safe * 100).round()}%',
+      label: label,
+      value: '$percent%',
       child: ClipRRect(
         borderRadius: BorderRadius.circular(999),
         child: LinearProgressIndicator(

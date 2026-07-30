@@ -6,21 +6,21 @@ class MockRepository {
   Future<List<DailyQuest>> quests() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return const [
-      DailyQuest('Hoàn thành 2 bài học', 1, 2, 'bolt'),
-      DailyQuest('Nghe 10 phút', 0, 10, 'headphones'),
-      DailyQuest('Đạt 50 XP', 50, 50, 'check'),
+      DailyQuest('home.quests.complete_lessons', 1, 2, 'bolt'),
+      DailyQuest('home.quests.listen_minutes', 0, 10, 'headphones'),
+      DailyQuest('home.quests.reach_xp', 50, 50, 'check'),
     ];
   }
 
   Future<List<PathNode>> path() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return const [
-      PathNode('Bài 2', 'Tại nhà hàng', 20, 'complete', 'right'),
-      PathNode('Bài 3', 'Hỏi đường', 25, 'complete', 'left'),
-      PathNode('Bài 4', 'Mua sắm', 30, 'complete', 'right'),
-      PathNode('Bài 5', 'Giao tiếp tại sân bay', 50, 'current', 'center'),
-      PathNode('Bài 6', 'Nhận phòng khách sạn', 35, 'locked', 'center'),
-      PathNode('Bài 7', 'Giao tiếp công sở', 40, 'locked', 'center'),
+      PathNode('learning_path.lessons.lesson_2', 'learning_path.lessons.at_restaurant', 20, 'complete', 'right'),
+      PathNode('learning_path.lessons.lesson_3', 'learning_path.lessons.asking_directions', 25, 'complete', 'left'),
+      PathNode('learning_path.lessons.lesson_4', 'learning_path.lessons.shopping', 30, 'complete', 'right'),
+      PathNode('learning_path.lessons.lesson_5', 'learning_path.lessons.airport_communication', 50, 'current', 'center'),
+      PathNode('learning_path.lessons.lesson_6', 'learning_path.lessons.hotel_check_in', 35, 'locked', 'center'),
+      PathNode('learning_path.lessons.lesson_7', 'learning_path.lessons.workplace_communication', 40, 'locked', 'center'),
     ];
   }
 
@@ -28,32 +28,32 @@ class MockRepository {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return const [
       ReviewCardData(
-        'Serendipity',
-        'Sự tình cờ may mắn',
-        'Meeting her was pure serendipity.',
-        'TỪ VỰNG',
+        'review.word.serendipity',
+        'review.word.serendipity_meaning',
+        'review.word.serendipity_example',
+        'review.category.vocab',
       ),
       ReviewCardData(
-        'Itinerary',
-        'Lịch trình chuyến đi',
-        'Please check your travel itinerary.',
-        'TỪ VỰNG',
+        'review.word.itinerary',
+        'review.word.itinerary_meaning',
+        'review.word.itinerary_example',
+        'review.category.vocab',
       ),
       ReviewCardData(
-        'Boarding pass',
-        'Thẻ lên máy bay',
-        'May I see your boarding pass?',
-        'SÂN BAY',
+        'review.word.boarding_pass',
+        'review.word.boarding_pass_meaning',
+        'review.word.boarding_pass_example',
+        'review.category.airport',
       ),
     ];
   }
 
   List<SkillProgress> get skills => const [
-        SkillProgress('Từ vựng', 92, 'book'),
-        SkillProgress('Ngữ pháp', 88, 'language'),
-        SkillProgress('Nghe', 85, 'headphones'),
-        SkillProgress('Viết', 60, 'edit'),
-        SkillProgress('Nói', 52, 'mic'),
-        SkillProgress('Phát âm', 45, 'record'),
+        SkillProgress('progress.skills_list.vocabulary', 92, 'book'),
+        SkillProgress('progress.skills_list.grammar', 88, 'language'),
+        SkillProgress('progress.skills_list.listening', 85, 'headphones'),
+        SkillProgress('progress.skills_list.writing', 60, 'edit'),
+        SkillProgress('progress.skills_list.speaking', 52, 'mic'),
+        SkillProgress('progress.skills_list.pronunciation', 45, 'record'),
       ];
 }

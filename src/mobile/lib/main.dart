@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/app_router.dart';
 import 'package:lingoroad_mobile/core/config/app_config.dart';
@@ -11,10 +13,13 @@ import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final sharedPreferences = await SharedPreferences.getInstance();
   final session = SessionController(const SecureSessionStore());
   final apiClient = ApiClient(
     config: AppConfig(),
@@ -24,91 +29,115 @@ void main() {
   final placementRepository = ApiPlacementRepository(apiClient);
   final placementViewModel = PlacementViewModel(placementRepository);
 
+  final viJson = await rootBundle.loadString('assets/translations/vi.json');
+  final enJson = await rootBundle.loadString('assets/translations/en.json');
+
+  final translations = {
+    AppLanguage.vi: json.decode(viJson) as Map<String, dynamic>,
+    AppLanguage.en: json.decode(enJson) as Map<String, dynamic>,
+  };
+
+
+  session.configurePlacementStatusLoader(placementRepository.isCompleted);
+  
+  final router = createAppRouter(
+    session: session,
+    placementViewModel: placementViewModel,
+  );
+
+  final languageProvider = AppLanguageProvider(
+    sharedPreferences: sharedPreferences,
+    translations: translations,
+  );
+
   runApp(
     LingoRoadApp(
+      routerConfig: router,
       sessionController: session,
       authRepository: authRepository,
       placementRepository: placementRepository,
       placementViewModel: placementViewModel,
+      languageProvider: languageProvider,
     ),
   );
   unawaited(session.restore());
 }
 
-class LingoRoadApp extends StatefulWidget {
-  LingoRoadApp({
-    required this.sessionController,
-    required this.authRepository,
-    required this.placementRepository,
-    required this.placementViewModel,
-    this.initialLocation = '/splash',
+class LingoRoadApp extends StatelessWidget {
+  const LingoRoadApp({
+    required this.routerConfig,
+    required this.languageProvider,
+    this.sessionController,
+    this.authRepository,
+    this.placementRepository,
+    this.placementViewModel,
     super.key,
-  }) {
-    sessionController.configurePlacementStatusLoader(
-      placementRepository.isCompleted,
-    );
-  }
+  });
 
-  final SessionController sessionController;
-  final AuthRepository authRepository;
-  final PlacementRepository placementRepository;
-  final PlacementViewModel placementViewModel;
-  final String initialLocation;
-
-  @override
-  State<LingoRoadApp> createState() => _LingoRoadAppState();
-}
-
-class _LingoRoadAppState extends State<LingoRoadApp> {
-  late GoRouter _routerConfig;
-
-  @override
-  void initState() {
-    super.initState();
-    _routerConfig = _createRouter();
-  }
-
-  @override
-  void didUpdateWidget(LingoRoadApp oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.sessionController != widget.sessionController ||
-        oldWidget.placementViewModel != widget.placementViewModel ||
-        oldWidget.initialLocation != widget.initialLocation) {
-      _routerConfig.dispose();
-      _routerConfig = _createRouter();
-    }
-  }
-
-  GoRouter _createRouter() => createAppRouter(
-        session: widget.sessionController,
-        placementViewModel: widget.placementViewModel,
-        initialLocation: widget.initialLocation,
-      );
-
-  @override
-  void dispose() {
-    _routerConfig.dispose();
-    super.dispose();
-  }
+  final GoRouter routerConfig;
+  final SessionController? sessionController;
+  final AuthRepository? authRepository;
+  final PlacementRepository? placementRepository;
+  final PlacementViewModel? placementViewModel;
+  final AppLanguageProvider languageProvider;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SessionController>.value(
-          value: widget.sessionController,
-        ),
-        Provider<AuthRepository>.value(value: widget.authRepository),
-        Provider<PlacementRepository>.value(value: widget.placementRepository),
-        ChangeNotifierProvider<PlacementViewModel>.value(
-          value: widget.placementViewModel,
-        ),
+
+        ChangeNotifierProvider<AppLanguageProvider>.value(value: languageProvider),
+
+        if (sessionController != null)
+          ChangeNotifierProvider<SessionController>.value(value: sessionController!)
+        else
+          ChangeNotifierProvider<SessionController>(
+            create: (_) => SessionController(const SecureSessionStore()),
+          ),
+        if (authRepository != null)
+          Provider<AuthRepository>.value(value: authRepository!)
+        else
+          Provider<AuthRepository>(
+            create: (context) => ApiAuthRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (placementRepository != null)
+          Provider<PlacementRepository>.value(value: placementRepository!)
+        else
+          Provider<PlacementRepository>(
+            create: (context) => ApiPlacementRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (placementViewModel != null)
+          ChangeNotifierProvider<PlacementViewModel>.value(value: placementViewModel!)
+        else
+          ChangeNotifierProvider<PlacementViewModel>(
+            create: (context) => PlacementViewModel(
+              context.read<PlacementRepository>(),
+            ),
+          ),
       ],
-      child: MaterialApp.router(
-        title: 'lingoRoad',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        routerConfig: _routerConfig,
+      child: Builder(
+        builder: (context) {
+          // Ensure placement status loader is configured using the provided dependencies
+          context.read<SessionController>().configurePlacementStatusLoader(
+            context.read<PlacementRepository>().isCompleted,
+          );
+          return MaterialApp.router(
+            title: 'lingoRoad',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            routerConfig: routerConfig,
+          );
+        },
       ),
     );
   }

@@ -1,0 +1,243 @@
+{
+  "common": {
+    "progress_percent": "Progress {} percent",
+    "retry": "Retry",
+    "fallback_error": "An error occurred. Please try again."
+  },
+  "nav": {
+    "learn": "Learn",
+    "path": "Path",
+    "review": "Review",
+    "progress": "Progress",
+    "profile": "Profile"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Log in to continue your learning path.",
+      "email": "Email",
+      "password": "Password",
+      "show_password": "Show password",
+      "hide_password": "Hide password",
+      "submit": "Log In",
+      "register_link": "Don't have an account? Register"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Begin your personalized English learning journey.",
+      "name": "Display name (optional)",
+      "password_helper": "Minimum 8 characters",
+      "submit": "Register",
+      "login_link": "Already have an account? Log In"
+    },
+    "validation": {
+      "email_empty": "Please enter your email",
+      "email_invalid": "Invalid email address",
+      "password_empty": "Please enter your password",
+      "password_too_short": "Password must be at least 8 characters"
+    },
+    "error": {
+      "email_taken": "Email is already taken",
+      "invalid_credentials": "Invalid email or password",
+      "network_unavailable": "Cannot connect to server",
+      "request_timeout": "Request timed out",
+      "generic": "An error occurred. Please try again."
+    }
+  },
+  "placement": {
+    "intro": {
+      "title": "Placement Test",
+      "subtitle": "lingoRoad will select adaptive questions to determine your appropriate CEFR level.",
+      "duration_title": "8–30 questions",
+      "duration_desc": "The test ends when the results are reliable enough.",
+      "adaptive_title": "Adaptive difficulty",
+      "adaptive_desc": "Next question is selected based on previous answers.",
+      "result_title": "CEFR Results",
+      "result_desc": "Results help personalize the initial learning path.",
+      "start": "Start Test",
+      "note": "Please select the best answer. You cannot go back to the previous question."
+    },
+    "question": {
+      "title": "Question {}",
+      "max_questions": "Max 30 questions",
+      "audio_instruction": "Listen to the audio and select the answer.",
+      "listen": "Listen",
+      "audio_error": "Unable to play audio. Please try again.",
+      "submit": "Submit"
+    },
+    "result": {
+      "title": "You're All Done!",
+      "subtitle": "lingoRoad has determined your appropriate starting level.",
+      "cefr_level": "CEFR Level",
+      "answered": "Answered",
+      "answered_val": "{} questions",
+      "confidence": "Confidence",
+      "disclaimer": "This result will be used to build a personalized learning path. This is an initial assessment, not an official CEFR certificate.",
+      "continue_btn": "Start Learning Path"
+    },
+    "error": {
+      "title": "Cannot check progress",
+      "subtitle": "Please check your connection and try again to continue your path.",
+      "retry": "Retry"
+    }
+  },
+  "home": {
+    "welcome": "Hello {}!",
+    "subtitle": "Ready to learn English today?",
+    "metrics": {
+      "daily_goal": "Daily goal",
+      "weekly_goal": "Weekly goal"
+    },
+    "today_lesson": {
+      "tag": "Today's Lesson",
+      "title": "Airport Communication",
+      "description": "Learn how to check in, find gates, and ask for directions in English.",
+      "start": "Start Learning",
+      "ready": "Ready"
+    },
+    "quests_title": "Today's Quests",
+    "quests": {
+      "complete_lessons": "Complete {} lessons",
+      "listen_minutes": "Listen for {} minutes",
+      "reach_xp": "Reach {} XP"
+    },
+    "plan": {
+      "title": "Today's Plan",
+      "daily_lesson": "Daily Lesson",
+      "done": "Done",
+      "review_cards": "Review {} cards"
+    },
+    "quick_actions": {
+      "need_review": "Need review",
+      "vocab_count": "{} vocab words",
+      "practice_pronunciation": "Practice Pronunciation",
+      "practice_desc": "5 minutes daily"
+    },
+    "recent": {
+      "title": "Recent",
+      "order_food": "Ordering Food",
+      "completed_yesterday": "Completed • Yesterday"
+    }
+  },
+  "learning_path": {
+    "title": "{} Path",
+    "subtitle": "Stage {} · {}",
+    "stage_title": "Travel & Communication",
+    "current_lesson": "CURRENT LESSON",
+    "lessons": {
+      "lesson_2": "Lesson 2",
+      "at_restaurant": "At the Restaurant",
+      "lesson_3": "Lesson 3",
+      "asking_directions": "Asking Directions",
+      "lesson_4": "Lesson 4",
+      "shopping": "Shopping",
+      "lesson_5": "Lesson 5",
+      "airport_communication": "Airport Communication",
+      "lesson_6": "Lesson 6",
+      "hotel_check_in": "Hotel Check-in",
+      "lesson_7": "Lesson 7",
+      "workplace_communication": "Workplace Communication"
+    }
+  },
+  "review": {
+    "title": "Today's Review",
+    "remaining": "{} items remaining",
+    "flip_card_semantics": "Flip review card",
+    "audio_tooltip": "Pronunciation",
+    "audio_pressed": "Pronunciation played",
+    "tap_to_reveal": "Tap to show meaning",
+    "category": {
+      "vocab": "VOCABULARY",
+      "airport": "AIRPORT"
+    },
+    "word": {
+      "serendipity": "Serendipity",
+      "serendipity_meaning": "Lucky coincidence",
+      "serendipity_example": "Meeting her was pure serendipity.",
+      "itinerary": "Itinerary",
+      "itinerary_meaning": "Travel itinerary",
+      "itinerary_example": "Please check your travel itinerary.",
+      "boarding_pass": "Boarding pass",
+      "boarding_pass_meaning": "Boarding pass",
+      "boarding_pass_example": "May I see your boarding pass?"
+    },
+    "rating": {
+      "forgot": "Forgot",
+      "hard": "Hard",
+      "good": "Good",
+      "easy": "Easy"
+    },
+    "hint": "Remember the meaning before flipping",
+    "complete": {
+      "title": "Review Completed!",
+      "subtitle": "You have completed all cards for today.",
+      "restart": "Review from start"
+    }
+  },
+  "progress": {
+    "title": "Learning Progress",
+    "subtitle": "Track your journey and mastery over time.",
+    "tabs": {
+      "overview": "Overview",
+      "skills": "Skills",
+      "achievements": "Achievements"
+    },
+    "overview": {
+      "current_level": "CURRENT LEVEL",
+      "total_xp": "TOTAL XP",
+      "streak": "STREAK",
+      "quests": "QUESTS",
+      "badges": "BADGES",
+      "cefr_journey": "CEFR Journey",
+      "current": "Current",
+      "mastery": "Mastery Level",
+      "strengths": "Strengths",
+      "improvements": "Needs Improvement"
+    },
+    "skills_analysis": {
+      "title": "Skills Analysis",
+      "suggestion": "Focus on Pronunciation and Speaking for comprehensive improvement."
+    },
+    "skills_list": {
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar",
+      "listening": "Listening",
+      "writing": "Writing",
+      "speaking": "Speaking",
+      "pronunciation": "Pronunciation"
+    },
+    "badges_list": {
+      "streak_12": "12-Day Streak",
+      "traveler": "Traveler",
+      "xp_1000": "1,000 XP",
+      "studious": "Studious"
+    }
+  },
+  "profile": {
+    "status": "Level {} · {} · {} badges",
+    "groups": {
+      "goals": "Learning Goals",
+      "schedule": "Study Schedule",
+      "notifications": "Notifications",
+      "account": "Account"
+    },
+    "settings": {
+      "daily_goal": "Daily goal",
+      "daily_goal_val": "30 minutes / day",
+      "target_level": "Target level",
+      "target_level_val": "B2 - Upper Intermediate",
+      "study_reminder": "Study reminder",
+      "reminder_time": "Reminder time settings",
+      "email_notif": "Email Notifications",
+      "app_updates": "App updates",
+      "change_password": "Change password",
+      "logout": "Log out"
+    },
+    "logout_dialog": {
+      "title": "Log Out",
+      "content": "This is a simulated action in the UI version.",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    }
+  }
+}

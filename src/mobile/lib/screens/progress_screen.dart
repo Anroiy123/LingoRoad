@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/data/mock_repository.dart';
 import 'package:lingoroad_mobile/models/models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -23,6 +25,7 @@ class _ProgressScreenState extends State<ProgressScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return SafeArea(
       bottom: false,
       child: Column(
@@ -40,12 +43,12 @@ class _ProgressScreenState extends State<ProgressScreen>
                 const LingoHeader(),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Tiến độ học tập',
+                  l10n.translate('progress.title'),
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Theo dõi hành trình và mức độ thành thạo theo thời gian.',
+                  l10n.translate('progress.subtitle'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -58,10 +61,10 @@ class _ProgressScreenState extends State<ProgressScreen>
                   labelColor: AppColors.primary,
                   indicatorColor: AppColors.cta,
                   dividerColor: AppColors.surfaceHigh,
-                  tabs: const [
-                    Tab(text: 'Tổng quan'),
-                    Tab(text: 'Kỹ năng'),
-                    Tab(text: 'Thành tích'),
+                  tabs: [
+                    Tab(text: l10n.translate('progress.tabs.overview')),
+                    Tab(text: l10n.translate('progress.tabs.skills')),
+                    Tab(text: l10n.translate('progress.tabs.achievements')),
                   ],
                 ),
               ],
@@ -70,7 +73,11 @@ class _ProgressScreenState extends State<ProgressScreen>
           Expanded(
             child: TabBarView(
               controller: _tabs,
-              children: [_overview(), _skillTab(), _achievements()],
+              children: [
+                _overview(l10n),
+                _skillTab(l10n),
+                _achievements(l10n),
+              ],
             ),
           ),
         ],
@@ -78,7 +85,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _overview() => ListView(
+  Widget _overview(AppLanguageProvider l10n) => ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.margin,
           AppSpacing.lg,
@@ -98,7 +105,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   ).textTheme.titleLarge?.copyWith(color: AppColors.primary),
                 ),
                 Text(
-                  'TRÌNH ĐỘ HIỆN TẠI',
+                  l10n.translate('progress.overview.current_level'),
                   style: Theme.of(
                     context,
                   )
@@ -112,13 +119,13 @@ class _ProgressScreenState extends State<ProgressScreen>
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Expanded(child: _stat(Icons.star_outline, '1.240', 'TỔNG XP')),
+              Expanded(child: _stat(Icons.star_outline, '1.240', l10n.translate('progress.overview.total_xp'))),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _stat(
                   Icons.local_fire_department_outlined,
                   '12',
-                  'CHUỖI NGÀY',
+                  l10n.translate('progress.overview.streak'),
                 ),
               ),
             ],
@@ -127,10 +134,10 @@ class _ProgressScreenState extends State<ProgressScreen>
           Row(
             children: [
               Expanded(
-                  child: _stat(Icons.assignment_outlined, '2/3', 'NHIỆM VỤ')),
+                  child: _stat(Icons.assignment_outlined, '2/3', l10n.translate('progress.overview.quests'))),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: _stat(Icons.emoji_events_outlined, '12/48', 'HUY HIỆU'),
+                child: _stat(Icons.emoji_events_outlined, '12/48', l10n.translate('progress.overview.badges')),
               ),
             ],
           ),
@@ -139,7 +146,7 @@ class _ProgressScreenState extends State<ProgressScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionTitle('Hành trình CEFR'),
+                SectionTitle(l10n.translate('progress.overview.cefr_journey')),
                 const SizedBox(height: AppSpacing.lg),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,7 +171,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          entry.key == 2 ? 'Hiện tại' : entry.value,
+                          entry.key == 2 ? l10n.translate('progress.overview.current') : entry.value,
                           style: Theme.of(context).textTheme.labelSmall,
                         ),
                       ],
@@ -179,7 +186,7 @@ class _ProgressScreenState extends State<ProgressScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionTitle('Mức độ thành thạo'),
+                SectionTitle(l10n.translate('progress.overview.mastery')),
                 const SizedBox(height: AppSpacing.md),
                 const SizedBox(
                   height: 190,
@@ -194,9 +201,9 @@ class _ProgressScreenState extends State<ProgressScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionTitle('Điểm mạnh'),
+                SectionTitle(l10n.translate('progress.overview.strengths')),
                 const SizedBox(height: AppSpacing.md),
-                ..._skills.take(3).map(_skill),
+                ..._skills.take(3).map((item) => _skill(item, l10n)),
               ],
             ),
           ),
@@ -205,16 +212,16 @@ class _ProgressScreenState extends State<ProgressScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionTitle('Cần cải thiện'),
+                SectionTitle(l10n.translate('progress.overview.improvements')),
                 const SizedBox(height: AppSpacing.md),
-                ..._skills.skip(3).map(_skill),
+                ..._skills.skip(3).map((item) => _skill(item, l10n)),
               ],
             ),
           ),
         ],
       );
 
-  Widget _skillTab() => ListView(
+  Widget _skillTab(AppLanguageProvider l10n) => ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.margin,
           AppSpacing.lg,
@@ -226,9 +233,9 @@ class _ProgressScreenState extends State<ProgressScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionTitle('Phân tích kỹ năng'),
+                SectionTitle(l10n.translate('progress.skills_analysis.title')),
                 const SizedBox(height: AppSpacing.lg),
-                ..._skills.map(_skill),
+                ..._skills.map((item) => _skill(item, l10n)),
                 const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -236,15 +243,15 @@ class _ProgressScreenState extends State<ProgressScreen>
                     color: AppColors.primaryFixed,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
-                  child: const Row(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.auto_awesome_rounded,
+                      const Icon(Icons.auto_awesome_rounded,
                           color: AppColors.primary),
-                      SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          'Tập trung vào Phát âm và Nói để cải thiện toàn diện.',
+                          l10n.translate('progress.skills_analysis.suggestion'),
                         ),
                       ),
                     ],
@@ -256,7 +263,7 @@ class _ProgressScreenState extends State<ProgressScreen>
         ],
       );
 
-  Widget _achievements() => GridView.count(
+  Widget _achievements(AppLanguageProvider l10n) => GridView.count(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.margin,
           AppSpacing.lg,
@@ -266,11 +273,11 @@ class _ProgressScreenState extends State<ProgressScreen>
         crossAxisCount: 2,
         mainAxisSpacing: AppSpacing.md,
         crossAxisSpacing: AppSpacing.md,
-        children: const [
-          _Badge(Icons.local_fire_department_outlined, 'Bền bỉ 12 ngày'),
-          _Badge(Icons.workspace_premium_outlined, 'Nhà du hành'),
-          _Badge(Icons.emoji_events_outlined, '1.000 XP'),
-          _Badge(Icons.menu_book_outlined, 'Ham học hỏi'),
+        children: [
+          _Badge(Icons.local_fire_department_outlined, l10n.translate('progress.badges_list.streak_12')),
+          _Badge(Icons.workspace_premium_outlined, l10n.translate('progress.badges_list.traveler')),
+          _Badge(Icons.emoji_events_outlined, l10n.translate('progress.badges_list.xp_1000')),
+          _Badge(Icons.menu_book_outlined, l10n.translate('progress.badges_list.studious')),
         ],
       );
 
@@ -296,9 +303,9 @@ class _ProgressScreenState extends State<ProgressScreen>
           ),
         ),
       );
-  Widget _skill(SkillProgress item) => Padding(
+  Widget _skill(SkillProgress item, AppLanguageProvider l10n) => Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.md),
-        child: MetricRow(label: item.label, value: item.value),
+        child: MetricRow(label: l10n.translate(item.label), value: item.value),
       );
 }
 

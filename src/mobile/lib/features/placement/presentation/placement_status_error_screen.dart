@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +10,7 @@ class PlacementStatusErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sessionController = context.read<SessionController>();
+    final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -27,15 +29,14 @@ class PlacementStatusErrorScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Không thể kiểm tra tiến độ',
+                    l10n.translate('placement.error.title'),
                     key: const Key('placement_status_error'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Vui lòng kiểm tra kết nối rồi thử lại để tiếp tục đúng '
-                    'lộ trình của bạn.',
+                    l10n.translate('placement.error.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
@@ -46,7 +47,7 @@ class PlacementStatusErrorScreen extends StatelessWidget {
                     key: const Key('placement_status_retry'),
                     onPressed: sessionController.refreshPlacementStatus,
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Thử lại'),
+                    label: Text(l10n.translate('placement.error.retry')),
                   ),
                 ],
               ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/data/mock_repository.dart';
 import 'package:lingoroad_mobile/models/models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,29 +19,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return AppPage(
       children: [
         const LingoHeader(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Chào Hùng!', style: Theme.of(context).textTheme.displaySmall),
+            Text(l10n.translate('home.welcome', ['Hùng']), style: Theme.of(context).textTheme.displaySmall),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Sẵn sàng học tiếng Anh hôm nay chưa?',
+              l10n.translate('home.subtitle'),
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),
-        const AppCard(
-          padding: EdgeInsets.all(AppSpacing.sm),
+        AppCard(
+          padding: const EdgeInsets.all(AppSpacing.sm),
           child: Column(
             children: [
-              MetricRow(label: 'Mục tiêu hằng ngày', value: 60),
-              SizedBox(height: AppSpacing.sm),
-              MetricRow(label: 'Mục tiêu trong tuần', value: 80),
+              MetricRow(label: l10n.translate('home.metrics.daily_goal'), value: 60),
+              const SizedBox(height: AppSpacing.sm),
+              MetricRow(label: l10n.translate('home.metrics.weekly_goal'), value: 80),
             ],
           ),
         ),
@@ -62,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  'Bài học hôm nay',
+                  l10n.translate('home.today_lesson.tag'),
                   style: Theme.of(
                     context,
                   ).textTheme.labelSmall?.copyWith(color: Colors.white),
@@ -70,14 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(
-                'Giao tiếp tại sân bay',
+                l10n.translate('home.today_lesson.title'),
                 style: Theme.of(
                   context,
                 ).textTheme.headlineSmall?.copyWith(color: Colors.white),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Học cách làm thủ tục, tìm cổng và hỏi đường bằng tiếng Anh.',
+                l10n.translate('home.today_lesson.description'),
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: Colors.white),
@@ -101,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : Icons.arrow_forward_rounded,
                     size: 18,
                   ),
-                  label: Text(_started ? 'Đã sẵn sàng' : 'Bắt đầu học'),
+                  label: Text(_started ? l10n.translate('home.today_lesson.ready') : l10n.translate('home.today_lesson.start')),
                 ),
               ),
             ],
@@ -110,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle('Nhiệm vụ hôm nay'),
+            SectionTitle(l10n.translate('home.quests_title')),
             const SizedBox(height: AppSpacing.sm),
             FutureBuilder<List<DailyQuest>>(
               future: _quests,
@@ -142,22 +145,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
-                    'Kế hoạch hôm nay',
+                    l10n.translate('home.plan.title'),
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              const _PlanRow(
+              _PlanRow(
                 icon: Icons.check_circle_outline,
-                title: 'Bài học hằng ngày',
-                trailing: 'Xong',
+                title: l10n.translate('home.plan.daily_lesson'),
+                trailing: l10n.translate('home.plan.done'),
                 color: AppColors.success,
               ),
               const SizedBox(height: AppSpacing.md),
-              const _PlanRow(
+              _PlanRow(
                 icon: Icons.school_outlined,
-                title: 'Ôn tập 10 thẻ',
+                title: l10n.translate('home.plan.review_cards', [10]),
                 trailing: '4/10',
                 color: AppColors.primary,
                 progress: .4,
@@ -173,20 +176,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: _QuickCard(
                   icon: Icons.school_outlined,
-                  title: 'Cần ôn tập',
-                  subtitle: '12 từ vựng',
+                  title: l10n.translate('home.quick_actions.need_review'),
+                  subtitle: l10n.translate('home.quick_actions.vocab_count', [12]),
                   color: AppColors.error,
                 ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            const Expanded(
+            Expanded(
               child: AppCard(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: _QuickCard(
                   icon: Icons.headphones_rounded,
-                  title: 'Luyện phát âm',
-                  subtitle: '5 phút mỗi ngày',
+                  title: l10n.translate('home.quick_actions.practice_pronunciation'),
+                  subtitle: l10n.translate('home.quick_actions.practice_desc'),
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -196,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle('Gần đây'),
+            SectionTitle(l10n.translate('home.recent.title')),
             const SizedBox(height: AppSpacing.sm),
             AppCard(
               padding: const EdgeInsets.all(AppSpacing.sm),
@@ -215,11 +218,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Gọi món ăn',
+                          l10n.translate('home.recent.order_food'),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                         Text(
-                          'Hoàn thành • Hôm qua',
+                          l10n.translate('home.recent.completed_yesterday'),
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall
@@ -247,6 +250,7 @@ class _QuestTile extends StatelessWidget {
   final DailyQuest quest;
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     final icon = switch (quest.icon) {
       'headphones' => Icons.headphones_rounded,
       'check' => Icons.check_rounded,
@@ -280,7 +284,7 @@ class _QuestTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          quest.title,
+                          l10n.translate(quest.title, [quest.target]),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ),
