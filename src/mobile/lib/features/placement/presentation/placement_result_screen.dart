@@ -4,19 +4,15 @@ import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class PlacementResultScreen extends StatelessWidget {
-  const PlacementResultScreen({
-    required this.viewModel,
-    required this.sessionController,
-    super.key,
-  });
-
-  final PlacementViewModel viewModel;
-  final SessionController sessionController;
+  const PlacementResultScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<PlacementViewModel>();
+    final sessionController = context.read<SessionController>();
     final result = viewModel.result;
     return Scaffold(
       body: SafeArea(

@@ -6,15 +6,15 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_audio
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
+
 
 class PlacementQuestionScreen extends StatefulWidget {
   const PlacementQuestionScreen({
-    required this.viewModel,
     this.audioPlayer,
     super.key,
   });
 
-  final PlacementViewModel viewModel;
   final PlacementAudioPlayer? audioPlayer;
 
   @override
@@ -27,8 +27,6 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
   late final bool _ownsAudioPlayer;
   bool _isLoadingAudio = false;
   String? _audioError;
-
-  PlacementViewModel get viewModel => widget.viewModel;
 
   @override
   void initState() {
@@ -71,7 +69,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
     }
   }
 
-  Future<void> _submit(BuildContext context) async {
+  Future<void> _submit(BuildContext context, PlacementViewModel viewModel) async {
     try {
       await _audioPlayer?.stop();
     } catch (_) {
@@ -85,11 +83,11 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<PlacementViewModel>();
     return Scaffold(
       body: SafeArea(
-        child: AnimatedBuilder(
-          animation: viewModel,
-          builder: (context, _) {
+        child: Builder(
+          builder: (context) {
             final item = viewModel.currentItem;
             if (item == null) {
               return loadingView();
@@ -245,7 +243,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                         child: FilledButton(
                           key: const Key('placement_answer_submit'),
                           onPressed: viewModel.canSubmit
-                              ? () => _submit(context)
+                              ? () => _submit(context, viewModel)
                               : null,
                           child: viewModel.isLoading
                               ? const SizedBox.square(

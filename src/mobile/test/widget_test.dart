@@ -5,6 +5,7 @@ import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   testWidgets('hiển thị đủ năm tab chính', (tester) async {
@@ -13,7 +14,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
-        home: MainShell(sessionController: session),
+        home: ChangeNotifierProvider<SessionController>.value(
+          value: session,
+          child: const MainShell(),
+        ),
       ),
     );
     await tester.pumpAndSettle();

@@ -10,6 +10,9 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_audio
 import 'package:lingoroad_mobile/features/placement/presentation/placement_question_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/main.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
 
 class PlacementFlowAuthRepository implements AuthRepository {
   @override
@@ -97,18 +100,53 @@ class FakePlacementAudioPlayer implements PlacementAudioPlayer {
   Future<void> dispose() async {}
 }
 
+
+class TestAppFixture {
+  TestAppFixture({
+    required this.session,
+    required this.authRepo,
+    required this.placementRepo,
+    String initialLocation = '/splash',
+  }) {
+    placementVM = PlacementViewModel(placementRepo);
+    router = createAppRouter(
+      session: session,
+      placementViewModel: placementVM,
+      initialLocation: initialLocation,
+    );
+    app = LingoRoadApp(
+      routerConfig: router,
+      sessionController: session,
+      authRepository: authRepo,
+      placementRepository: placementRepo,
+      placementViewModel: placementVM,
+    );
+  }
+
+  final SessionController session;
+  final AuthRepository authRepo;
+  final PlacementRepository placementRepo;
+  late final PlacementViewModel placementVM;
+  late final GoRouter router;
+  late final Widget app;
+
+  void dispose() {
+    router.dispose();
+  }
+}
+
 void main() {
   testWidgets('hoàn thành intro, câu hỏi, kết quả rồi vào MainShell',
       (tester) async {
     final session = SessionController(MemorySessionStore('saved-token'));
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: PlacementFlowAuthRepository(),
-      placementRepository: FlowPlacementRepository(),
+      authRepo: PlacementFlowAuthRepository(),
+      placementRepo: FlowPlacementRepository(),
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
 
@@ -144,25 +182,25 @@ void main() {
     await tester.tap(continueButton);
     await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('route câu hỏi trực tiếp quay về intro khi chưa có session',
       (tester) async {
     final session = SessionController(MemorySessionStore('saved-token'));
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: PlacementFlowAuthRepository(),
-      placementRepository: FlowPlacementRepository(),
+      authRepo: PlacementFlowAuthRepository(),
+      placementRepo: FlowPlacementRepository(),
       initialLocation: '/placement/question',
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
 
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('câu listening phát audio URL đã chuẩn hóa', (tester) async {
@@ -174,9 +212,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: PlacementQuestionScreen(
-          viewModel: listeningViewModel,
-          audioPlayer: audioPlayer,
+        home: ChangeNotifierProvider<PlacementViewModel>.value(
+          value: listeningViewModel,
+          child: PlacementQuestionScreen(
+            audioPlayer: audioPlayer,
+          ),
         ),
       ),
     );

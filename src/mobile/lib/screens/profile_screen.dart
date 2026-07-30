@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({required this.sessionController, super.key});
+  const ProfileScreen({super.key});
 
-  final SessionController sessionController;
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -15,6 +15,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _reminder = true;
   bool _email = false;
   bool _updates = true;
+
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   FilledButton(
                     onPressed: () async {
                       Navigator.pop(context);
-                      await widget.sessionController.logout();
+                      await context.read<SessionController>().logout();
                     },
                     child: const Text('Đồng ý'),
                   ),

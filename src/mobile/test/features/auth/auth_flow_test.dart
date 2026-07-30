@@ -10,6 +10,9 @@ import 'package:lingoroad_mobile/features/placement/data/placement_repository.da
 import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 import 'package:lingoroad_mobile/main.dart';
 import 'package:lingoroad_mobile/widgets/brand_logo.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
+
 
 class FlowAuthRepository implements AuthRepository {
   @override
@@ -66,17 +69,52 @@ class AuthFlowPlacementRepository implements PlacementRepository {
       throw UnimplementedError('Không gọi trong auth flow test');
 }
 
+
+class TestAppFixture {
+  TestAppFixture({
+    required this.session,
+    required this.authRepo,
+    required this.placementRepo,
+    String initialLocation = '/splash',
+  }) {
+    placementVM = PlacementViewModel(placementRepo);
+    router = createAppRouter(
+      session: session,
+      placementViewModel: placementVM,
+      initialLocation: initialLocation,
+    );
+    app = LingoRoadApp(
+      routerConfig: router,
+      sessionController: session,
+      authRepository: authRepo,
+      placementRepository: placementRepo,
+      placementViewModel: placementVM,
+    );
+  }
+
+  final SessionController session;
+  final AuthRepository authRepo;
+  final PlacementRepository placementRepo;
+  late final PlacementViewModel placementVM;
+  late final GoRouter router;
+  late final Widget app;
+
+  void dispose() {
+    router.dispose();
+  }
+}
+
 void main() {
   testWidgets('checking hiển thị splash rồi unauthenticated về login',
       (tester) async {
     final session = SessionController(MemorySessionStore());
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(),
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     expect(find.byType(BrandLogo), findsOneWidget);
     expect(find.bySemanticsLabel('Logo LingoRoad'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -84,19 +122,19 @@ void main() {
     await session.restore();
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('authenticated vào placement và logout về login', (tester) async {
     final session = SessionController(MemorySessionStore('saved-token'));
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(),
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
 
@@ -104,22 +142,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
     expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('restore giữ splash trong lúc chờ trạng thái rồi vào placement',
       (tester) async {
     final status = Completer<bool>();
     final session = SessionController(MemorySessionStore('saved-token'));
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(
         pendingStatus: status.future,
       ),
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     final restore = session.restore();
     await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -129,7 +167,7 @@ void main() {
     await restore;
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('lookup lỗi hiện retry và thử lại thành công vào placement',
@@ -137,13 +175,13 @@ void main() {
     final repository = AuthFlowPlacementRepository()
       ..statusError = StateError('offline');
     final session = SessionController(MemorySessionStore('saved-token'));
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: repository,
+      authRepo: FlowAuthRepository(),
+      placementRepo: repository,
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await session.restore();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('placement_status_error')), findsOneWidget);
@@ -153,20 +191,20 @@ void main() {
     await tester.tap(find.byKey(const Key('placement_status_retry')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets(
       'restore user đã hoàn thành placement vào home rồi logout về login',
       (tester) async {
     final session = SessionController(MemorySessionStore('saved-token'));
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(completed: true),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(completed: true),
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await session.restore();
     await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
@@ -176,20 +214,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
     expect(session.placementStatus, PlacementOnboardingStatus.unknown);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('login validation và submit thành công', (tester) async {
     final session = SessionController(MemorySessionStore());
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(),
       initialLocation: '/login',
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pump();
@@ -207,21 +245,21 @@ void main() {
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('login user đã hoàn thành placement chuyển vào home',
       (tester) async {
     final session = SessionController(MemorySessionStore());
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(completed: true),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(completed: true),
       initialLocation: '/login',
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.enterText(
       find.byKey(const Key('login_email')),
       'returning@example.com',
@@ -235,20 +273,20 @@ void main() {
 
     expect(find.text('Học'), findsOneWidget);
     expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('register thành công chuyển vào placement', (tester) async {
     final session = SessionController(MemorySessionStore());
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(),
       initialLocation: '/register',
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('register_email')),
@@ -262,20 +300,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 
   testWidgets('chuyển sang Register và validate password', (tester) async {
     final session = SessionController(MemorySessionStore());
     await session.restore();
-    final router = createAppRouter(
+    final fixture = TestAppFixture(
       session: session,
-      authRepository: FlowAuthRepository(),
-      placementRepository: AuthFlowPlacementRepository(),
+      authRepo: FlowAuthRepository(),
+      placementRepo: AuthFlowPlacementRepository(),
       initialLocation: '/login',
     );
 
-    await tester.pumpWidget(LingoRoadApp(routerConfig: router));
+    await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Chưa có tài khoản? Đăng ký'));
     await tester.pumpAndSettle();
@@ -292,6 +330,6 @@ void main() {
     await tester.tap(find.byKey(const Key('register_submit')));
     await tester.pump();
     expect(find.text('Mật khẩu cần ít nhất 8 ký tự'), findsOneWidget);
-    router.dispose();
+    fixture.dispose();
   });
 }
