@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return AppPage(
       children: [
         const LingoHeader(),
@@ -55,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  'Cấp 12 · B1 · 6 huy hiệu',
+                  l10n.translate('profile.status', [12, 'B1', 6]),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -64,59 +66,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        _group(Icons.flag_outlined, 'Mục tiêu học tập', [
-          const _SettingTile(
-            title: 'Mục tiêu hằng ngày',
-            subtitle: '30 phút / ngày',
+        _group(l10n, Icons.flag_outlined, l10n.translate('profile.groups.goals'), [
+          _SettingTile(
+            title: l10n.translate('profile.settings.daily_goal'),
+            subtitle: l10n.translate('profile.settings.daily_goal_val'),
           ),
-          const _SettingTile(
-            title: 'Trình độ mục tiêu',
-            subtitle: 'B2 - Trung cao cấp',
+          _SettingTile(
+            title: l10n.translate('profile.settings.target_level'),
+            subtitle: l10n.translate('profile.settings.target_level_val'),
           ),
         ]),
-        _group(Icons.calendar_month_outlined, 'Lịch học', [
+        _group(l10n, Icons.calendar_month_outlined, l10n.translate('profile.groups.schedule'), [
           _SettingTile(
-            title: 'Nhắc nhở học tập',
+            title: l10n.translate('profile.settings.study_reminder'),
             value: _reminder,
             onChanged: (value) => setState(() => _reminder = value),
           ),
-          const _SettingTile(title: 'Cài đặt thời gian nhắc nhở'),
+          _SettingTile(title: l10n.translate('profile.settings.reminder_time')),
         ]),
-        _group(Icons.notifications_none_rounded, 'Thông báo', [
+        _group(l10n, Icons.notifications_none_rounded, l10n.translate('profile.groups.notifications'), [
           _SettingTile(
-            title: 'Thông báo qua Email',
+            title: l10n.translate('profile.settings.email_notif'),
             value: _email,
             onChanged: (value) => setState(() => _email = value),
           ),
           _SettingTile(
-            title: 'Cập nhật ứng dụng',
+            title: l10n.translate('profile.settings.app_updates'),
             value: _updates,
             onChanged: (value) => setState(() => _updates = value),
           ),
         ]),
-        _group(Icons.manage_accounts_outlined, 'Tài khoản', [
-          const _SettingTile(title: 'Đổi mật khẩu'),
+        _group(l10n, Icons.manage_accounts_outlined, l10n.translate('profile.groups.account'), [
+          _SettingTile(title: l10n.translate('profile.settings.change_password')),
           _SettingTile(
-            title: 'Đăng xuất',
+            title: l10n.translate('profile.settings.logout'),
             danger: true,
             onTap: () => showDialog<void>(
               context: context,
               builder: (context) => AlertDialog(
-                title: const Text('Đăng xuất'),
-                content: const Text(
-                  'Đây là thao tác mô phỏng trong phiên bản giao diện.',
+                title: Text(l10n.translate('profile.logout_dialog.title')),
+                content: Text(
+                  l10n.translate('profile.logout_dialog.content'),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Hủy'),
+                    child: Text(l10n.translate('profile.logout_dialog.cancel')),
                   ),
                   FilledButton(
                     onPressed: () async {
                       Navigator.pop(context);
                       await context.read<SessionController>().logout();
                     },
-                    child: const Text('Đồng ý'),
+                    child: Text(l10n.translate('profile.logout_dialog.confirm')),
                   ),
                 ],
               ),
@@ -127,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _group(IconData icon, String title, List<Widget> children) {
+  Widget _group(AppLanguageProvider l10n, IconData icon, String title, List<Widget> children) {
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(

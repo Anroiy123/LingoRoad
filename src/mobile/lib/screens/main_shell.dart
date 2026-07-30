@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/screens/home_screen.dart';
 import 'package:lingoroad_mobile/screens/learning_path_screen.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/progress_screen.dart';
 import 'package:lingoroad_mobile/screens/review_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 
 class MainShell extends StatefulWidget {
@@ -33,6 +35,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
       bottomNavigationBar: NavigationBar(
@@ -41,37 +44,37 @@ class _MainShellState extends State<MainShell> {
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
-            label: 'Học',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded, color: AppColors.primary),
+            label: l10n.translate('nav.learn'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map_rounded, color: AppColors.primary),
-            label: 'Lộ trình',
+            icon: const Icon(Icons.map_outlined),
+            selectedIcon: const Icon(Icons.map_rounded, color: AppColors.primary),
+            label: l10n.translate('nav.path'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(
               Icons.menu_book_rounded,
               color: AppColors.primary,
             ),
-            label: 'Ôn tập',
+            label: l10n.translate('nav.review'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(
               Icons.bar_chart_rounded,
               color: AppColors.primary,
             ),
-            label: 'Tiến độ',
+            label: l10n.translate('nav.progress'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
-            label: 'Hồ sơ',
+            icon: const Icon(Icons.person_outline_rounded),
+            selectedIcon: const Icon(Icons.person_rounded, color: AppColors.primary),
+            label: l10n.translate('nav.profile'),
           ),
         ],
       ),

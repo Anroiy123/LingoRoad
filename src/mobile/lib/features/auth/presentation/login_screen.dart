@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/auth_scaffold.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/auth_view_model.dart';
@@ -39,6 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return ChangeNotifierProvider<AuthViewModel>(
       create: (context) => AuthViewModel(
         authRepository: context.read<AuthRepository>(),
@@ -46,8 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       child: Consumer<AuthViewModel>(
         builder: (context, viewModel, _) => AuthScaffold(
-          title: 'Chào mừng trở lại',
-          subtitle: 'Đăng nhập để tiếp tục lộ trình học của bạn.',
+          title: l10n.translate('auth.login.title'),
+          subtitle: l10n.translate('auth.login.subtitle'),
           child: Form(
             key: _formKey,
             child: AutofillGroup(
@@ -61,11 +63,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.email],
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
+                    decoration: InputDecoration(
+                      labelText: l10n.translate('auth.login.email'),
+                      prefixIcon: const Icon(Icons.email_outlined),
                     ),
-                    validator: AuthViewModel.validateEmail,
+                    validator: (value) {
+                      final key = AuthViewModel.validateEmail(value);
+                      return key != null ? l10n.translate(key) : null;
+                    },
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
@@ -76,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.done,
                     autofillHints: const [AutofillHints.password],
                     decoration: InputDecoration(
-                      labelText: 'Mật khẩu',
+                      labelText: l10n.translate('auth.login.password'),
                       prefixIcon: const Icon(Icons.lock_outline_rounded),
                       suffixIcon: IconButton(
                         onPressed: () => setState(
@@ -88,17 +93,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               : Icons.visibility_off_outlined,
                         ),
                         tooltip: _obscurePassword
-                            ? 'Hiện mật khẩu'
-                            : 'Ẩn mật khẩu',
+                            ? l10n.translate('auth.login.show_password')
+                            : l10n.translate('auth.login.hide_password'),
                       ),
                     ),
-                    validator: AuthViewModel.validatePassword,
+                    validator: (value) {
+                      final key = AuthViewModel.validatePassword(value);
+                      return key != null ? l10n.translate(key) : null;
+                    },
                     onFieldSubmitted: (_) => _submit(viewModel),
                   ),
                   if (viewModel.errorMessage != null) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      viewModel.errorMessage!,
+                      l10n.translate(viewModel.errorMessage!),
                       key: const Key('auth_error'),
                       style: const TextStyle(color: AppColors.error),
                     ),
@@ -108,17 +116,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     key: const Key('login_submit'),
                     onPressed: viewModel.isSubmitting ? null : () => _submit(viewModel),
                     child: viewModel.isSubmitting
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Đăng nhập'),
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.translate('auth.login.submit')),
                   ),
                   TextButton(
                     onPressed: viewModel.isSubmitting
                         ? null
                         : () => context.go('/register'),
-                    child: const Text('Chưa có tài khoản? Đăng ký'),
+                    child: Text(l10n.translate('auth.login.register_link')),
                   ),
                 ],
               ),

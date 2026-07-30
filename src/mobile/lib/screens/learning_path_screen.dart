@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/data/mock_repository.dart';
 import 'package:lingoroad_mobile/models/models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class LearningPathScreen extends StatefulWidget {
   const LearningPathScreen({super.key});
@@ -12,10 +14,11 @@ class LearningPathScreen extends StatefulWidget {
 
 class _LearningPathScreenState extends State<LearningPathScreen> {
   late final Future<List<PathNode>> _path = const MockRepository().path();
-  String _selected = 'Bài 5';
+  String _selected = 'learning_path.lessons.lesson_5';
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     return AppPage(
       children: [
         const LingoHeader(),
@@ -26,11 +29,11 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Lộ trình B1',
+                    l10n.translate('learning_path.title', ['B1']),
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   Text(
-                    'Chặng 5 · Du lịch và giao tiếp',
+                    l10n.translate('learning_path.subtitle', [5, l10n.translate('learning_path.stage_title')]),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -92,6 +95,7 @@ class _PathItem extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
     final locked = node.status == 'locked';
     final complete = node.status == 'complete';
     final current = node.status == 'current';
@@ -122,7 +126,7 @@ class _PathItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'BÀI HIỆN TẠI',
+                    l10n.translate('learning_path.current_lesson'),
                     style: Theme.of(
                       context,
                     ).textTheme.labelSmall?.copyWith(color: Colors.white),
@@ -179,13 +183,13 @@ class _PathItem extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        node.title,
+                        l10n.translate(node.title),
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               color: AppColors.primary,
                             ),
                       ),
                       Text(
-                        node.subtitle,
+                        l10n.translate(node.subtitle),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ],
@@ -193,7 +197,7 @@ class _PathItem extends StatelessWidget {
                 )
               else
                 Text(
-                  complete ? '+${node.xp} XP' : node.title,
+                  complete ? '+${node.xp} XP' : l10n.translate(node.title),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: locked ? AppColors.muted : AppColors.primary,
                       ),

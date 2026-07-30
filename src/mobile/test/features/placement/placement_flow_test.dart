@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingoroad_mobile/app_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
@@ -9,7 +13,24 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_audio
 import 'package:lingoroad_mobile/features/placement/presentation/placement_question_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/main.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+
+AppLanguageProvider loadTestLanguageProvider() {
+  final viContent = File('assets/translations/vi.json').readAsStringSync();
+  final enContent = File('assets/translations/en.json').readAsStringSync();
+  final viMap = json.decode(viContent) as Map<String, dynamic>;
+  final enMap = json.decode(enContent) as Map<String, dynamic>;
+  return AppLanguageProvider.test(
+    translations: {
+      AppLanguage.vi: viMap,
+      AppLanguage.en: enMap,
+    },
+    currentLanguage: AppLanguage.vi,
+  );
+}
+
 
 class PlacementFlowAuthRepository implements AuthRepository {
   @override
@@ -97,6 +118,7 @@ class FakePlacementAudioPlayer implements PlacementAudioPlayer {
   Future<void> dispose() async {}
 }
 
+
 class TestAppFixture {
   TestAppFixture({
     required this.session,
@@ -105,12 +127,18 @@ class TestAppFixture {
     String initialLocation = '/splash',
   }) {
     placementVM = PlacementViewModel(placementRepo);
+    router = createAppRouter(
+      session: session,
+      placementViewModel: placementVM,
+      initialLocation: initialLocation,
+    );
     app = LingoRoadApp(
+      routerConfig: router,
       sessionController: session,
       authRepository: authRepo,
       placementRepository: placementRepo,
       placementViewModel: placementVM,
-      initialLocation: initialLocation,
+      languageProvider: loadTestLanguageProvider(),
     );
   }
 
@@ -118,7 +146,12 @@ class TestAppFixture {
   final AuthRepository authRepo;
   final PlacementRepository placementRepo;
   late final PlacementViewModel placementVM;
+  late final GoRouter router;
   late final Widget app;
+
+  void dispose() {
+    router.dispose();
+  }
 }
 
 void main() {
@@ -168,6 +201,7 @@ void main() {
     await tester.tap(continueButton);
     await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('route câu hỏi trực tiếp quay về intro khi chưa có session',
@@ -185,6 +219,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('câu listening phát audio URL đã chuẩn hóa', (tester) async {
@@ -194,11 +229,15 @@ void main() {
     );
     await listeningViewModel.start();
 
+    final l10n = loadTestLanguageProvider();
     await tester.pumpWidget(
-      MaterialApp(
-        home: ChangeNotifierProvider<PlacementViewModel>.value(
-          value: listeningViewModel,
-          child: PlacementQuestionScreen(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<PlacementViewModel>.value(value: listeningViewModel),
+          ChangeNotifierProvider<AppLanguageProvider>.value(value: l10n),
+        ],
+        child: MaterialApp(
+          home: PlacementQuestionScreen(
             audioPlayer: audioPlayer,
           ),
         ),

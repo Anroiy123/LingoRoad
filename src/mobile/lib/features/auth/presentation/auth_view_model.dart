@@ -66,7 +66,7 @@ class AuthViewModel extends ChangeNotifier {
       _errorMessage = messageFor(error);
       return false;
     } catch (_) {
-      _errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      _errorMessage = 'auth.error.generic';
       return false;
     } finally {
       _isSubmitting = false;
@@ -79,27 +79,27 @@ class AuthViewModel extends ChangeNotifier {
   static String? validateEmail(String? value) {
     final normalized = value?.trim() ?? '';
     if (normalized.isEmpty) {
-      return 'Vui lòng nhập email';
+      return 'auth.validation.email_empty';
     }
     final valid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(normalized);
-    return valid ? null : 'Email không hợp lệ';
+    return valid ? null : 'auth.validation.email_invalid';
   }
 
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Vui lòng nhập mật khẩu';
+      return 'auth.validation.password_empty';
     }
-    return value.length >= 8 ? null : 'Mật khẩu cần ít nhất 8 ký tự';
+    return value.length >= 8 ? null : 'auth.validation.password_too_short';
   }
 
   static String messageFor(ApiException error) {
     return switch (error.code) {
-      'password_too_short' => 'Mật khẩu cần ít nhất 8 ký tự',
-      'email_taken' => 'Email đã được sử dụng',
-      'http_401' => 'Email hoặc mật khẩu không đúng',
-      'network_unavailable' => 'Không thể kết nối đến máy chủ',
-      'request_timeout' => 'Kết nối quá thời gian chờ',
-      _ => 'Đã xảy ra lỗi. Vui lòng thử lại.',
+      'password_too_short' => 'auth.validation.password_too_short',
+      'email_taken' => 'auth.error.email_taken',
+      'http_401' => 'auth.error.invalid_credentials',
+      'network_unavailable' => 'auth.error.network_unavailable',
+      'request_timeout' => 'auth.error.request_timeout',
+      _ => 'auth.error.generic',
     };
   }
 

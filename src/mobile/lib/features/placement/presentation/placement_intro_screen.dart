@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
@@ -18,6 +19,7 @@ class PlacementIntroScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<PlacementViewModel>();
+    final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -35,42 +37,41 @@ class PlacementIntroScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Kiểm tra trình độ đầu vào',
+                    l10n.translate('placement.intro.title'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'lingoRoad sẽ chọn câu hỏi thích ứng để xác định cấp độ '
-                    'CEFR phù hợp với bạn.',
+                    l10n.translate('placement.intro.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  const AppCard(
+                  AppCard(
                     child: Column(
                       children: [
                         _IntroPoint(
                           icon: Icons.quiz_outlined,
-                          title: '8–30 câu hỏi',
+                          title: l10n.translate('placement.intro.duration_title'),
                           description:
-                              'Bài kiểm tra kết thúc khi kết quả đủ tin cậy.',
+                              l10n.translate('placement.intro.duration_desc'),
                         ),
-                        SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.lg),
                         _IntroPoint(
                           icon: Icons.tune_rounded,
-                          title: 'Độ khó thích ứng',
+                          title: l10n.translate('placement.intro.adaptive_title'),
                           description:
-                              'Câu tiếp theo được chọn theo câu trả lời trước.',
+                              l10n.translate('placement.intro.adaptive_desc'),
                         ),
-                        SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.lg),
                         _IntroPoint(
                           icon: Icons.insights_rounded,
-                          title: 'Kết quả CEFR',
+                          title: l10n.translate('placement.intro.result_title'),
                           description:
-                              'Kết quả giúp cá nhân hóa lộ trình học ban đầu.',
+                              l10n.translate('placement.intro.result_desc'),
                         ),
                       ],
                     ),
@@ -78,7 +79,7 @@ class PlacementIntroScreen extends StatelessWidget {
                   if (viewModel.errorMessage != null) ...[
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                      viewModel.errorMessage!,
+                      l10n.translate(viewModel.errorMessage!),
                       key: const Key('placement_intro_error'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: AppColors.error),
@@ -94,12 +95,11 @@ class PlacementIntroScreen extends StatelessWidget {
                             dimension: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Bắt đầu kiểm tra'),
+                        : Text(l10n.translate('placement.intro.start')),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Hãy chọn đáp án tốt nhất. Bạn không thể quay lại câu '
-                    'trước.',
+                    l10n.translate('placement.intro.note'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: AppColors.textSecondary,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
@@ -13,6 +14,7 @@ class PlacementResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<PlacementViewModel>();
     final sessionController = context.read<SessionController>();
+    final l10n = context.watch<AppLanguageProvider>();
     final result = viewModel.result;
     return Scaffold(
       body: SafeArea(
@@ -31,13 +33,13 @@ class PlacementResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Bạn đã hoàn thành!',
+                    l10n.translate('placement.result.title'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'lingoRoad đã xác định cấp độ khởi đầu phù hợp với bạn.',
+                    l10n.translate('placement.result.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
@@ -49,7 +51,7 @@ class PlacementResultScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Cấp độ CEFR',
+                          l10n.translate('placement.result.cefr_level'),
                           style: Theme.of(context)
                               .textTheme
                               .labelLarge
@@ -72,11 +74,11 @@ class PlacementResultScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _ResultMetric(
-                              label: 'Đã trả lời',
-                              value: '${result?.itemsAnswered ?? 0} câu',
+                              label: l10n.translate('placement.result.answered'),
+                              value: l10n.translate('placement.result.answered_val', [result?.itemsAnswered ?? 0]),
                             ),
                             _ResultMetric(
-                              label: 'Độ tin cậy',
+                              label: l10n.translate('placement.result.confidence'),
                               value: result == null
                                   ? ''
                                   : 'SE ${result.se.toStringAsFixed(2)}',
@@ -87,20 +89,18 @@ class PlacementResultScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  const AppCard(
+                  AppCard(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.auto_awesome_rounded,
                           color: AppColors.primary,
                         ),
-                        SizedBox(width: AppSpacing.md),
+                        const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Text(
-                            'Kết quả này sẽ được dùng để xây dựng lộ trình '
-                            'học cá nhân hóa. Đây là đánh giá định hướng ban '
-                            'đầu, không phải chứng chỉ CEFR chính thức.',
+                            l10n.translate('placement.result.disclaimer'),
                           ),
                         ),
                       ],
@@ -113,7 +113,7 @@ class PlacementResultScreen extends StatelessWidget {
                       sessionController.markPlacementCompleted();
                       context.go('/home');
                     },
-                    child: const Text('Bắt đầu lộ trình'),
+                    child: Text(l10n.translate('placement.result.continue_btn')),
                   ),
                 ],
               ),

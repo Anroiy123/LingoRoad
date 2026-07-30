@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingoroad_mobile/app_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
@@ -9,7 +12,23 @@ import 'package:lingoroad_mobile/features/placement/data/placement_repository.da
 import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 import 'package:lingoroad_mobile/main.dart';
 import 'package:lingoroad_mobile/widgets/brand_logo.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
+import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+
+AppLanguageProvider loadTestLanguageProvider() {
+  final viContent = File('assets/translations/vi.json').readAsStringSync();
+  final enContent = File('assets/translations/en.json').readAsStringSync();
+  final viMap = json.decode(viContent) as Map<String, dynamic>;
+  final enMap = json.decode(enContent) as Map<String, dynamic>;
+  return AppLanguageProvider.test(
+    translations: {
+      AppLanguage.vi: viMap,
+      AppLanguage.en: enMap,
+    },
+    currentLanguage: AppLanguage.vi,
+  );
+}
 
 class FlowAuthRepository implements AuthRepository {
   @override
@@ -26,6 +45,11 @@ class FlowAuthRepository implements AuthRepository {
     String? name,
   }) async =>
       'register-token';
+
+  @override
+  Future<void> requestPasswordReset({required String email}) {
+    throw UnimplementedError('Không gọi trong auth flow test');
+  }
 }
 
 class AuthFlowPlacementRepository implements PlacementRepository {
@@ -66,6 +90,7 @@ class AuthFlowPlacementRepository implements PlacementRepository {
       throw UnimplementedError('Không gọi trong auth flow test');
 }
 
+
 class TestAppFixture {
   TestAppFixture({
     required this.session,
@@ -74,12 +99,18 @@ class TestAppFixture {
     String initialLocation = '/splash',
   }) {
     placementVM = PlacementViewModel(placementRepo);
+    router = createAppRouter(
+      session: session,
+      placementViewModel: placementVM,
+      initialLocation: initialLocation,
+    );
     app = LingoRoadApp(
+      routerConfig: router,
       sessionController: session,
       authRepository: authRepo,
       placementRepository: placementRepo,
       placementViewModel: placementVM,
-      initialLocation: initialLocation,
+      languageProvider: loadTestLanguageProvider(),
     );
   }
 
@@ -87,7 +118,12 @@ class TestAppFixture {
   final AuthRepository authRepo;
   final PlacementRepository placementRepo;
   late final PlacementViewModel placementVM;
+  late final GoRouter router;
   late final Widget app;
+
+  void dispose() {
+    router.dispose();
+  }
 }
 
 void main() {
@@ -108,6 +144,7 @@ void main() {
     await session.restore();
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('authenticated vào placement và logout về login', (tester) async {
@@ -127,6 +164,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
     expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
+    fixture.dispose();
   });
 
   testWidgets('restore giữ splash trong lúc chờ trạng thái rồi vào placement',
@@ -151,6 +189,7 @@ void main() {
     await restore;
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('lookup lỗi hiện retry và thử lại thành công vào placement',
@@ -174,6 +213,7 @@ void main() {
     await tester.tap(find.byKey(const Key('placement_status_retry')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets(
@@ -196,6 +236,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Chào mừng trở lại'), findsOneWidget);
     expect(session.placementStatus, PlacementOnboardingStatus.unknown);
+    fixture.dispose();
   });
 
   testWidgets('login validation và submit thành công', (tester) async {
@@ -226,6 +267,7 @@ void main() {
     await tester.tap(find.byKey(const Key('login_submit')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('login user đã hoàn thành placement chuyển vào home',
@@ -253,6 +295,7 @@ void main() {
 
     expect(find.text('Học'), findsOneWidget);
     expect(find.text('Kiểm tra trình độ đầu vào'), findsNothing);
+    fixture.dispose();
   });
 
   testWidgets('register thành công chuyển vào placement', (tester) async {
@@ -279,6 +322,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
   });
 
   testWidgets('chuyển sang Register và validate password', (tester) async {
@@ -308,5 +352,6 @@ void main() {
     await tester.tap(find.byKey(const Key('register_submit')));
     await tester.pump();
     expect(find.text('Mật khẩu cần ít nhất 8 ký tự'), findsOneWidget);
+    fixture.dispose();
   });
 }
