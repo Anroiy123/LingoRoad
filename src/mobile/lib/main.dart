@@ -23,17 +23,9 @@ void main() {
   final authRepository = ApiAuthRepository(apiClient);
   final placementRepository = ApiPlacementRepository(apiClient);
   final placementViewModel = PlacementViewModel(placementRepository);
-  
-  session.configurePlacementStatusLoader(placementRepository.isCompleted);
-  
-  final router = createAppRouter(
-    session: session,
-    placementViewModel: placementViewModel,
-  );
 
   runApp(
     LingoRoadApp(
-      routerConfig: router,
       sessionController: session,
       authRepository: authRepository,
       placementRepository: placementRepository,
@@ -43,78 +35,81 @@ void main() {
   unawaited(session.restore());
 }
 
-class LingoRoadApp extends StatelessWidget {
-  const LingoRoadApp({
-    required this.routerConfig,
-    this.sessionController,
-    this.authRepository,
-    this.placementRepository,
-    this.placementViewModel,
+class LingoRoadApp extends StatefulWidget {
+  LingoRoadApp({
+    required this.sessionController,
+    required this.authRepository,
+    required this.placementRepository,
+    required this.placementViewModel,
+    this.initialLocation = '/splash',
     super.key,
-  });
+  }) {
+    sessionController.configurePlacementStatusLoader(
+      placementRepository.isCompleted,
+    );
+  }
 
-  final GoRouter routerConfig;
-  final SessionController? sessionController;
-  final AuthRepository? authRepository;
-  final PlacementRepository? placementRepository;
-  final PlacementViewModel? placementViewModel;
+  final SessionController sessionController;
+  final AuthRepository authRepository;
+  final PlacementRepository placementRepository;
+  final PlacementViewModel placementViewModel;
+  final String initialLocation;
+
+  @override
+  State<LingoRoadApp> createState() => _LingoRoadAppState();
+}
+
+class _LingoRoadAppState extends State<LingoRoadApp> {
+  late GoRouter _routerConfig;
+
+  @override
+  void initState() {
+    super.initState();
+    _routerConfig = _createRouter();
+  }
+
+  @override
+  void didUpdateWidget(LingoRoadApp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessionController != widget.sessionController ||
+        oldWidget.placementViewModel != widget.placementViewModel ||
+        oldWidget.initialLocation != widget.initialLocation) {
+      _routerConfig.dispose();
+      _routerConfig = _createRouter();
+    }
+  }
+
+  GoRouter _createRouter() => createAppRouter(
+        session: widget.sessionController,
+        placementViewModel: widget.placementViewModel,
+        initialLocation: widget.initialLocation,
+      );
+
+  @override
+  void dispose() {
+    _routerConfig.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        if (sessionController != null)
-          ChangeNotifierProvider<SessionController>.value(value: sessionController!)
-        else
-          ChangeNotifierProvider<SessionController>(
-            create: (_) => SessionController(const SecureSessionStore()),
-          ),
-        if (authRepository != null)
-          Provider<AuthRepository>.value(value: authRepository!)
-        else
-          Provider<AuthRepository>(
-            create: (context) => ApiAuthRepository(
-              ApiClient(
-                config: AppConfig(),
-                session: context.read<SessionController>(),
-              ),
-            ),
-          ),
-        if (placementRepository != null)
-          Provider<PlacementRepository>.value(value: placementRepository!)
-        else
-          Provider<PlacementRepository>(
-            create: (context) => ApiPlacementRepository(
-              ApiClient(
-                config: AppConfig(),
-                session: context.read<SessionController>(),
-              ),
-            ),
-          ),
-        if (placementViewModel != null)
-          ChangeNotifierProvider<PlacementViewModel>.value(value: placementViewModel!)
-        else
-          ChangeNotifierProvider<PlacementViewModel>(
-            create: (context) => PlacementViewModel(
-              context.read<PlacementRepository>(),
-            ),
-          ),
+        ChangeNotifierProvider<SessionController>.value(
+          value: widget.sessionController,
+        ),
+        Provider<AuthRepository>.value(value: widget.authRepository),
+        Provider<PlacementRepository>.value(value: widget.placementRepository),
+        ChangeNotifierProvider<PlacementViewModel>.value(
+          value: widget.placementViewModel,
+        ),
       ],
-      child: Builder(
-        builder: (context) {
-          // Ensure placement status loader is configured using the provided dependencies
-          context.read<SessionController>().configurePlacementStatusLoader(
-            context.read<PlacementRepository>().isCompleted,
-          );
-          return MaterialApp.router(
-            title: 'lingoRoad',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            routerConfig: routerConfig,
-          );
-        },
+      child: MaterialApp.router(
+        title: 'lingoRoad',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        routerConfig: _routerConfig,
       ),
     );
   }
 }
-
