@@ -1,10 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
-import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/login_screen.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/register_screen.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/splash_screen.dart';
-import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_intro_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_question_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_result_screen.dart';
@@ -14,12 +12,9 @@ import 'package:lingoroad_mobile/screens/main_shell.dart';
 
 GoRouter createAppRouter({
   required SessionController session,
-  required AuthRepository authRepository,
-  required PlacementRepository placementRepository,
+  required PlacementViewModel placementViewModel,
   String initialLocation = '/splash',
 }) {
-  session.configurePlacementStatusLoader(placementRepository.isCompleted);
-  final placement = PlacementViewModel(placementRepository);
   return GoRouter(
     initialLocation: initialLocation,
     refreshListenable: session,
@@ -56,10 +51,10 @@ GoRouter createAppRouter({
             return '/placement';
           }
           if (location == '/placement/question' &&
-              placement.currentItem == null) {
+              placementViewModel.currentItem == null) {
             return '/placement';
           }
-          if (location == '/placement/result' && placement.result == null) {
+          if (location == '/placement/result' && placementViewModel.result == null) {
             return '/placement';
           }
           return null;
@@ -72,43 +67,33 @@ GoRouter createAppRouter({
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => LoginScreen(
-          authRepository: authRepository,
-          sessionController: session,
-        ),
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => RegisterScreen(
-          authRepository: authRepository,
-          sessionController: session,
-        ),
+        builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: '/placement',
-        builder: (context, state) => PlacementIntroScreen(viewModel: placement),
+        builder: (context, state) => const PlacementIntroScreen(),
       ),
       GoRoute(
         path: '/placement/status-error',
-        builder: (context, state) =>
-            PlacementStatusErrorScreen(sessionController: session),
+        builder: (context, state) => const PlacementStatusErrorScreen(),
       ),
       GoRoute(
         path: '/placement/question',
-        builder: (context, state) =>
-            PlacementQuestionScreen(viewModel: placement),
+        builder: (context, state) => const PlacementQuestionScreen(),
       ),
       GoRoute(
         path: '/placement/result',
-        builder: (context, state) => PlacementResultScreen(
-          viewModel: placement,
-          sessionController: session,
-        ),
+        builder: (context, state) => const PlacementResultScreen(),
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => MainShell(sessionController: session),
+        builder: (context, state) => const MainShell(),
       ),
     ],
   );
 }
+

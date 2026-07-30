@@ -3,13 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:provider/provider.dart';
 
 class PlacementIntroScreen extends StatelessWidget {
-  const PlacementIntroScreen({required this.viewModel, super.key});
+  const PlacementIntroScreen({super.key});
 
-  final PlacementViewModel viewModel;
-
-  Future<void> _start(BuildContext context) async {
+  Future<void> _start(BuildContext context, PlacementViewModel viewModel) async {
     final started = await viewModel.start();
     if (started && context.mounted) {
       context.go('/placement/question');
@@ -18,6 +17,7 @@ class PlacementIntroScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<PlacementViewModel>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -25,90 +25,87 @@ class PlacementIntroScreen extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.margin),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
-              child: AnimatedBuilder(
-                animation: viewModel,
-                builder: (context, _) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Icon(
-                      Icons.route_rounded,
-                      size: 52,
-                      color: AppColors.primary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(
+                    Icons.route_rounded,
+                    size: 52,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Kiểm tra trình độ đầu vào',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'lingoRoad sẽ chọn câu hỏi thích ứng để xác định cấp độ '
+                    'CEFR phù hợp với bạn.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  const AppCard(
+                    child: Column(
+                      children: [
+                        _IntroPoint(
+                          icon: Icons.quiz_outlined,
+                          title: '8–30 câu hỏi',
+                          description:
+                              'Bài kiểm tra kết thúc khi kết quả đủ tin cậy.',
+                        ),
+                        SizedBox(height: AppSpacing.lg),
+                        _IntroPoint(
+                          icon: Icons.tune_rounded,
+                          title: 'Độ khó thích ứng',
+                          description:
+                              'Câu tiếp theo được chọn theo câu trả lời trước.',
+                        ),
+                        SizedBox(height: AppSpacing.lg),
+                        _IntroPoint(
+                          icon: Icons.insights_rounded,
+                          title: 'Kết quả CEFR',
+                          description:
+                              'Kết quả giúp cá nhân hóa lộ trình học ban đầu.',
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.sm),
+                  ),
+                  if (viewModel.errorMessage != null) ...[
+                    const SizedBox(height: AppSpacing.md),
                     Text(
-                      'Kiểm tra trình độ đầu vào',
+                      viewModel.errorMessage!,
+                      key: const Key('placement_intro_error'),
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'lingoRoad sẽ chọn câu hỏi thích ứng để xác định cấp độ '
-                      'CEFR phù hợp với bạn.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    const AppCard(
-                      child: Column(
-                        children: [
-                          _IntroPoint(
-                            icon: Icons.quiz_outlined,
-                            title: '8–30 câu hỏi',
-                            description:
-                                'Bài kiểm tra kết thúc khi kết quả đủ tin cậy.',
-                          ),
-                          SizedBox(height: AppSpacing.lg),
-                          _IntroPoint(
-                            icon: Icons.tune_rounded,
-                            title: 'Độ khó thích ứng',
-                            description:
-                                'Câu tiếp theo được chọn theo câu trả lời trước.',
-                          ),
-                          SizedBox(height: AppSpacing.lg),
-                          _IntroPoint(
-                            icon: Icons.insights_rounded,
-                            title: 'Kết quả CEFR',
-                            description:
-                                'Kết quả giúp cá nhân hóa lộ trình học ban đầu.',
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (viewModel.errorMessage != null) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        viewModel.errorMessage!,
-                        key: const Key('placement_intro_error'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.error),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.xl),
-                    FilledButton(
-                      key: const Key('placement_start'),
-                      onPressed:
-                          viewModel.isLoading ? null : () => _start(context),
-                      child: viewModel.isLoading
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Bắt đầu kiểm tra'),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'Hãy chọn đáp án tốt nhất. Bạn không thể quay lại câu '
-                      'trước.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                      style: const TextStyle(color: AppColors.error),
                     ),
                   ],
-                ),
+                  const SizedBox(height: AppSpacing.xl),
+                  FilledButton(
+                    key: const Key('placement_start'),
+                    onPressed:
+                        viewModel.isLoading ? null : () => _start(context, viewModel),
+                    child: viewModel.isLoading
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Bắt đầu kiểm tra'),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Hãy chọn đáp án tốt nhất. Bạn không thể quay lại câu '
+                    'trước.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ],
               ),
             ),
           ),

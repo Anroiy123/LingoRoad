@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 class PlacementStatusErrorScreen extends StatelessWidget {
-  const PlacementStatusErrorScreen({
-    required this.sessionController,
-    super.key,
-  });
-
-  final SessionController sessionController;
+  const PlacementStatusErrorScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final sessionController = context.read<SessionController>();
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -60,3 +57,4 @@ class PlacementStatusErrorScreen extends StatelessWidget {
     );
   }
 }
+
