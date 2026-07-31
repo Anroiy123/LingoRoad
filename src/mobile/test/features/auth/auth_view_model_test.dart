@@ -5,6 +5,7 @@ import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/auth_view_model.dart';
 
 class FakeAuthRepository implements AuthRepository {
@@ -40,6 +41,22 @@ class FakeAuthRepository implements AuthRepository {
       throw error!;
     }
     return token;
+  }
+
+  @override
+  Future<UserProfile> getProfile() async {
+    if (error != null) {
+      throw error!;
+    }
+    return const UserProfile(
+      id: 'user-id',
+      email: 'test@gmail.com',
+      name: 'Test User',
+      targetCefr: 'B2',
+      cefrLevel: 'A1',
+      level: 12,
+      badgesCount: 6,
+    );
   }
 }
 

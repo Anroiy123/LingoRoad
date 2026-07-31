@@ -7,6 +7,7 @@ import 'package:lingoroad_mobile/app_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/domain/placement_models.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_audio_player.dart';
@@ -47,6 +48,17 @@ class PlacementFlowAuthRepository implements AuthRepository {
     String? name,
   }) async =>
       'token';
+
+  @override
+  Future<UserProfile> getProfile() async => const UserProfile(
+        id: 'user-id',
+        email: 'test@gmail.com',
+        name: 'Test User',
+        targetCefr: 'B2',
+        cefrLevel: 'A1',
+        level: 12,
+        badgesCount: 6,
+      );
 }
 
 class FlowPlacementRepository implements PlacementRepository {

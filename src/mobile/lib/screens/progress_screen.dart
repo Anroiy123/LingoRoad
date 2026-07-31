@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/data/mock_repository.dart';
 import 'package:lingoroad_mobile/models/models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -31,29 +33,30 @@ class _ProgressScreenState extends State<ProgressScreen>
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.margin,
-              AppSpacing.md,
-              AppSpacing.margin,
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.margin.w,
+              AppSpacing.md.h,
+              AppSpacing.margin.w,
               0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const LingoHeader(),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: AppSpacing.lg.h),
                 Text(
                   l10n.translate('progress.title'),
-                  style: Theme.of(context).textTheme.headlineMedium,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 28.sp),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                SizedBox(height: AppSpacing.xs.h),
                 Text(
                   l10n.translate('progress.subtitle'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
+                        fontSize: 14.sp,
                       ),
                 ),
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md.h),
                 TabBar(
                   controller: _tabs,
                   isScrollable: true,
@@ -61,6 +64,8 @@ class _ProgressScreenState extends State<ProgressScreen>
                   labelColor: AppColors.primary,
                   indicatorColor: AppColors.cta,
                   dividerColor: AppColors.surfaceHigh,
+                  labelStyle: TextStyle(fontSize: 14.sp),
+                  unselectedLabelStyle: TextStyle(fontSize: 14.sp),
                   tabs: [
                     Tab(text: l10n.translate('progress.tabs.overview')),
                     Tab(text: l10n.translate('progress.tabs.skills')),
@@ -86,23 +91,26 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 
   Widget _overview(AppLanguageProvider l10n) => ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.margin,
-          AppSpacing.lg,
-          AppSpacing.margin,
-          112,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.margin.w,
+          AppSpacing.lg.h,
+          AppSpacing.margin.w,
+          112.h,
         ),
         children: [
           AppCard(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
             child: Column(
               children: [
-                const Icon(Icons.school_outlined, color: AppColors.primary),
+                Icon(Icons.school_outlined, color: AppColors.primary, size: 24.sp),
                 Text(
                   'B1',
                   style: Theme.of(
                     context,
-                  ).textTheme.titleLarge?.copyWith(color: AppColors.primary),
+                  ).textTheme.titleLarge?.copyWith(
+                        color: AppColors.primary,
+                        fontSize: 22.sp,
+                      ),
                 ),
                 Text(
                   l10n.translate('progress.overview.current_level'),
@@ -111,43 +119,47 @@ class _ProgressScreenState extends State<ProgressScreen>
                   )
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: AppColors.textSecondary),
+                      ?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.sp,
+                      ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm.h),
           Row(
             children: [
               Expanded(child: _stat(Icons.star_outline, '1.240', l10n.translate('progress.overview.total_xp'))),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm.w),
               Expanded(
                 child: _stat(
                   Icons.local_fire_department_outlined,
                   '12',
                   l10n.translate('progress.overview.streak'),
+                  onTap: () => context.push('/streak-details'),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm.h),
           Row(
             children: [
               Expanded(
                   child: _stat(Icons.assignment_outlined, '2/3', l10n.translate('progress.overview.quests'))),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm.w),
               Expanded(
                 child: _stat(Icons.emoji_events_outlined, '12/48', l10n.translate('progress.overview.badges')),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg.h),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionTitle(l10n.translate('progress.overview.cefr_journey')),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: AppSpacing.lg.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children:
@@ -156,7 +168,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                     return Column(
                       children: [
                         CircleAvatar(
-                          radius: 13,
+                          radius: 13.r,
                           backgroundColor:
                               done ? AppColors.primary : AppColors.surfaceHigh,
                           child: done
@@ -165,14 +177,17 @@ class _ProgressScreenState extends State<ProgressScreen>
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
-                                      ?.copyWith(color: Colors.white),
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontSize: 10.sp,
+                                      ),
                                 )
                               : null,
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6.h),
                         Text(
                           entry.key == 2 ? l10n.translate('progress.overview.current') : entry.value,
-                          style: Theme.of(context).textTheme.labelSmall,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 12.sp),
                         ),
                       ],
                     );
@@ -181,39 +196,39 @@ class _ProgressScreenState extends State<ProgressScreen>
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg.h),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionTitle(l10n.translate('progress.overview.mastery')),
-                const SizedBox(height: AppSpacing.md),
-                const SizedBox(
-                  height: 190,
+                SizedBox(height: AppSpacing.md.h),
+                SizedBox(
+                  height: 190.h,
                   width: double.infinity,
-                  child: CustomPaint(painter: _MasteryChartPainter()),
+                  child: const CustomPaint(painter: _MasteryChartPainter()),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg.h),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionTitle(l10n.translate('progress.overview.strengths')),
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md.h),
                 ..._skills.take(3).map((item) => _skill(item, l10n)),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg.h),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionTitle(l10n.translate('progress.overview.improvements')),
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md.h),
                 ..._skills.skip(3).map((item) => _skill(item, l10n)),
               ],
             ),
@@ -222,11 +237,11 @@ class _ProgressScreenState extends State<ProgressScreen>
       );
 
   Widget _skillTab(AppLanguageProvider l10n) => ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.margin,
-          AppSpacing.lg,
-          AppSpacing.margin,
-          112,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.margin.w,
+          AppSpacing.lg.h,
+          AppSpacing.margin.w,
+          112.h,
         ),
         children: [
           AppCard(
@@ -234,24 +249,25 @@ class _ProgressScreenState extends State<ProgressScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionTitle(l10n.translate('progress.skills_analysis.title')),
-                const SizedBox(height: AppSpacing.lg),
+                SizedBox(height: AppSpacing.lg.h),
                 ..._skills.map((item) => _skill(item, l10n)),
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md.h),
                 Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
                   decoration: BoxDecoration(
                     color: AppColors.primaryFixed,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    borderRadius: BorderRadius.circular(AppRadius.lg.r),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.auto_awesome_rounded,
-                          color: AppColors.primary),
-                      const SizedBox(width: AppSpacing.sm),
+                      Icon(Icons.auto_awesome_rounded,
+                          color: AppColors.primary, size: 24.sp),
+                      SizedBox(width: AppSpacing.sm.w),
                       Expanded(
                         child: Text(
                           l10n.translate('progress.skills_analysis.suggestion'),
+                          style: TextStyle(fontSize: 14.sp),
                         ),
                       ),
                     ],
@@ -264,15 +280,15 @@ class _ProgressScreenState extends State<ProgressScreen>
       );
 
   Widget _achievements(AppLanguageProvider l10n) => GridView.count(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.margin,
-          AppSpacing.lg,
-          AppSpacing.margin,
-          112,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.margin.w,
+          AppSpacing.lg.h,
+          AppSpacing.margin.w,
+          112.h,
         ),
         crossAxisCount: 2,
-        mainAxisSpacing: AppSpacing.md,
-        crossAxisSpacing: AppSpacing.md,
+        mainAxisSpacing: AppSpacing.md.h,
+        crossAxisSpacing: AppSpacing.md.w,
         children: [
           _Badge(Icons.local_fire_department_outlined, l10n.translate('progress.badges_list.streak_12')),
           _Badge(Icons.workspace_premium_outlined, l10n.translate('progress.badges_list.traveler')),
@@ -281,30 +297,42 @@ class _ProgressScreenState extends State<ProgressScreen>
         ],
       );
 
-  Widget _stat(IconData icon, String value, String label) => AppCard(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        child: SizedBox(
-          height: 78,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 19, color: AppColors.primary),
-              Text(value, style: Theme.of(context).textTheme.titleLarge),
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                )
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-            ],
-          ),
+  Widget _stat(IconData icon, String value, String label, {VoidCallback? onTap}) {
+    final card = AppCard(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.sm.h),
+      child: SizedBox(
+        height: 78.h,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 19.sp, color: AppColors.primary),
+            Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20.sp)),
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              )
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.sp,
+                  ),
+            ),
+          ],
         ),
+      ),
+    );
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: card,
       );
+    }
+    return card;
+  }
   Widget _skill(SkillProgress item, AppLanguageProvider l10n) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        padding: EdgeInsets.only(bottom: AppSpacing.md.h),
         child: MetricRow(label: l10n.translate(item.label), value: item.value),
       );
 }
@@ -315,20 +343,20 @@ class _Badge extends StatelessWidget {
   final String label;
   @override
   Widget build(BuildContext context) => AppCard(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 29,
+              radius: 29.r,
               backgroundColor: AppColors.primaryFixed,
-              child: Icon(icon, color: AppColors.primary),
+              child: Icon(icon, color: AppColors.primary, size: 28.sp),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm.h),
             Text(
               label,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.labelLarge,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
             ),
           ],
         ),
@@ -341,7 +369,7 @@ class _MasteryChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final grid = Paint()
       ..color = AppColors.surfaceHigh
-      ..strokeWidth = 1;
+      ..strokeWidth = 1.w;
     for (var i = 1; i <= 4; i++) {
       final y = size.height * i / 5;
       canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
@@ -359,17 +387,17 @@ class _MasteryChartPainter extends CustomPainter {
       Paint()
         ..color = AppColors.cta
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
+        ..strokeWidth = 2.5.w,
     );
     for (final point in points) {
-      canvas.drawCircle(point, 4, Paint()..color = AppColors.surface);
+      canvas.drawCircle(point, 4.r, Paint()..color = AppColors.surface);
       canvas.drawCircle(
         point,
-        4,
+        4.r,
         Paint()
           ..color = AppColors.cta
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
+          ..strokeWidth = 2.w,
       );
     }
   }

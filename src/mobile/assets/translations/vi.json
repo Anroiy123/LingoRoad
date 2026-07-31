@@ -2,7 +2,8 @@
   "common": {
     "progress_percent": "Tiến độ {} phần trăm",
     "retry": "Thử lại",
-    "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại."
+    "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "not_implemented": "Tính năng này đang được phát triển."
   },
   "nav": {
     "learn": "Học",
@@ -20,7 +21,13 @@
       "show_password": "Hiện mật khẩu",
       "hide_password": "Ẩn mật khẩu",
       "submit": "Đăng nhập",
-      "register_link": "Chưa có tài khoản? Đăng ký"
+      "register_link": "Chưa có tài khoản? Đăng ký",
+      "email_placeholder": "Nhập email của bạn",
+      "password_placeholder": "Nhập mật khẩu của bạn",
+      "forgot_password": "Quên mật khẩu?",
+      "or_continue": "HOẶC TIẾP TỤC VỚI",
+      "no_account": "Chưa có tài khoản? ",
+      "register_action": "Đăng ký"
     },
     "register": {
       "title": "Tạo tài khoản",
@@ -28,13 +35,23 @@
       "name": "Tên hiển thị (không bắt buộc)",
       "password_helper": "Tối thiểu 8 ký tự",
       "submit": "Đăng ký",
-      "login_link": "Đã có tài khoản? Đăng nhập"
+      "login_link": "Đã có tài khoản? Đăng nhập",
+      "name_label": "Họ và tên",
+      "name_placeholder": "Nhập họ và tên",
+      "email_placeholder": "Nhập địa chỉ email",
+      "password_placeholder": "Tạo mật khẩu",
+      "confirm_password_label": "Xác nhận mật khẩu",
+      "confirm_password_placeholder": "Nhập lại mật khẩu",
+      "has_account": "Đã có tài khoản? ",
+      "login_action": "Đăng nhập"
     },
     "validation": {
       "email_empty": "Vui lòng nhập email",
       "email_invalid": "Email không hợp lệ",
       "password_empty": "Vui lòng nhập mật khẩu",
-      "password_too_short": "Mật khẩu cần ít nhất 8 ký tự"
+      "password_too_short": "Mật khẩu cần ít nhất 8 ký tự",
+      "confirm_password_empty": "Vui lòng xác nhận mật khẩu",
+      "confirm_password_mismatch": "Mật khẩu xác nhận không trùng khớp"
     },
     "error": {
       "email_taken": "Email đã được sử dụng",
@@ -214,6 +231,7 @@
   },
   "profile": {
     "status": "Cấp {} · {} · {} huy hiệu",
+    "error_load_failed": "Không thể tải thông tin cá nhân",
     "groups": {
       "goals": "Mục tiêu học tập",
       "schedule": "Lịch học",
@@ -237,6 +255,45 @@
       "content": "Đây là thao tác mô phỏng trong phiên bản giao diện.",
       "cancel": "Hủy",
       "confirm": "Đồng ý"
+    }
+  },
+  "streak": {
+    "title": "Chi tiết chuỗi",
+    "days_count": "{} Ngày",
+    "current_streak": "Chuỗi học tập hiện tại",
+    "record_title": "KỶ LỤC CHUỖI",
+    "record_value": "{} ngày",
+    "protect_title": "BẢO VỆ CHUỖI",
+    "protect_value": "{} sẵn có",
+    "buy": "Mua",
+    "months": {
+      "jan": "Tháng 1",
+      "feb": "Tháng 2",
+      "mar": "Tháng 3",
+      "apr": "Tháng 4",
+      "may": "Tháng 5",
+      "jun": "Tháng 6",
+      "jul": "Tháng 7",
+      "aug": "Tháng 8",
+      "sep": "Tháng 9",
+      "oct": "Tháng 10",
+      "nov": "Tháng 11",
+      "dec": "Tháng 12"
+    },
+    "today": "Hôm nay",
+    "legend": {
+      "learned": "Đã học (Lửa cam)",
+      "freeze": "Dùng bảo vệ chuỗi (Băng xanh)",
+      "missed": "Bỏ lỡ (Xám)"
+    },
+    "weekdays": {
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7",
+      "sun": "CN"
     }
   }
 }

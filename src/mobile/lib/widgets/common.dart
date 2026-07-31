@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -12,11 +13,11 @@ class AppPage extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.margin,
-          AppSpacing.md,
-          AppSpacing.margin,
-          112,
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.margin.w,
+          AppSpacing.md.h,
+          AppSpacing.margin.w,
+          112.h,
         ),
         children: _withSpacing(children),
       ),
@@ -27,7 +28,7 @@ class AppPage extends StatelessWidget {
     return [
       for (var i = 0; i < source.length; i++) ...[
         source[i],
-        if (i != source.length - 1) const SizedBox(height: AppSpacing.lg),
+        if (i != source.length - 1) SizedBox(height: AppSpacing.lg.h),
       ],
     ];
   }
@@ -41,35 +42,41 @@ class LingoHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 16,
+        CircleAvatar(
+          radius: 16.r,
           backgroundColor: AppColors.surfaceDisabled,
           child: Icon(
             Icons.person_outline_rounded,
-            size: 18,
+            size: 18.sp,
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(width: AppSpacing.xs),
+        SizedBox(width: AppSpacing.xs.w),
         Text(
           'lingoRoad',
           style: Theme.of(
             context,
-          ).textTheme.headlineSmall?.copyWith(color: AppColors.primary),
+          ).textTheme.headlineSmall?.copyWith(
+                color: AppColors.primary,
+                fontSize: 24.sp,
+              ),
         ),
         if (streak != null) ...[
           const Spacer(),
-          const Icon(
+          Icon(
             Icons.local_fire_department_rounded,
-            size: 20,
+            size: 20.sp,
             color: AppColors.primary,
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4.w),
           Text(
             '$streak',
             style: Theme.of(
               context,
-            ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
+            ).textTheme.labelLarge?.copyWith(
+                  color: AppColors.primary,
+                  fontSize: 14.sp,
+                ),
           ),
         ],
       ],
@@ -80,21 +87,21 @@ class LingoHeader extends StatelessWidget {
 class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
-    this.padding = const EdgeInsets.all(AppSpacing.lg),
+    this.padding,
     this.color = AppColors.surface,
     super.key,
   });
   final Widget child;
-  final EdgeInsets padding;
+  final EdgeInsets? padding;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: padding,
+      padding: padding ?? EdgeInsets.symmetric(horizontal: AppSpacing.lg.w, vertical: AppSpacing.lg.h),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        borderRadius: BorderRadius.circular(AppRadius.xl.r),
         border: Border.all(color: AppColors.surfaceHigh),
         boxShadow: const [
           BoxShadow(
@@ -135,10 +142,10 @@ class AppProgress extends StatelessWidget {
       label: label,
       value: '$percent%',
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(999.r),
         child: LinearProgressIndicator(
           value: safe,
-          minHeight: height,
+          minHeight: height.h,
           backgroundColor: AppColors.surfaceHigh,
           color: color,
         ),
@@ -152,7 +159,7 @@ class SectionTitle extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) =>
-      Text(text, style: Theme.of(context).textTheme.titleLarge);
+      Text(text, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22.sp));
 }
 
 class MetricRow extends StatelessWidget {
@@ -166,26 +173,29 @@ class MetricRow extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.labelLarge),
+              child: Text(label, style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp)),
             ),
             Text(
               '$value%',
               style: Theme.of(
                 context,
-              ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
+              ).textTheme.labelLarge?.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 14.sp,
+                  ),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.xs),
+        SizedBox(height: AppSpacing.xs.h),
         AppProgress(value: value / 100),
       ],
     );
   }
 }
 
-Widget loadingView() => const Center(
+Widget loadingView() => Center(
       child: Padding(
-        padding: EdgeInsets.all(64),
-        child: CircularProgressIndicator(color: AppColors.primary),
+        padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
+        child: const CircularProgressIndicator(color: AppColors.primary),
       ),
     );

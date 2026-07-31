@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/learning_path/domain/learning_path_models.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
@@ -65,7 +66,7 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
           children: [
             Text(
               l10n.translate('learning_path.title'),
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 28.sp),
             ),
             Text(
               l10n.translate(
@@ -74,6 +75,7 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
               ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
+                    fontSize: 14.sp,
                   ),
             ),
           ],
@@ -142,9 +144,9 @@ class _PathList extends StatelessWidget {
       alignment: Alignment.topCenter,
       children: [
         Positioned(
-          top: 32,
-          bottom: 32,
-          child: Container(width: 3, color: AppColors.border),
+          top: 32.h,
+          bottom: 32.h,
+          child: Container(width: 3.w, color: AppColors.border),
         ),
         Column(
           children: [
@@ -193,30 +195,30 @@ class _PathItem extends StatelessWidget {
     return Align(
       alignment: side,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
         child: SizedBox(
           width: MediaQuery.sizeOf(context).width * .72,
           child: AppCard(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
             color: current ? AppColors.primaryFixed : AppColors.surface,
             child: InkWell(
               key: Key('learning_path_step_${step.code}'),
               onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              borderRadius: BorderRadius.circular(AppRadius.lg.r),
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xxs),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs.w, vertical: AppSpacing.xxs.h),
                 child: Row(
                   children: [
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      width: 48,
-                      height: 48,
+                      width: 48.w,
+                      height: 48.h,
                       decoration: BoxDecoration(
                         color:
                             current ? AppColors.primary : AppColors.surfaceHigh,
                         shape: BoxShape.circle,
                         border: selected
-                            ? Border.all(color: AppColors.primary, width: 3)
+                            ? Border.all(color: AppColors.primary, width: 3.w)
                             : null,
                       ),
                       child: Icon(
@@ -224,9 +226,10 @@ class _PathItem extends StatelessWidget {
                             ? Icons.flight_takeoff_rounded
                             : Icons.route_rounded,
                         color: current ? Colors.white : AppColors.textSecondary,
+                        size: 24.sp,
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(width: AppSpacing.sm.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,20 +240,26 @@ class _PathItem extends StatelessWidget {
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
-                                  ?.copyWith(color: AppColors.primary),
+                                  ?.copyWith(
+                                    color: AppColors.primary,
+                                    fontSize: 10.sp,
+                                  ),
                             ),
                           Text(
                             localizedName,
-                            style: Theme.of(context).textTheme.labelLarge,
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
                           ),
                           Text(
                             '${step.cefr} · ${l10n.translate(reasonKey)}',
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
-                                ?.copyWith(color: AppColors.textSecondary),
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12.sp,
+                                ),
                           ),
-                          const SizedBox(height: AppSpacing.xs),
+                          SizedBox(height: AppSpacing.xs.h),
                           AppProgress(value: step.mastery),
                         ],
                       ),
@@ -285,20 +294,23 @@ class _MessageCard extends StatelessWidget {
     return AppCard(
       child: Column(
         children: [
-          Icon(icon, size: 40, color: AppColors.primary),
-          const SizedBox(height: AppSpacing.sm),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: AppSpacing.xs),
+          Icon(icon, size: 40.sp, color: AppColors.primary),
+          SizedBox(height: AppSpacing.sm.h),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
+          ),
+          SizedBox(height: AppSpacing.xs.h),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: AppColors.textSecondary),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 14.sp,
+                ),
           ),
           if (action != null) ...[
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md.h),
             action!,
           ],
         ],
