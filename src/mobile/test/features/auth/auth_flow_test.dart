@@ -45,11 +45,6 @@ class FlowAuthRepository implements AuthRepository {
     String? name,
   }) async =>
       'register-token';
-
-  @override
-  Future<void> requestPasswordReset({required String email}) {
-    throw UnimplementedError('Không gọi trong auth flow test');
-  }
 }
 
 class AuthFlowPlacementRepository implements PlacementRepository {
