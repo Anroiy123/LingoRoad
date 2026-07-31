@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using LingoRoad.Data;
 using LingoRoad.Endpoints;
 using LingoRoad.Services;
@@ -36,6 +37,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
     using var scope = app.Services.CreateScope();
     await DbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>());
 }
