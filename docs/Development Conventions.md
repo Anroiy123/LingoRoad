@@ -18,7 +18,7 @@ Tuyệt đối không sử dụng các con số fixed (cố định) cho kích t
 ## 2. Flutter/Dart Localization Guidelines
 
 ### JSON-Based Translations
-Do NOT hardcode user-facing strings or use custom in-file translation classes (e.g. `TripSummaryTranslations`, `SearchingDriverTranslations`). All translations must reside in the standard assets translation JSON files:
+Do NOT hardcode user-facing strings or use custom in-file translation classes (e.g. `Chào mừng trở lại`, `welcome back`). All translations must reside in the standard assets translation JSON files:
 * **Vietnamese**: `assets/translations/vi.json`
 * **English**: `assets/translations/en.json`
 
