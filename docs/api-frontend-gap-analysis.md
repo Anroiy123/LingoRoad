@@ -34,21 +34,48 @@ As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
 gives an interactive view of the same surface, generated from the
 `Microsoft.AspNetCore.OpenApi` document already wired up in `Program.cs`.
 
-## 2. Mobile (Flutter) gap analysis
+## 2. Feature availability matrix
+
+A quick-scan overview of every feature domain across all three surfaces,
+before the detailed per-client breakdowns in §3/§4. `—` means the domain
+doesn't apply to that surface (e.g. Admin has no placement-test UI).
+
+| Feature domain | Backend (`.NET`) | Mobile (Flutter) | Admin (React) |
+|---|---|---|---|
+| Auth (register/login) | ✅ `/auth/register`, `/auth/login` | ✅ Wired (`ApiAuthRepository`) | ❌ No role-aware login — same endpoint as learners, no role check |
+| Onboarding (goal, daily study minutes) | ❌ No endpoint (`User.TargetCefr` column exists but nothing reads/writes it over HTTP) | ❌ No onboarding screen | — |
+| Skill graph (read) | ✅ `/skills`, `/skills/graph` | ⚠️ Not consumed at all — Progress screen uses a static 6-skill list, no call to `/skills` anywhere in the app | ⚠️ Read-only if wired; no create/update/delete |
+| Skill/Item management (write) | ⚠️ Bulk import only (`/admin/items/import`, dev-gated); no single create/update/delete | — | ❌ No CRUD UI exists |
+| Lesson management | ❌ No `Lessons` entity — collapsed into `Items` | — | ❌ Missing (MVP spec expected this) |
+| Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
+| Learning path (recommendation) | ✅ `/path` (`PathBuilder`) | ✅ Wired (`ApiLearningPathRepository`) | — |
+| Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
+| Mastery tracking | ✅ `/mastery` | ⚠️ Mocked — Progress screen's static skill list, not driven by real data | ❌ No aggregate/per-user view |
+| Spaced-repetition reviews (SRS) | ✅ Full FSRS flow (`/reviews/*`) | ⚠️ Mocked — no due-date UI, no grade buttons | — |
+| Exercises (MCQ + grading) | ✅ `/exercises/generate`, `/exercises/{id}/submit` | ❌ No exercise screen | — |
+| Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
+| Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
+| User profile (read/update) | ❌ No `GET`/`PUT /users/me` | ❌ Static toggles, no data fetch | — |
+| Dashboard / gamification (XP, streak, badges) | ❌ No concept anywhere in the domain model | ❌ Hardcoded (Home's quests, Progress's streak/XP/badges) | ❌ Missing (MVP spec expected a stats view) |
+| Admin auth / roles | ❌ No `Role`/`IsAdmin` field on `User` | — | ❌ Missing — blocks any real admin-gated route |
+| Analytics (user/skill/question) | ❌ No `/admin/analytics/*` routes | — | ❌ Missing |
+| Cross-origin access (CORS) | ❌ No CORS policy configured | — (native app, not affected) | ❌ Blocks every browser call, regardless of endpoint |
+
+## 3. Mobile (Flutter) gap analysis
 
 Mobile's own `.claude/context/frontend/component-architecture.md` already
 documents the mock-vs-live data split at the code level; the tables below
 reframe it against backend capability.
 
-### 2.1 Already wired to the real API
+### 3.1 Already wired to the real API
 
 | Feature | Status | Notes |
 |---|---|---|
 | Auth (login/register) | ✅ Fulfilled | `ApiAuthRepository` → `/auth/register`, `/auth/login`. |
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
-| Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §5 item 3 (resolved). |
+| Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §6 item 3 (resolved). |
 
-### 2.2 Tab screens still on `MockRepository` (`lib/data/mock_repository.dart`)
+### 3.2 Tab screens still on `MockRepository` (`lib/data/mock_repository.dart`)
 
 | Screen | Mock data shape | Closest backend endpoint | Status | Recommendation |
 |---|---|---|---|---|
@@ -57,7 +84,7 @@ reframe it against backend capability.
 | Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline (lines 122–140), with no backend equivalent — this is a net-new feature, not a wiring task. |
 | Profile | static notification toggles (`reminder`/`email`/`updates`), no data fetch | none | ❌ Missing | No `GET /users/me` (or equivalent) exists — `/auth/login`/`/auth/register` return only `{token}`. `User.Name` and `User.TargetCefr` are already columns in the database (`Domain/User.cs`), but nothing reads or writes them over HTTP after registration. The notification-preference toggles have no backend field at all. |
 
-### 2.3 Backend capability with no mobile UI at all yet
+### 3.3 Backend capability with no mobile UI at all yet
 
 These are fully built and tested on the backend (per
 `src/backend/.superpowers/sdd/progress.md`, tasks 13/14), but no mobile
@@ -73,7 +100,7 @@ screen calls them:
 These four are the cheapest wins in the whole report: no backend work
 needed, only frontend screens plus wiring.
 
-## 3. Admin (React) gap analysis
+## 4. Admin (React) gap analysis
 
 `src/admin` has no real pages yet (default Vite/React scaffold). Its need
 is read from `MVP_architecture.md` §4.4/§5.2/§8.4/§10.9 (Admin CMS +
@@ -92,7 +119,7 @@ read-only-at-best. Before any admin page can go live, it needs its own
 foundational work (see Integration Options below), not just "point the UI
 at existing endpoints" like most of mobile's gaps.
 
-## 4. Cross-cutting gaps
+## 5. Cross-cutting gaps
 
 - **No CORS policy** on the `.NET` API (already flagged in
   `src/backend/CLAUDE.md`). This blocks *any* browser-based client —
@@ -108,7 +135,7 @@ at existing endpoints" like most of mobile's gaps.
   (which page of content does a "lesson" correspond to, if there is no
   lesson?).
 
-## 5. Integration options
+## 6. Integration options
 
 Concrete, scoped next steps — not full API designs. Roughly ordered by
 leverage (cheapest wins first):
@@ -125,7 +152,7 @@ leverage (cheapest wins first):
    it~~ — **Resolved.** The screen has since been redesigned around what
    `/path` actually returns (an ordered, reasoned skill recommendation
    list: `code/name/nameVi/cefr/mastery/reason`) rather than the old
-   lesson-tree-with-XP mock; see §2.1.
+   lesson-tree-with-XP mock; see §3.1.
 4. **Add a CORS policy** to the `.NET` API — required before `admin` can
    call anything at all. Scope it to the admin dev origin(s) only.
 5. **Add an admin role.** Minimally, a `Role` (or `IsAdmin`) field on
