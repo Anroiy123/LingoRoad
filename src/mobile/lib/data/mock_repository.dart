@@ -12,18 +12,6 @@ class MockRepository {
     ];
   }
 
-  Future<List<PathNode>> path() async {
-    await Future<void>.delayed(const Duration(milliseconds: 180));
-    return const [
-      PathNode('learning_path.lessons.lesson_2', 'learning_path.lessons.at_restaurant', 20, 'complete', 'right'),
-      PathNode('learning_path.lessons.lesson_3', 'learning_path.lessons.asking_directions', 25, 'complete', 'left'),
-      PathNode('learning_path.lessons.lesson_4', 'learning_path.lessons.shopping', 30, 'complete', 'right'),
-      PathNode('learning_path.lessons.lesson_5', 'learning_path.lessons.airport_communication', 50, 'current', 'center'),
-      PathNode('learning_path.lessons.lesson_6', 'learning_path.lessons.hotel_check_in', 35, 'locked', 'center'),
-      PathNode('learning_path.lessons.lesson_7', 'learning_path.lessons.workplace_communication', 40, 'locked', 'center'),
-    ];
-  }
-
   Future<List<ReviewCardData>> reviews() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return const [
