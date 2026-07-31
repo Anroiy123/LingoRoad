@@ -9,6 +9,7 @@
 | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) | Shared team theory doc (VN): the three-area assignment, each member's results in full (Mảng 1 & 2), Mảng 3 summary, and a theory↔implementation cross-link table |
 | [bao-cao-tien-do.md](bao-cao-tien-do.md) | Progress report (VN): theory + implementation status per module with measured evidence, and the khó khăn log — blockers hit during implementation and how each was resolved |
 | [mobile-local-development.md](mobile-local-development.md) | Hướng dẫn phát triển Flutter mobile trên máy local: khởi động stack, chọn API URL cho web/Android, kết nối thiết bị, kiểm tra health và xử lý sự cố |
+| [api-frontend-gap-analysis.md](api-frontend-gap-analysis.md) | Gap analysis comparing the `.NET` API surface against mobile and admin frontend needs, with integration recommendations |
 
 ## Mapping to the theory requirement
 
