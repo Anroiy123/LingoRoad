@@ -46,6 +46,7 @@ reframe it against backend capability.
 |---|---|---|
 | Auth (login/register) | ✅ Fulfilled | `ApiAuthRepository` → `/auth/register`, `/auth/login`. |
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
+| Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §5 item 3 (resolved). |
 
 ### 2.2 Tab screens still on `MockRepository` (`lib/data/mock_repository.dart`)
 
@@ -53,7 +54,6 @@ reframe it against backend capability.
 |---|---|---|---|---|
 | Progress | `SkillProgress(skillKey, percent, icon)` — 6 hardcoded skills | `GET /mastery` → `[{skillCode, skillName, pCorrect, updatedAt}]` | ⚠️ Partial | The endpoint returns the right kind of data (`pCorrect` → `percent`), but mobile's 6 skills are a static localization-key list, not driven by the real skill graph (`GET /skills`, 156 leaf skills) or the caller's actual mastery rows. Needs a mapping from returned `skillCode`s to display/i18n keys and icons, and handling for skills the endpoint hasn't returned yet (unpracticed skills). |
 | Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards, no grading | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | Full FSRS scheduling *(lịch ôn tập FSRS)* exists end-to-end (`front`/`back`/`due`/`state`, grade 1–4 → next interval), but the screen has no due-date UI and no grade buttons, and nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
-| Learning Path | `PathNode(titleKey, subtitleKey, xp, status, imageSide)` — fixed 6-node visual path with XP + lock states | `GET /path?limit=N` → `[{code, name, nameVi, cefr, mastery, reason}]` | ⚠️ Partial | The recommendation logic itself (prerequisite ordering, mastered-skill skipping, CEFR ceiling, `reason`) is fully built (`PathBuilder`). But the visual metaphor mobile mocks — a lesson-tree with XP and complete/current/locked node states — has no backend equivalent: there is no "lesson," no XP field, and no per-node completion tracking anywhere in the domain model. Wiring this screen means either building that gamification layer, or redesigning the screen around what `/path` actually returns (an ordered skill list with a `reason` string). |
 | Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline (lines 122–140), with no backend equivalent — this is a net-new feature, not a wiring task. |
 | Profile | static notification toggles (`reminder`/`email`/`updates`), no data fetch | none | ❌ Missing | No `GET /users/me` (or equivalent) exists — `/auth/login`/`/auth/register` return only `{token}`. `User.Name` and `User.TargetCefr` are already columns in the database (`Domain/User.cs`), but nothing reads or writes them over HTTP after registration. The notification-preference toggles have no backend field at all. |
 
@@ -121,13 +121,11 @@ leverage (cheapest wins first):
    a time — both endpoints already return data close to what's needed,
    following the existing `ApiPlacementRepository`/`ApiAuthRepository`
    pattern (abstract interface + `Api*` implementation).
-3. **Decide the Learning Path / gamification question before building
-   it**: does the product still want the Duolingo-style lesson-tree-with-XP
-   visual from the mock data, or should the screen be redesigned around
-   what `/path` actually is (an ordered, reasoned skill recommendation
-   list)? This is a product decision, not an engineering one — building
-   XP/streak/lesson-tree infrastructure to match the mock is a much bigger
-   lift than adapting the screen to the existing endpoint.
+3. ~~Decide the Learning Path / gamification question before building
+   it~~ — **Resolved.** The screen has since been redesigned around what
+   `/path` actually returns (an ordered, reasoned skill recommendation
+   list: `code/name/nameVi/cefr/mastery/reason`) rather than the old
+   lesson-tree-with-XP mock; see §2.1.
 4. **Add a CORS policy** to the `.NET` API — required before `admin` can
    call anything at all. Scope it to the admin dev origin(s) only.
 5. **Add an admin role.** Minimally, a `Role` (or `IsAdmin`) field on
