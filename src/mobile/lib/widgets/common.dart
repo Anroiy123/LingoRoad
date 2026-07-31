@@ -35,7 +35,7 @@ class AppPage extends StatelessWidget {
 
 class LingoHeader extends StatelessWidget {
   const LingoHeader({this.streak = 12, super.key});
-  final int streak;
+  final int? streak;
 
   @override
   Widget build(BuildContext context) {
@@ -57,19 +57,21 @@ class LingoHeader extends StatelessWidget {
             context,
           ).textTheme.headlineSmall?.copyWith(color: AppColors.primary),
         ),
-        const Spacer(),
-        const Icon(
-          Icons.local_fire_department_rounded,
-          size: 20,
-          color: AppColors.primary,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          '$streak',
-          style: Theme.of(
-            context,
-          ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
-        ),
+        if (streak != null) ...[
+          const Spacer(),
+          const Icon(
+            Icons.local_fire_department_rounded,
+            size: 20,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$streak',
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: AppColors.primary),
+          ),
+        ],
       ],
     );
   }

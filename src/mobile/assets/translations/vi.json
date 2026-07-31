@@ -120,23 +120,22 @@
     }
   },
   "learning_path": {
-    "title": "Lộ trình {}",
-    "subtitle": "Chặng {} · {}",
-    "stage_title": "Du lịch và giao tiếp",
-    "current_lesson": "BÀI HIỆN TẠI",
-    "lessons": {
-      "lesson_2": "Bài 2",
-      "at_restaurant": "Tại nhà hàng",
-      "lesson_3": "Bài 3",
-      "asking_directions": "Hỏi đường",
-      "lesson_4": "Bài 4",
-      "shopping": "Mua sắm",
-      "lesson_5": "Bài 5",
-      "airport_communication": "Giao tiếp tại sân bay",
-      "lesson_6": "Bài 6",
-      "hotel_check_in": "Nhận phòng khách sạn",
-      "lesson_7": "Bài 7",
-      "workplace_communication": "Giao tiếp công sở"
+    "title": "Lộ trình học của bạn",
+    "subtitle": "{} kỹ năng được đề xuất",
+    "current_step": "ĐỀ XUẤT TIẾP THEO",
+    "reason": {
+      "not_started": "Chưa bắt đầu",
+      "below_threshold": "Cần luyện thêm",
+      "recommended": "Được đề xuất"
+    },
+    "empty": {
+      "title": "Lộ trình hiện đã hoàn tất",
+      "message": "Hiện chưa có kỹ năng cần đề xuất. Hãy hoàn thành thêm một hoạt động để cập nhật lộ trình."
+    },
+    "error": {
+      "title": "Không thể tải lộ trình",
+      "message": "Dữ liệu lộ trình chưa sẵn sàng. Vui lòng thử lại.",
+      "network": "Hãy kiểm tra kết nối rồi thử lại."
     }
   },
   "review": {

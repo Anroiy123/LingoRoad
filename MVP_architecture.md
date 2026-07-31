@@ -17,7 +17,7 @@ Xây dựng một phiên bản MVP của ứng dụng học tiếng Anh cá nhâ
 1. Đăng ký / đăng nhập tài khoản.
 2. Khai báo mục tiêu học tiếng Anh.
 3. Làm bài kiểm tra đầu vào.
-4. Nhận kết quả trình độ theo từng kỹ năng.
+4. Nhận kết quả trình độ CEFR tổng thể.
 5. Nhận lộ trình học cá nhân hóa.
 6. Học bài và làm bài tập theo lộ trình.
 7. Nhận giải thích lỗi sai bằng AI.
@@ -28,6 +28,26 @@ Xây dựng một phiên bản MVP của ứng dụng học tiếng Anh cá nhâ
 ---
 
 ## 2. Phạm vi MVP
+
+### 2.0. Quyết định phạm vi đã chốt
+
+Các quyết định dưới đây là contract dùng chung cho thiết kế, API và tiêu chí
+nghiệm thu MVP:
+
+- CEFR trong MVP chỉ hỗ trợ **A1, A2, B1, B2**.
+- Placement Test trả về **một mức CEFR tổng thể**. Kết quả chi tiết theo từng
+  kỹ năng được để sang V2.
+- Advisor, chấm Writing và chấm Speaking có thể tồn tại ở backend/PoC để kiểm
+  chứng kỹ thuật, nhưng chưa phải luồng giao diện người học của MVP.
+- Admin tối thiểu vẫn thuộc MVP, nhưng chỉ triển khai sau khi vòng lặp cốt lõi
+  của người học đã chạy end-to-end.
+
+Thứ tự nghiệm thu ưu tiên:
+
+```text
+Auth → Placement → CEFR tổng thể → Learning Path
+→ Lesson/Exercise → Mastery/SRS → Dashboard → Admin tối thiểu
+```
 
 ### 2.1. Phạm vi nên làm trong MVP
 
@@ -70,6 +90,9 @@ Các chức năng chính:
 | MFA phoneme-level alignment | Khó triển khai ổn định trong MVP |
 | Pronunciation scoring chuyên sâu | Là một bài toán riêng |
 | Automated Writing Evaluation | Chấm writing phức tạp, nên để V2 |
+| Placement CEFR theo từng kỹ năng | MVP chỉ trả một mức CEFR tổng thể |
+| Advisor UI cho người học | Backend/PoC được giữ để thử nghiệm; UI để V2 |
+| Speaking/Writing learner flow | Backend/PoC được giữ để thử nghiệm; UI để V2 |
 | Fine-tune LLM | Cần dữ liệu, GPU, quy trình đánh giá |
 | Leaderboard nâng cao | Cần nhiều user thật mới có ý nghĩa |
 
@@ -144,7 +167,7 @@ flowchart TD
     F -->|Rồi| J[Trang Home]
 
     I --> K[Backend chấm điểm]
-    K --> L[Trả kết quả CEFR theo kỹ năng]
+    K --> L[Trả kết quả CEFR tổng thể]
     L --> M[Tạo Learner Model]
     M --> N[Sinh Learning Path]
     N --> J
@@ -176,7 +199,7 @@ flowchart TD
     G -->|Chưa| H[Chọn câu hỏi tiếp theo theo level hiện tại]
     H --> C
     G -->|Rồi| I[Tính điểm tổng kết]
-    I --> J[Phân loại CEFR theo kỹ năng]
+    I --> J[Phân loại CEFR tổng thể]
     J --> K[Tạo mastery score ban đầu]
     K --> L[Sinh lộ trình học đầu tiên]
     L --> M[Hiển thị kết quả cho user]
@@ -412,7 +435,7 @@ GET  /api/onboarding/status
 - Chọn câu hỏi theo level.
 - Nhận câu trả lời.
 - Chấm điểm.
-- Phân loại CEFR theo kỹ năng.
+- Phân loại một mức CEFR tổng thể trong MVP.
 - Tạo mastery score ban đầu.
 
 ### API gợi ý
@@ -1331,7 +1354,7 @@ gantt
 | Auth | User có thể đăng ký / đăng nhập |
 | Onboarding | User có thể nhập mục tiêu học |
 | Placement Test | User làm được test 20 câu |
-| CEFR Result | App trả kết quả level theo skill |
+| CEFR Result | App trả một mức CEFR tổng thể trong A1–B2 |
 | Learning Path | App sinh được lộ trình học |
 | Lesson | User xem được bài học |
 | Exercise | User làm được bài tập |
