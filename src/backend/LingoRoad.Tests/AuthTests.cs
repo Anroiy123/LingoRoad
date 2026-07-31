@@ -41,4 +41,33 @@ public class AuthTests : IClassFixture<TestAppFactory>
             new { email = "e@f.com", password = "secret123", name = "E2" });
         Assert.Equal(HttpStatusCode.Conflict, dup.StatusCode);
     }
+
+    [Fact]
+    public async Task Email_is_trimmed_and_case_normalized_for_register_and_login()
+    {
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var reg = await _client.PostAsJsonAsync("/auth/register",
+            new { email = $"  {email.ToUpperInvariant()}  ", password = "secret123", name = "A" });
+        Assert.Equal(HttpStatusCode.Created, reg.StatusCode);
+
+        var dup = await _client.PostAsJsonAsync("/auth/register",
+            new { email, password = "secret123", name = "B" });
+        Assert.Equal(HttpStatusCode.Conflict, dup.StatusCode);
+
+        var login = await _client.PostAsJsonAsync("/auth/login",
+            new { email = $" {email.ToUpperInvariant()} ", password = "secret123" });
+        login.EnsureSuccessStatusCode();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-email")]
+    [InlineData("@example.com")]
+    public async Task Register_rejects_invalid_email(string email)
+    {
+        var res = await _client.PostAsJsonAsync("/auth/register",
+            new { email, password = "secret123", name = "A" });
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+        Assert.Contains("invalid_email", await res.Content.ReadAsStringAsync());
+    }
 }

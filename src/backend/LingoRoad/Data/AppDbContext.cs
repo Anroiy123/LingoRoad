@@ -19,10 +19,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void OnModelCreating(ModelBuilder mb)
     {
         mb.Entity<User>().HasIndex(u => u.Email).IsUnique();
+        mb.Entity<User>().ToTable(t => t.HasCheckConstraint(
+            "CK_Users_Email_Canonical",
+            "\"Email\" = lower(trim(\"Email\"))"));
         mb.Entity<Skill>().HasIndex(s => s.Code).IsUnique();
         mb.Entity<SkillEdge>().HasKey(e => new { e.PrerequisiteId, e.SkillId });
         mb.Entity<Item>().HasIndex(i => new { i.SkillId, i.CefrLevel });
         mb.Entity<Response>().HasIndex(r => r.SessionId);
+        mb.Entity<Response>().HasIndex(r => new { r.SessionId, r.ItemId }).IsUnique();
+        mb.Entity<TestSession>()
+            .HasOne<Item>()
+            .WithMany()
+            .HasForeignKey(s => s.CurrentItemId)
+            .OnDelete(DeleteBehavior.Restrict);
         mb.Entity<Mastery>().HasKey(m => new { m.UserId, m.SkillId });
         mb.Entity<ReviewCard>().HasIndex(c => new { c.UserId, c.Due });
     }

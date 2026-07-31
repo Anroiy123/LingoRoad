@@ -9,7 +9,7 @@ public record ItemImportDto(string SkillCode, string CefrLevel, string Type, str
     string[] Options, string CorrectAnswer, string Source,
     double? A = null, double? B = null, double? C = null, string? AudioUrl = null);
 public record ItemDto(Guid Id, string SkillCode, string CefrLevel, string Type, string Stem,
-    string[] Options, string CorrectAnswer, double A, double B, double C, string? AudioUrl);
+    string[] Options, double A, double B, double C, string? AudioUrl);
 
 public static class ItemEndpoints
 {
@@ -26,7 +26,7 @@ public static class ItemEndpoints
             return (await q.ToListAsync()).Select(x => new ItemDto(
                 x.i.Id, x.Code, x.i.CefrLevel, x.i.Type, x.i.Stem,
                 JsonSerializer.Deserialize<string[]>(x.i.OptionsJson)!,
-                x.i.CorrectAnswer, x.i.A, x.i.B, x.i.C, x.i.AudioUrl));
+                x.i.A, x.i.B, x.i.C, x.i.AudioUrl));
         });
 
         if (!app.Environment.IsDevelopment()) return;

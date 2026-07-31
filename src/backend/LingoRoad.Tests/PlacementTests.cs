@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using LingoRoad.Endpoints;
 using LingoRoad.Domain;
 using LingoRoad.Services;
 
@@ -62,14 +64,16 @@ public class PlacementTests : IClassFixture<PlacementFactory>
     private readonly HttpClient _client;
     public PlacementTests(PlacementFactory f) { _factory = f; _client = f.CreateClient(); }
 
-    private async Task AuthenticateAsync()
+    private static async Task AuthenticateAsync(HttpClient client)
     {
         var email = $"{Guid.NewGuid():N}@t.com";
-        var reg = await _client.PostAsJsonAsync("/auth/register",
+        var reg = await client.PostAsJsonAsync("/auth/register",
             new { email, password = "secret123", name = "T" });
         var token = (await reg.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["token"];
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
+
+    private Task AuthenticateAsync() => AuthenticateAsync(_client);
 
     [Fact]
     public async Task Status_is_false_when_user_has_not_completed_placement()
@@ -153,11 +157,121 @@ public class PlacementTests : IClassFixture<PlacementFactory>
         _factory.Fake.Throw = false;
     }
 
+    [Fact]
+    public async Task Answer_rejects_item_that_was_not_issued_for_the_session()
+    {
+        await AuthenticateAsync();
+        await SeedItemsAsync(3);
+        _factory.Fake.Throw = false;
+
+        var start = await (await _client.PostAsync("/placement/start", null))
+            .Content.ReadFromJsonAsync<StartDto>();
+        var items = await _client.GetFromJsonAsync<List<ItemDto>>("/items");
+        var otherItem = Assert.Single(items!.Where(i => i.Id != start!.Item.Id).Take(1));
+
+        var res = await _client.PostAsJsonAsync($"/placement/{start!.SessionId}/answer",
+            new { itemId = otherItem.Id, answer = "drinks" });
+
+        Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
+        Assert.Contains("item_not_issued", await res.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Retrying_same_answer_returns_same_result_without_duplicate_side_effects()
+    {
+        await AuthenticateAsync();
+        await SeedItemsAsync(3);
+        _factory.Fake.Throw = false;
+
+        var start = await (await _client.PostAsync("/placement/start", null))
+            .Content.ReadFromJsonAsync<StartDto>();
+        var payload = new { itemId = start!.Item.Id, answer = "drinks" };
+
+        var first = await _client.PostAsJsonAsync(
+            $"/placement/{start.SessionId}/answer", payload);
+        first.EnsureSuccessStatusCode();
+        var firstBody = await first.Content.ReadAsStringAsync();
+        var masteryAfterFirst = await _client.GetFromJsonAsync<List<MasteryDto>>("/mastery");
+
+        var retry = await _client.PostAsJsonAsync(
+            $"/placement/{start.SessionId}/answer", payload);
+        retry.EnsureSuccessStatusCode();
+        Assert.Equal(firstBody, await retry.Content.ReadAsStringAsync());
+
+        var masteryAfterRetry = await _client.GetFromJsonAsync<List<MasteryDto>>("/mastery");
+        Assert.Equal(
+            JsonSerializer.Serialize(masteryAfterFirst),
+            JsonSerializer.Serialize(masteryAfterRetry));
+        var result = await _client.GetFromJsonAsync<ResultDto>(
+            $"/placement/{start.SessionId}/result");
+        Assert.Equal(1, result!.ItemsAnswered);
+
+        var changedPayload = await _client.PostAsJsonAsync(
+            $"/placement/{start.SessionId}/answer",
+            new { itemId = start.Item.Id, answer = "drink" });
+        Assert.Equal(HttpStatusCode.Conflict, changedPayload.StatusCode);
+        Assert.Contains("answer_already_recorded",
+            await changedPayload.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Ml_failure_during_answer_does_not_persist_response_or_mastery()
+    {
+        await AuthenticateAsync();
+        await SeedItemsAsync(3);
+        _factory.Fake.Throw = false;
+        var start = await (await _client.PostAsync("/placement/start", null))
+            .Content.ReadFromJsonAsync<StartDto>();
+
+        try
+        {
+            _factory.Fake.Throw = true;
+            var failed = await _client.PostAsJsonAsync(
+                $"/placement/{start!.SessionId}/answer",
+                new { itemId = start.Item.Id, answer = "drinks" });
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
+
+            var result = await _client.GetFromJsonAsync<ResultDto>(
+                $"/placement/{start.SessionId}/result");
+            Assert.Equal(0, result!.ItemsAnswered);
+            var mastery = await _client.GetFromJsonAsync<List<MasteryDto>>("/mastery");
+            Assert.Empty(mastery!);
+        }
+        finally
+        {
+            _factory.Fake.Throw = false;
+        }
+
+        var retry = await _client.PostAsJsonAsync(
+            $"/placement/{start!.SessionId}/answer",
+            new { itemId = start.Item.Id, answer = "drinks" });
+        retry.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task User_cannot_answer_another_users_session()
+    {
+        await AuthenticateAsync();
+        await SeedItemsAsync(2);
+        _factory.Fake.Throw = false;
+        var start = await (await _client.PostAsync("/placement/start", null))
+            .Content.ReadFromJsonAsync<StartDto>();
+
+        using var otherClient = _factory.CreateClient();
+        await AuthenticateAsync(otherClient);
+        var res = await otherClient.PostAsJsonAsync(
+            $"/placement/{start!.SessionId}/answer",
+            new { itemId = start.Item.Id, answer = "drinks" });
+
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+    }
+
     private record PlacementItem(Guid Id, string Type, string Stem, string[] Options, string? AudioUrl);
     private record StatusDto(bool Completed);
     private record StartDto(Guid SessionId, PlacementItem Item);
     private record StepDto(bool Done, PlacementItem? Item, double? Theta, string? Cefr);
     private record ResultDto(double Theta, double Se, string Cefr, int ItemsAnswered, string Status);
+    private record MasteryDto(string SkillCode, string SkillName, double PCorrect, DateTime UpdatedAt);
 }
 
 public class CefrMapTests
