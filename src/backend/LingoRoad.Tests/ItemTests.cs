@@ -25,11 +25,15 @@ public class ItemTests : IClassFixture<TestAppFactory>
         var res = await _client.PostAsJsonAsync("/admin/items/import", new[] { SampleItem() });
         res.EnsureSuccessStatusCode();
 
-        var items = await _client.GetFromJsonAsync<List<ItemDto>>(
+        var list = await _client.GetAsync(
             "/items?skill=grammar.tenses.present_perfect&cefr=B1");
-        Assert.Single(items!);
-        Assert.Equal("has lived", items![0].CorrectAnswer);
-        Assert.True(items[0].A >= 0.6 && items[0].A <= 2.0); // import omits a,b,c -> endpoint defaults apply
+        list.EnsureSuccessStatusCode();
+        var body = await list.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("\"correctAnswer\"", body, StringComparison.OrdinalIgnoreCase);
+
+        var items = await list.Content.ReadFromJsonAsync<List<ItemDto>>();
+        var item = Assert.Single(items!);
+        Assert.True(item.A >= 0.6 && item.A <= 2.0); // import omits a,b,c -> endpoint defaults apply
     }
 
     [Fact]
