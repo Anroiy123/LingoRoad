@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/data/mock_repository.dart';
 import 'package:lingoroad_mobile/models/models.dart';
@@ -26,75 +27,87 @@ class _HomeScreenState extends State<HomeScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.translate('home.welcome', ['Hùng']), style: Theme.of(context).textTheme.displaySmall),
-            const SizedBox(height: AppSpacing.xs),
+            Text(l10n.translate('home.welcome', ['Hùng']), style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 32.sp)),
+            SizedBox(height: AppSpacing.xs.h),
             Text(
               l10n.translate('home.subtitle'),
               style: Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+              ).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 14.sp,
+                  ),
             ),
           ],
         ),
         AppCard(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.sm.h),
           child: Column(
             children: [
               MetricRow(label: l10n.translate('home.metrics.daily_goal'), value: 60),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm.h),
               MetricRow(label: l10n.translate('home.metrics.weekly_goal'), value: 80),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg.w, vertical: AppSpacing.lg.h),
           decoration: BoxDecoration(
             color: AppColors.primaryContainer,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
+            borderRadius: BorderRadius.circular(AppRadius.xl.r),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 4.h,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: BorderRadius.circular(99.r),
                 ),
                 child: Text(
                   l10n.translate('home.today_lesson.tag'),
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(color: Colors.white),
+                  ).textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontSize: 10.sp,
+                      ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md.h),
               Text(
                 l10n.translate('home.today_lesson.title'),
                 style: Theme.of(
                   context,
-                ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                ).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontSize: 20.sp,
+                    ),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              SizedBox(height: AppSpacing.xs.h),
               Text(
                 l10n.translate('home.today_lesson.description'),
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.white),
+                ).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md.h),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,
-                    minimumSize: const Size.fromHeight(52),
+                    minimumSize: Size.fromHeight(52.h),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      borderRadius: BorderRadius.circular(AppRadius.md.r),
                     ),
                   ),
                   onPressed: () => setState(() => _started = true),
@@ -102,9 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     _started
                         ? Icons.check_circle_rounded
                         : Icons.arrow_forward_rounded,
-                    size: 18,
+                    size: 18.sp,
                   ),
-                  label: Text(_started ? l10n.translate('home.today_lesson.ready') : l10n.translate('home.today_lesson.start')),
+                  label: Text(
+                    _started ? l10n.translate('home.today_lesson.ready') : l10n.translate('home.today_lesson.start'),
+                    style: TextStyle(fontSize: 14.sp),
+                  ),
                 ),
               ),
             ],
@@ -114,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionTitle(l10n.translate('home.quests_title')),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm.h),
             FutureBuilder<List<DailyQuest>>(
               future: _quests,
               builder: (context, snapshot) {
@@ -123,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     for (final quest in snapshot.data!) ...[
                       _QuestTile(quest),
-                      const SizedBox(height: AppSpacing.sm),
+                      SizedBox(height: AppSpacing.sm.h),
                     ],
                   ],
                 );
@@ -132,32 +148,32 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         AppCard(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.local_fire_department_rounded,
                     color: AppColors.primary,
-                    size: 20,
+                    size: 20.sp,
                   ),
-                  const SizedBox(width: AppSpacing.xs),
+                  SizedBox(width: AppSpacing.xs.w),
                   Text(
                     l10n.translate('home.plan.title'),
-                    style: Theme.of(context).textTheme.labelLarge,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md.h),
               _PlanRow(
                 icon: Icons.check_circle_outline,
                 title: l10n.translate('home.plan.daily_lesson'),
                 trailing: l10n.translate('home.plan.done'),
                 color: AppColors.success,
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md.h),
               _PlanRow(
                 icon: Icons.school_outlined,
                 title: l10n.translate('home.plan.review_cards', [10]),
@@ -173,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: AppCard(
                 color: AppColors.errorSoft,
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
                 child: _QuickCard(
                   icon: Icons.school_outlined,
                   title: l10n.translate('home.quick_actions.need_review'),
@@ -182,10 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            SizedBox(width: AppSpacing.md.w),
             Expanded(
               child: AppCard(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
                 child: _QuickCard(
                   icon: Icons.headphones_rounded,
                   title: l10n.translate('home.quick_actions.practice_pronunciation'),
@@ -200,40 +216,46 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionTitle(l10n.translate('home.recent.title')),
-            const SizedBox(height: AppSpacing.sm),
+            SizedBox(height: AppSpacing.sm.h),
             AppCard(
-              padding: const EdgeInsets.all(AppSpacing.sm),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.sm.h),
               child: Row(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
+                    radius: 20.r,
                     backgroundColor: AppColors.surfaceDisabled,
                     child: Icon(
                       Icons.restaurant_rounded,
                       color: AppColors.textSecondary,
+                      size: 20.sp,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  SizedBox(width: AppSpacing.md.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           l10n.translate('home.recent.order_food'),
-                          style: Theme.of(context).textTheme.labelLarge,
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
                         ),
                         Text(
                           l10n.translate('home.recent.completed_yesterday'),
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall
-                              ?.copyWith(color: AppColors.textSecondary),
+                              ?.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 12.sp,
+                              ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.check_circle_outline,
                     color: AppColors.primary,
+                    size: 24.sp,
                   ),
                 ],
               ),
@@ -259,24 +281,25 @@ class _QuestTile extends StatelessWidget {
     return Opacity(
       opacity: quest.done ? .72 : 1,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.lg.r),
           border: Border.all(color: AppColors.surfaceHigh),
         ),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 23,
+              radius: 23.r,
               backgroundColor:
                   quest.done ? AppColors.successSoft : AppColors.primaryFixed,
               child: Icon(
                 icon,
                 color: quest.done ? AppColors.success : AppColors.primary,
+                size: 24.sp,
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            SizedBox(width: AppSpacing.md.w),
             Expanded(
               child: Column(
                 children: [
@@ -285,7 +308,7 @@ class _QuestTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           l10n.translate(quest.title, [quest.target]),
-                          style: Theme.of(context).textTheme.labelLarge,
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
                         ),
                       ),
                       Text(
@@ -294,14 +317,15 @@ class _QuestTile extends StatelessWidget {
                               color: quest.done
                                   ? AppColors.success
                                   : AppColors.primary,
+                              fontSize: 12.sp,
                             ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  SizedBox(height: AppSpacing.xs.h),
                   AppProgress(
                     value: quest.current / quest.target,
-                    height: 5,
+                    height: 5.h,
                     color: quest.done ? AppColors.success : AppColors.primary,
                   ),
                 ],
@@ -330,16 +354,16 @@ class _PlanRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Icon(icon, size: 19, color: color),
-          const SizedBox(width: AppSpacing.sm),
+          Icon(icon, size: 19.sp, color: color),
+          SizedBox(width: AppSpacing.sm.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title),
+                Text(title, style: TextStyle(fontSize: 14.sp)),
                 if (progress != null) ...[
-                  const SizedBox(height: 6),
-                  AppProgress(value: progress!, height: 5),
+                  SizedBox(height: 6.h),
+                  AppProgress(value: progress!, height: 5.h),
                 ],
               ],
             ),
@@ -347,7 +371,10 @@ class _PlanRow extends StatelessWidget {
           Text(
             trailing,
             style:
-                Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+                Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: color,
+                      fontSize: 12.sp,
+                    ),
           ),
         ],
       );
@@ -366,12 +393,12 @@ class _QuickCard extends StatelessWidget {
   final Color color;
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 112,
+        height: 112.h,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, color: color),
+            Icon(icon, color: color, size: 24.sp),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -379,13 +406,19 @@ class _QuickCard extends StatelessWidget {
                   title,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelLarge?.copyWith(color: color),
+                  ).textTheme.labelLarge?.copyWith(
+                        color: color,
+                        fontSize: 14.sp,
+                      ),
                 ),
                 Text(
                   subtitle,
                   style: Theme.of(
                     context,
-                  ).textTheme.labelSmall?.copyWith(color: color),
+                  ).textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontSize: 12.sp,
+                      ),
                 ),
               ],
             ),

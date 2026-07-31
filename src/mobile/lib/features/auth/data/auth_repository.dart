@@ -1,5 +1,6 @@
 import 'package:lingoroad_mobile/core/network/api_client.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 
 abstract interface class AuthRepository {
   Future<String> login({
@@ -12,6 +13,8 @@ abstract interface class AuthRepository {
     required String password,
     String? name,
   });
+
+  Future<UserProfile> getProfile();
 }
 
 class ApiAuthRepository implements AuthRepository {
@@ -48,6 +51,18 @@ class ApiAuthRepository implements AuthRepository {
       },
     );
     return _readToken(response);
+  }
+
+  @override
+  Future<UserProfile> getProfile() async {
+    final response = await _apiClient.get('/auth/me');
+    if (response is! Map<String, dynamic>) {
+      throw const ApiException(
+        code: 'malformed_response',
+        message: 'Phản hồi thông tin cá nhân không hợp lệ',
+      );
+    }
+    return UserProfile.fromJson(response);
   }
 
   String _readToken(Object? response) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
@@ -17,10 +20,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _email = false;
   bool _updates = true;
 
+  UserProfile? _profile;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final repo = context.read<AuthRepository>();
+      final profile = await repo.getProfile();
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
+
+    if (_isLoading) {
+      return AppPage(
+        children: [
+          const LingoHeader(),
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl.w, vertical: AppSpacing.xl.h),
+              child: const CircularProgressIndicator(),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_error != null) {
+      return AppPage(
+        children: [
+          const LingoHeader(),
+          AppCard(
+            child: Column(
+              children: [
+                Icon(Icons.error_outline_rounded, color: AppColors.error, size: 48.sp),
+                SizedBox(height: AppSpacing.sm.h),
+                Text(
+                  l10n.translate('profile.error_load_failed'),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 16.sp),
+                ),
+                SizedBox(height: AppSpacing.md.h),
+                FilledButton(
+                  onPressed: _loadProfile,
+                  child: Text(l10n.translate('common.retry')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final profile = _profile!;
+
     return AppPage(
       children: [
         const LingoHeader(),
@@ -28,38 +106,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               Container(
-                width: 92,
-                height: 92,
+                width: 92.w,
+                height: 92.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.primaryFixed,
-                  border: Border.all(color: AppColors.cta, width: 2),
+                  border: Border.all(color: AppColors.cta, width: 2.w),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_outline_rounded,
-                  size: 48,
+                  size: 48.sp,
                   color: AppColors.primary,
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: AppSpacing.sm.h),
               Text(
-                'Trần Quang Hùng',
-                style: Theme.of(context).textTheme.titleLarge,
+                profile.name.isEmpty ? profile.email.split('@')[0] : profile.name,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              SizedBox(height: AppSpacing.xs.h),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 5.h,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceDisabled,
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: BorderRadius.circular(99.r),
                 ),
                 child: Text(
-                  l10n.translate('profile.status', [12, 'B1', 6]),
+                  l10n.translate('profile.status', [profile.level, profile.cefrLevel, profile.badgesCount]),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
+                        fontSize: 14.sp,
                       ),
                 ),
               ),
@@ -135,19 +214,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md.w,
+              vertical: AppSpacing.sm.h,
             ),
             child: Row(
               children: [
-                Icon(icon, size: 20, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.sm),
-                Text(title, style: Theme.of(context).textTheme.labelLarge),
+                Icon(icon, size: 20.sp, color: AppColors.primary),
+                SizedBox(width: AppSpacing.sm.w),
+                Text(title, style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp)),
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.surfaceHigh),
+          Divider(height: 1.h, color: AppColors.surfaceHigh),
           ...children,
         ],
       ),
@@ -175,14 +254,14 @@ class _SettingTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 64),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+        constraints: BoxConstraints(minHeight: 64.h),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.md.w,
+          vertical: AppSpacing.sm.h,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: AppColors.surfaceHigh, width: .5),
+            bottom: BorderSide(color: AppColors.surfaceHigh, width: .5.w),
           ),
         ),
         child: Row(
@@ -196,6 +275,7 @@ class _SettingTile extends StatelessWidget {
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: danger ? AppColors.error : AppColors.text,
+                          fontSize: 14.sp,
                         ),
                   ),
                   if (subtitle != null)
@@ -203,6 +283,7 @@ class _SettingTile extends StatelessWidget {
                       subtitle!,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppColors.textSecondary,
+                            fontSize: 12.sp,
                           ),
                     ),
                 ],
@@ -214,6 +295,7 @@ class _SettingTile extends StatelessWidget {
               Icon(
                 danger ? Icons.logout_rounded : Icons.chevron_right_rounded,
                 color: danger ? AppColors.error : AppColors.textSecondary,
+                size: 24.sp,
               ),
           ],
         ),

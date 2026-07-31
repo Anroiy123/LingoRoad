@@ -2,7 +2,8 @@
   "common": {
     "progress_percent": "Progress {} percent",
     "retry": "Retry",
-    "fallback_error": "An error occurred. Please try again."
+    "fallback_error": "An error occurred. Please try again.",
+    "not_implemented": "This feature is under development."
   },
   "nav": {
     "learn": "Learn",
@@ -20,7 +21,13 @@
       "show_password": "Show password",
       "hide_password": "Hide password",
       "submit": "Log In",
-      "register_link": "Don't have an account? Register"
+      "register_link": "Don't have an account? Register",
+      "email_placeholder": "Enter your email",
+      "password_placeholder": "Enter your password",
+      "forgot_password": "Forgot password?",
+      "or_continue": "OR CONTINUE WITH",
+      "no_account": "Don't have an account? ",
+      "register_action": "Sign up"
     },
     "register": {
       "title": "Create Account",
@@ -28,13 +35,23 @@
       "name": "Display name (optional)",
       "password_helper": "Minimum 8 characters",
       "submit": "Register",
-      "login_link": "Already have an account? Log In"
+      "login_link": "Already have an account? Log In",
+      "name_label": "Full name",
+      "name_placeholder": "Enter your name",
+      "email_placeholder": "Enter email address",
+      "password_placeholder": "Create password",
+      "confirm_password_label": "Confirm password",
+      "confirm_password_placeholder": "Confirm your password",
+      "has_account": "Already have an account? ",
+      "login_action": "Log in"
     },
     "validation": {
       "email_empty": "Please enter your email",
       "email_invalid": "Invalid email address",
       "password_empty": "Please enter your password",
-      "password_too_short": "Password must be at least 8 characters"
+      "password_too_short": "Password must be at least 8 characters",
+      "confirm_password_empty": "Please confirm your password",
+      "confirm_password_mismatch": "Passwords do not match"
     },
     "error": {
       "email_taken": "Email is already taken",
@@ -214,6 +231,7 @@
   },
   "profile": {
     "status": "Level {} · {} · {} badges",
+    "error_load_failed": "Unable to load profile",
     "groups": {
       "goals": "Learning Goals",
       "schedule": "Study Schedule",
@@ -237,6 +255,45 @@
       "content": "This is a simulated action in the UI version.",
       "cancel": "Cancel",
       "confirm": "Confirm"
+    }
+  },
+  "streak": {
+    "title": "Streak Details",
+    "days_count": "{} Days",
+    "current_streak": "Current study streak",
+    "record_title": "STREAK RECORD",
+    "record_value": "{} days",
+    "protect_title": "STREAK FREEZE",
+    "protect_value": "{} available",
+    "buy": "Buy",
+    "months": {
+      "jan": "January",
+      "feb": "February",
+      "mar": "March",
+      "apr": "April",
+      "may": "May",
+      "jun": "June",
+      "jul": "July",
+      "aug": "August",
+      "sep": "September",
+      "oct": "October",
+      "nov": "November",
+      "dec": "December"
+    },
+    "today": "Today",
+    "legend": {
+      "learned": "Learned (Orange fire)",
+      "freeze": "Streak freeze used (Blue ice)",
+      "missed": "Missed (Gray)"
+    },
+    "weekdays": {
+      "mon": "M",
+      "tue": "T",
+      "wed": "W",
+      "thu": "T",
+      "fri": "F",
+      "sat": "S",
+      "sun": "S"
     }
   }
 }

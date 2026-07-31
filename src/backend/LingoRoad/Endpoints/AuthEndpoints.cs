@@ -69,5 +69,34 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
             return Results.Ok(new { token = tokens.CreateToken(user) });
         });
+
+        g.MapGet("/me", async (System.Security.Claims.ClaimsPrincipal principal, AppDbContext db) =>
+        {
+            var userId = principal.UserId();
+            var user = await db.Users.FindAsync(userId);
+            if (user is null) return Results.NotFound();
+
+            var lastSession = await db.TestSessions
+                .Where(s => s.UserId == userId && s.Status == "completed")
+                .OrderByDescending(s => s.CompletedAt)
+                .FirstOrDefaultAsync();
+
+            var cefrLevel = lastSession?.ResultCefr ?? "A1";
+
+            var masteryCount = await db.Masteries.CountAsync(m => m.UserId == userId);
+            var level = (masteryCount / 3) + 1;
+            var badgesCount = masteryCount >= 5 ? 3 : (masteryCount >= 2 ? 2 : 1);
+
+            return Results.Ok(new
+            {
+                id = user.Id,
+                email = user.Email,
+                name = user.Name ?? user.Email.Split('@')[0],
+                targetCefr = user.TargetCefr,
+                cefrLevel = cefrLevel,
+                level = level,
+                badgesCount = badgesCount
+            });
+        }).RequireAuthorization();
     }
 }

@@ -9,6 +9,7 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_resul
 import 'package:lingoroad_mobile/features/placement/presentation/placement_status_error_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
+import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
 
 GoRouter createAppRouter({
   required SessionController session,
@@ -92,6 +93,10 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainShell(),
+      ),
+      GoRoute(
+        path: '/streak-details',
+        builder: (context, state) => const StreakDetailsScreen(),
       ),
     ],
   );

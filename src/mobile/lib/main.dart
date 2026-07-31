@@ -15,6 +15,7 @@ import 'package:lingoroad_mobile/features/learning_path/presentation/learning_pa
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
@@ -164,11 +165,18 @@ class LingoRoadApp extends StatelessWidget {
           context.read<SessionController>().configurePlacementStatusLoader(
                 context.read<PlacementRepository>().isCompleted,
               );
-          return MaterialApp.router(
-            title: 'lingoRoad',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            routerConfig: routerConfig,
+          return ScreenUtilInit(
+            designSize: const Size(390, 844),
+            minTextAdapt: true,
+            splitScreenMode: true,
+            builder: (context, child) {
+              return MaterialApp.router(
+                title: 'lingoRoad',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.light,
+                routerConfig: routerConfig,
+              );
+            },
           );
         },
       ),
