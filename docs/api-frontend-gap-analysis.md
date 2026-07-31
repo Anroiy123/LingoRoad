@@ -54,7 +54,7 @@ reframe it against backend capability.
 | Progress | `SkillProgress(skillKey, percent, icon)` — 6 hardcoded skills | `GET /mastery` → `[{skillCode, skillName, pCorrect, updatedAt}]` | ⚠️ Partial | The endpoint returns the right kind of data (`pCorrect` → `percent`), but mobile's 6 skills are a static localization-key list, not driven by the real skill graph (`GET /skills`, 156 leaf skills) or the caller's actual mastery rows. Needs a mapping from returned `skillCode`s to display/i18n keys and icons, and handling for skills the endpoint hasn't returned yet (unpracticed skills). |
 | Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards, no grading | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | Full FSRS scheduling *(lịch ôn tập FSRS)* exists end-to-end (`front`/`back`/`due`/`state`, grade 1–4 → next interval), but the screen has no due-date UI and no grade buttons, and nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
 | Learning Path | `PathNode(titleKey, subtitleKey, xp, status, imageSide)` — fixed 6-node visual path with XP + lock states | `GET /path?limit=N` → `[{code, name, nameVi, cefr, mastery, reason}]` | ⚠️ Partial | The recommendation logic itself (prerequisite ordering, mastered-skill skipping, CEFR ceiling, `reason`) is fully built (`PathBuilder`). But the visual metaphor mobile mocks — a lesson-tree with XP and complete/current/locked node states — has no backend equivalent: there is no "lesson," no XP field, and no per-node completion tracking anywhere in the domain model. Wiring this screen means either building that gamification layer, or redesigning the screen around what `/path` actually returns (an ordered skill list with a `reason` string). |
-| Home | `DailyQuest(key, current, target, icon)` — daily quests/streak | none | ❌ Missing | No XP, streak, or daily-quest/goal concept exists anywhere in the `.NET` domain model. This is a net-new feature, not a wiring task. |
+| Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline (lines 122–140), with no backend equivalent — this is a net-new feature, not a wiring task. |
 | Profile | static notification toggles (`reminder`/`email`/`updates`), no data fetch | none | ❌ Missing | No `GET /users/me` (or equivalent) exists — `/auth/login`/`/auth/register` return only `{token}`. `User.Name` and `User.TargetCefr` are already columns in the database (`Domain/User.cs`), but nothing reads or writes them over HTTP after registration. The notification-preference toggles have no backend field at all. |
 
 ### 2.3 Backend capability with no mobile UI at all yet
@@ -76,7 +76,7 @@ needed, only frontend screens plus wiring.
 ## 3. Admin (React) gap analysis
 
 `src/admin` has no real pages yet (default Vite/React scaffold). Its need
-is read from `MVP_architecture.md` §4.4/§6.4/§8.4/§10.9 (Admin CMS +
+is read from `MVP_architecture.md` §4.4/§5.2/§8.4/§10.9 (Admin CMS +
 Analytics).
 
 | Feature (from MVP spec) | Status | Notes |
