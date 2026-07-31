@@ -10,6 +10,7 @@ public class TestSession
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
     public string? ResultCefr { get; set; }
+    public Guid? CurrentItemId { get; set; }
 }
 
 public class Response
@@ -21,5 +22,8 @@ public class Response
     public bool Correct { get; set; }
     public double ThetaAfter { get; set; }
     public double SeAfter { get; set; }
+    public Guid? NextItemId { get; set; }
+    public bool CompletedAfter { get; set; }
+    public string? ResultCefrAfter { get; set; }
     public DateTime AnsweredAt { get; set; } = DateTime.UtcNow;
 }

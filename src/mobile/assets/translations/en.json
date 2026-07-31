@@ -120,23 +120,22 @@
     }
   },
   "learning_path": {
-    "title": "{} Path",
-    "subtitle": "Stage {} · {}",
-    "stage_title": "Travel & Communication",
-    "current_lesson": "CURRENT LESSON",
-    "lessons": {
-      "lesson_2": "Lesson 2",
-      "at_restaurant": "At the Restaurant",
-      "lesson_3": "Lesson 3",
-      "asking_directions": "Asking Directions",
-      "lesson_4": "Lesson 4",
-      "shopping": "Shopping",
-      "lesson_5": "Lesson 5",
-      "airport_communication": "Airport Communication",
-      "lesson_6": "Lesson 6",
-      "hotel_check_in": "Hotel Check-in",
-      "lesson_7": "Lesson 7",
-      "workplace_communication": "Workplace Communication"
+    "title": "Your learning path",
+    "subtitle": "{} recommended skills",
+    "current_step": "RECOMMENDED NOW",
+    "reason": {
+      "not_started": "Not started",
+      "below_threshold": "Needs more practice",
+      "recommended": "Recommended"
+    },
+    "empty": {
+      "title": "Your path is clear",
+      "message": "There are no recommended skills right now. Complete another activity to refresh your path."
+    },
+    "error": {
+      "title": "Could not load your path",
+      "message": "The learning path response is unavailable. Please try again.",
+      "network": "Check your connection and try again."
     }
   },
   "review": {

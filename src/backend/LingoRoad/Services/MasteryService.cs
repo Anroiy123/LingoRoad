@@ -5,7 +5,8 @@ namespace LingoRoad.Services;
 
 public class MasteryService(AppDbContext db)
 {
-    public async Task RecordAnswerAsync(Guid userId, int skillId, bool correct)
+    public async Task RecordAnswerAsync(
+        Guid userId, int skillId, bool correct, bool saveChanges = true)
     {
         var m = await db.Masteries.FindAsync(userId, skillId);
         if (m is null)
@@ -16,6 +17,7 @@ public class MasteryService(AppDbContext db)
         var days = (DateTime.UtcNow - m.UpdatedAt).TotalDays;
         m.PCorrect = MasteryCalc.Update(m.PCorrect, correct, days);
         m.UpdatedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync();
+        if (saveChanges)
+            await db.SaveChangesAsync();
     }
 }

@@ -10,6 +10,8 @@ import 'package:lingoroad_mobile/core/network/api_client.dart';
 import 'package:lingoroad_mobile/core/session/secure_session_store.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/learning_path/data/learning_path_repository.dart';
+import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
@@ -28,6 +30,8 @@ void main() async {
   final authRepository = ApiAuthRepository(apiClient);
   final placementRepository = ApiPlacementRepository(apiClient);
   final placementViewModel = PlacementViewModel(placementRepository);
+  final learningPathRepository = ApiLearningPathRepository(apiClient);
+  final learningPathViewModel = LearningPathViewModel(learningPathRepository);
 
   final viJson = await rootBundle.loadString('assets/translations/vi.json');
   final enJson = await rootBundle.loadString('assets/translations/en.json');
@@ -37,9 +41,8 @@ void main() async {
     AppLanguage.en: json.decode(enJson) as Map<String, dynamic>,
   };
 
-
   session.configurePlacementStatusLoader(placementRepository.isCompleted);
-  
+
   final router = createAppRouter(
     session: session,
     placementViewModel: placementViewModel,
@@ -57,6 +60,8 @@ void main() async {
       authRepository: authRepository,
       placementRepository: placementRepository,
       placementViewModel: placementViewModel,
+      learningPathRepository: learningPathRepository,
+      learningPathViewModel: learningPathViewModel,
       languageProvider: languageProvider,
     ),
   );
@@ -71,6 +76,8 @@ class LingoRoadApp extends StatelessWidget {
     this.authRepository,
     this.placementRepository,
     this.placementViewModel,
+    this.learningPathRepository,
+    this.learningPathViewModel,
     super.key,
   });
 
@@ -79,17 +86,21 @@ class LingoRoadApp extends StatelessWidget {
   final AuthRepository? authRepository;
   final PlacementRepository? placementRepository;
   final PlacementViewModel? placementViewModel;
+  final LearningPathRepository? learningPathRepository;
+  final LearningPathViewModel? learningPathViewModel;
   final AppLanguageProvider languageProvider;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-
-        ChangeNotifierProvider<AppLanguageProvider>.value(value: languageProvider),
-
+        ChangeNotifierProvider<AppLanguageProvider>.value(
+          value: languageProvider,
+        ),
         if (sessionController != null)
-          ChangeNotifierProvider<SessionController>.value(value: sessionController!)
+          ChangeNotifierProvider<SessionController>.value(
+            value: sessionController!,
+          )
         else
           ChangeNotifierProvider<SessionController>(
             create: (_) => SessionController(const SecureSessionStore()),
@@ -117,20 +128,42 @@ class LingoRoadApp extends StatelessWidget {
             ),
           ),
         if (placementViewModel != null)
-          ChangeNotifierProvider<PlacementViewModel>.value(value: placementViewModel!)
+          ChangeNotifierProvider<PlacementViewModel>.value(
+            value: placementViewModel!,
+          )
         else
           ChangeNotifierProvider<PlacementViewModel>(
             create: (context) => PlacementViewModel(
               context.read<PlacementRepository>(),
             ),
           ),
+        if (learningPathRepository != null)
+          Provider<LearningPathRepository>.value(value: learningPathRepository!)
+        else
+          Provider<LearningPathRepository>(
+            create: (context) => ApiLearningPathRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (learningPathViewModel != null)
+          ChangeNotifierProvider<LearningPathViewModel>.value(
+            value: learningPathViewModel!,
+          )
+        else
+          ChangeNotifierProvider<LearningPathViewModel>(
+            create: (context) => LearningPathViewModel(
+              context.read<LearningPathRepository>(),
+            ),
+          ),
       ],
       child: Builder(
         builder: (context) {
-          // Ensure placement status loader is configured using the provided dependencies
           context.read<SessionController>().configurePlacementStatusLoader(
-            context.read<PlacementRepository>().isCompleted,
-          );
+                context.read<PlacementRepository>().isCompleted,
+              );
           return MaterialApp.router(
             title: 'lingoRoad',
             debugShowCheckedModeBanner: false,

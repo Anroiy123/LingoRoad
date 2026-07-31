@@ -8,7 +8,6 @@ import 'package:lingoroad_mobile/screens/review_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
-
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -18,26 +17,19 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = [
-      const HomeScreen(),
-      const LearningPathScreen(),
-      const ReviewScreen(),
-      const ProgressScreen(),
-      const ProfileScreen(),
-    ];
-  }
-
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
+    final screens = [
+      const HomeScreen(),
+      LearningPathScreen(active: _index == 1),
+      const ReviewScreen(),
+      const ProgressScreen(),
+      const ProfileScreen(),
+    ];
     return Scaffold(
-      body: IndexedStack(index: _index, children: _screens),
+      body: IndexedStack(index: _index, children: screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (value) => setState(() => _index = value),
@@ -47,12 +39,14 @@ class _MainShellState extends State<MainShell> {
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
-            selectedIcon: const Icon(Icons.home_rounded, color: AppColors.primary),
+            selectedIcon:
+                const Icon(Icons.home_rounded, color: AppColors.primary),
             label: l10n.translate('nav.learn'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.map_outlined),
-            selectedIcon: const Icon(Icons.map_rounded, color: AppColors.primary),
+            selectedIcon:
+                const Icon(Icons.map_rounded, color: AppColors.primary),
             label: l10n.translate('nav.path'),
           ),
           NavigationDestination(
@@ -73,7 +67,8 @@ class _MainShellState extends State<MainShell> {
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline_rounded),
-            selectedIcon: const Icon(Icons.person_rounded, color: AppColors.primary),
+            selectedIcon:
+                const Icon(Icons.person_rounded, color: AppColors.primary),
             label: l10n.translate('nav.profile'),
           ),
         ],
