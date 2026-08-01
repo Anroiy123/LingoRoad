@@ -17,6 +17,8 @@ import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 
+import '../../helpers/widget_test_harness.dart';
+
 AppLanguageProvider loadTestLanguageProvider() {
   final viContent = File('assets/translations/vi.json').readAsStringSync();
   final enContent = File('assets/translations/en.json').readAsStringSync();
@@ -143,6 +145,7 @@ void main() {
       placementRepo: AuthFlowPlacementRepository(),
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     expect(find.byType(BrandLogo), findsOneWidget);
     expect(find.bySemanticsLabel('Logo LingoRoad'), findsOneWidget);
@@ -163,6 +166,7 @@ void main() {
       placementRepo: AuthFlowPlacementRepository(),
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
@@ -186,6 +190,7 @@ void main() {
       ),
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     final restore = session.restore();
     await tester.pump();
@@ -210,6 +215,7 @@ void main() {
       placementRepo: repository,
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await session.restore();
     await tester.pumpAndSettle();
@@ -233,6 +239,7 @@ void main() {
       placementRepo: AuthFlowPlacementRepository(completed: true),
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await session.restore();
     await tester.pumpAndSettle();
@@ -256,6 +263,7 @@ void main() {
       initialLocation: '/login',
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('login_submit')));
@@ -288,6 +296,7 @@ void main() {
       initialLocation: '/login',
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await tester.enterText(
       find.byKey(const Key('login_email')),
@@ -315,6 +324,7 @@ void main() {
       initialLocation: '/register',
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -323,6 +333,10 @@ void main() {
     );
     await tester.enterText(
       find.byKey(const Key('register_password')),
+      'password123',
+    );
+    await tester.enterText(
+      find.byKey(const Key('register_confirm_password')),
       'password123',
     );
     await tester.tap(find.byKey(const Key('register_submit')));
@@ -342,9 +356,15 @@ void main() {
       initialLocation: '/login',
     );
 
+    configureLingoRoadTestViewport(tester);
     await tester.pumpWidget(fixture.app);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Chưa có tài khoản? Đăng ký'));
+    final registerLink = find.text(
+      'Chưa có tài khoản? Đăng ký',
+      findRichText: true,
+    );
+    await tester.ensureVisible(registerLink);
+    await tester.tap(registerLink);
     await tester.pumpAndSettle();
     expect(find.text('Tạo tài khoản'), findsOneWidget);
 

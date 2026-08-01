@@ -12,6 +12,8 @@ import 'package:lingoroad_mobile/screens/learning_path_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
+import '../../helpers/widget_test_harness.dart';
+
 const widgetStep = LearningPathStep(
   code: 'grammar.present-simple',
   name: 'Present simple',
@@ -69,7 +71,10 @@ Widget buildScreen(ScreenLearningPathRepository repository) {
 void main() {
   testWidgets('hiển thị dữ liệu thật và không còn XP/streak mock',
       (tester) async {
-    await tester.pumpWidget(buildScreen(ScreenLearningPathRepository()));
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      buildScreen(ScreenLearningPathRepository()),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Thì hiện tại đơn'), findsOneWidget);
@@ -82,7 +87,7 @@ void main() {
   testWidgets('hiển thị empty state', (tester) async {
     final repository = ScreenLearningPathRepository()..result = const [];
 
-    await tester.pumpWidget(buildScreen(repository));
+    await pumpWidgetWithLingoRoadScreenUtil(tester, buildScreen(repository));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('learning_path_empty')), findsOneWidget);
@@ -96,7 +101,7 @@ void main() {
         message: 'offline',
       );
 
-    await tester.pumpWidget(buildScreen(repository));
+    await pumpWidgetWithLingoRoadScreenUtil(tester, buildScreen(repository));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('learning_path_error')), findsOneWidget);
 

@@ -14,6 +14,8 @@ import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
+import 'helpers/widget_test_harness.dart';
+
 AppLanguageProvider loadTestLanguageProvider() {
   final viContent = File('assets/translations/vi.json').readAsStringSync();
   final enContent = File('assets/translations/en.json').readAsStringSync();
@@ -52,7 +54,8 @@ void main() {
     final session = SessionController(MemorySessionStore('token'));
     await session.restore();
     final l10n = loadTestLanguageProvider();
-    await tester.pumpWidget(
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
       MultiProvider(
         providers: [
           ChangeNotifierProvider<SessionController>.value(value: session),
@@ -77,7 +80,8 @@ void main() {
     final repository = MainShellLearningPathRepository();
     await session.restore();
 
-    await tester.pumpWidget(
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
       MultiProvider(
         providers: [
           ChangeNotifierProvider<SessionController>.value(value: session),
@@ -105,7 +109,8 @@ void main() {
   });
 
   testWidgets('progress giới hạn giá trị', (tester) async {
-    await tester.pumpWidget(
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
       const MaterialApp(home: Scaffold(body: AppProgress(value: 2))),
     );
     final indicator = tester.widget<LinearProgressIndicator>(

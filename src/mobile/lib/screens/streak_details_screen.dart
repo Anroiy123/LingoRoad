@@ -417,7 +417,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                                   _buildLegendRow(
                                     icon: Icons.ac_unit_rounded,
                                     iconColor: Colors.blue,
-                                    circleColor: Colors.blue.withOpacity(0.15),
+                                    circleColor: Colors.blue.withValues(alpha: 0.15),
                                     text: l10n.translate('streak.legend.freeze'),
                                   ),
                                   SizedBox(height: 16.h),
@@ -522,7 +522,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                 child: Icon(
                   Icons.local_fire_department_rounded,
                   size: 18.sp,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                 ),
               ),
               Align(
@@ -548,7 +548,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
         height: 40.h,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.primaryFixed.withOpacity(0.4),
+          color: AppColors.primaryFixed.withValues(alpha: 0.4),
         ),
         child: Stack(
           children: [
@@ -557,7 +557,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
               child: Icon(
                 Icons.local_fire_department_rounded,
                 size: 24.sp,
-                color: AppColors.cta.withOpacity(0.2),
+                color: AppColors.cta.withValues(alpha: 0.2),
               ),
             ),
             Align(
@@ -582,7 +582,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
         height: 40.h,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.blue.withOpacity(0.15),
+          color: Colors.blue.withValues(alpha: 0.15),
         ),
         child: Stack(
           children: [
@@ -591,7 +591,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
               child: Icon(
                 Icons.ac_unit_rounded,
                 size: 24.sp,
-                color: Colors.blue.withOpacity(0.2),
+                color: Colors.blue.withValues(alpha: 0.2),
               ),
             ),
             Align(
@@ -690,13 +690,19 @@ class _StreakCardState extends State<StreakCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) {
-        if (widget.onTap != null) setState(() => _scale = widget.scaleOnPressed);
+        if (widget.onTap != null) {
+          setState(() => _scale = widget.scaleOnPressed);
+        }
       },
       onTapUp: (_) {
-        if (widget.onTap != null) setState(() => _scale = 1.0);
+        if (widget.onTap != null) {
+          setState(() => _scale = 1.0);
+        }
       },
       onTapCancel: () {
-        if (widget.onTap != null) setState(() => _scale = 1.0);
+        if (widget.onTap != null) {
+          setState(() => _scale = 1.0);
+        }
       },
       onTap: widget.onTap,
       child: AnimatedScale(

@@ -348,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: Text(
                                             l10n.translate('auth.login.or_continue'),
                                             style: TextStyle(
-                                              color: AppColors.textSecondary.withOpacity(0.7),
+                                              color: AppColors.textSecondary.withValues(alpha: 0.7),
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
                                               fontFamily: 'Plus Jakarta Sans',
@@ -401,7 +401,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 Text(
                                                   'Google',
                                                   style: TextStyle(
-                                                    color: AppColors.text.withOpacity(0.9),
+                                                    color: AppColors.text.withValues(alpha: 0.9),
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w700,
                                                     fontFamily: 'Plus Jakarta Sans',
@@ -442,13 +442,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   size: 22,
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
-                                                  'Facebook',
-                                                  style: TextStyle(
-                                                    color: AppColors.text.withOpacity(0.9),
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontFamily: 'Plus Jakarta Sans',
+                                                Flexible(
+                                                  child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text(
+                                                      'Facebook',
+                                                      style: TextStyle(
+                                                        color: AppColors.text.withValues(alpha: 0.9),
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w700,
+                                                        fontFamily: 'Plus Jakarta Sans',
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -512,7 +517,7 @@ class GridBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.border.withOpacity(0.3)
+      ..color = AppColors.border.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     const double spacing = 24.0;
