@@ -27,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LessonCompletionOperation> LessonCompletionOperations => Set<LessonCompletionOperation>();
     public DbSet<ContentBundleImport> ContentBundleImports => Set<ContentBundleImport>();
     public DbSet<RewardLedgerEntry> RewardLedgerEntries => Set<RewardLedgerEntry>();
+    public DbSet<AdminAuditEvent> AdminAuditEvents => Set<AdminAuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -48,9 +49,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .OnDelete(DeleteBehavior.Cascade);
         mb.Entity<SecurityAuditEvent>().HasIndex(x => x.CreatedAt);
         mb.Entity<Skill>().HasIndex(s => s.Code).IsUnique();
+        mb.Entity<Skill>().HasQueryFilter(s => !s.IsDeleted);
         mb.Entity<SkillEdge>().HasKey(e => new { e.PrerequisiteId, e.SkillId });
         mb.Entity<Item>().HasIndex(i => new { i.SkillId, i.CefrLevel });
         mb.Entity<Item>().HasIndex(i => i.StableId).IsUnique();
+        mb.Entity<Item>().HasQueryFilter(i => !i.IsDeleted);
         mb.Entity<Response>().HasIndex(r => r.SessionId);
         mb.Entity<Response>().HasIndex(r => new { r.SessionId, r.ItemId }).IsUnique();
         mb.Entity<TestSession>()
@@ -65,6 +68,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<ReviewGradeOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.StableId).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.Slug).IsUnique();
+        mb.Entity<Lesson>().HasQueryFilter(l => !l.IsDeleted);
         mb.Entity<Lesson>().HasIndex(l => new { l.SkillId, l.Order });
         mb.Entity<Lesson>().HasOne<Skill>().WithMany().HasForeignKey(l => l.SkillId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -101,5 +105,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<RewardLedgerEntry>().HasIndex(e => new { e.UserId, e.CreatedAt });
         mb.Entity<RewardLedgerEntry>().HasOne<User>().WithMany().HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<AdminAuditEvent>().HasIndex(e => new { e.AdminUserId, e.CreatedAt });
+        mb.Entity<AdminAuditEvent>().HasOne<User>().WithMany().HasForeignKey(e => e.AdminUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

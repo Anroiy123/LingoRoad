@@ -131,6 +131,7 @@ app.MapExercises();
 app.MapLessons();
 app.MapDashboard();
 app.MapSpeaking();
+app.MapAdmin();
 
 app.Run();
 

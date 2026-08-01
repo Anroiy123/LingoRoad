@@ -9,6 +9,7 @@ public class Skill
     public required string Category { get; set; }  // grammar|vocabulary|reading|listening|writing
     public int? ParentId { get; set; }
     public required string CefrLevel { get; set; } // A1..C2 — level where skill is introduced
+    public bool IsDeleted { get; set; }
 }
 
 public class SkillEdge

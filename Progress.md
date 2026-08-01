@@ -5,7 +5,8 @@
 > gamification có ledger append-only cho XP/coin/streak/quest. Widget/API test
 > đã bao phủ retry và double-submit; smoke learner loop trên MuMu đã đạt cả
 > grade Review, refresh Progress/Home, mất mạng/retry, app restart và ML tạm
-> ngừng.
+> ngừng. Admin React hiện đã dùng auth/role thật, có CRUD Skills/Items/Lessons,
+> import validate/preview/apply, analytics và audit log.
 > Lịch sử bên dưới giữ nguyên.
 
 > Cập nhật lần cuối: **2026-08-01**
@@ -29,25 +30,31 @@
 - Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency, chuẩn hóa
   email, rate limit, refresh rotation/reuse, role policy và startup config
   validation đã được xử lý; validation/retention Speaking vẫn còn thiếu.
-- Admin Web mới là Vite scaffold. Gamification đã có XP/coin/streak/quest nhưng
+- Admin Web đã có login/route guard theo role, CRUD nội dung, draft/publish,
+  soft-delete, import transactional/idempotent, analytics và audit log; learner
+  bị từ chối ở toàn bộ `/admin/*`. Gamification đã có XP/coin/streak/quest nhưng
   chưa có badge/reward tuning; mastery passive decay vẫn thiếu.
 - Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile và có test tự động**,
   đồng thời đã có device smoke sau placement, nhưng chưa đạt MVP nghiệm thu do
-  thiếu full-stack E2E từ account mới, Admin, Speaking safety và production
+  thiếu full-stack E2E từ account mới, Speaking safety và production
   readiness.
 
 ## Snapshot bằng chứng ngày 2026-08-01
 
-- Trước khi cập nhật tài liệu, checkout ở `main@f6da732` và đã đồng bộ với
-  `origin/main`. Working tree có thay đổi ngoài phạm vi tài liệu này và được giữ
-  nguyên.
-- .NET hiện có **35 route/12 feature group**: 34 lệnh `Map*` trong `Endpoints`
-  cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
+- Phase Admin được triển khai trên branch riêng từ `main@2cb2cca`; các file thay
+  đổi được review/stage tường minh trước khi đưa lên Git.
+- .NET hiện có **50 route/13 feature group**: Health, Auth, Skills, Items,
+  Placement, Mastery, Reviews, Path, Lessons, Exercises/Writing,
+  Dashboard/Gamification, Speaking và Admin.
 - Flutter: `flutter analyze` sạch; `flutter test` đạt **79/79 test**.
-- .NET Release test đạt **65/65**; migration identity/profile, Lesson/content
-  và gamification
-  loop đã apply thành công trên PostgreSQL local. Concurrent start/answer/
-  completion và reward replay test đều xanh.
+- .NET Release test đạt **69/69**; migration identity/profile, Lesson/content,
+  gamification và Admin content management đã apply thành công trên PostgreSQL
+  local. Concurrent start/answer/completion, reward replay, role enforcement,
+  CRUD relation guard và import rollback/idempotency test đều xanh.
+- Admin đạt lint, **6/6 Vitest**, **2/2 Playwright E2E** và production build.
+  Browser smoke với API/
+  PostgreSQL thật đã xác minh login, analytics, tạo skill, import
+  validate/apply, refresh danh sách và không có console error.
 - ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
   thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.
   Con số 47 test đạt trong tài liệu cũ chỉ được coi là bằng chứng lịch sử.
@@ -81,7 +88,7 @@
 | Dashboard/Progress | API thật, MuMu smoke đạt, còn thiếu decay | Progress dùng `/skills` + `/mastery` và dashboard/gamification aggregate; category chỉ tính skill đã thực hành; Home dùng `/dashboard` |
 | Advisor/Writing/Speaking | Backend/ML-only | Chưa có learner UI; thiếu quota, privacy, fallback và quyết định có thuộc MVP hay không |
 | Gamification | Partial, API/UI thật | Ledger append-only cho XP/coin/streak/quest, timezone, API, Home/Streak UI và replay test đã có; badge và reward tuning còn thiếu |
-| Admin CMS/analytics | Missing | Chưa có Admin Web, role model, admin auth, CRUD nội dung và analytics |
+| Admin CMS/analytics | API/UI thật, browser smoke đạt | Login/role guard, CRUD Skills/Items/Lessons, draft/publish, soft-delete, import hai bước, analytics và audit đã có; chưa có user-role management, pagination/search và browser E2E tự động trong CI |
 | Dữ liệu nội dung | Versioned bundle | Có 174 skills, bundle 20 lesson/100 item/3 type với stable ID/checksum/source/license/reviewer và transactional idempotent seed; còn thiếu 5–10 test learner fixture |
 | Deployment/operations | Missing/partial | Thiếu full-stack Docker, CI/CD, secrets, HTTPS, migration job, backup và monitoring |
 | Mobile release | Debug-only | Application ID mặc định, release dùng debug signing, thiếu flavor/env production và AAB smoke test |
@@ -145,11 +152,16 @@
   - [x] Progress thay mastery/weak-strong skill mock bằng `/skills` + `/mastery`.
   - [x] Thay dữ liệu mock/hard-code còn lại ở Home/Profile/Streak và dùng API
     update cho profile preferences.
-- [ ] **P0-09 — Admin tối thiểu.**
-  - Thêm role/authorization, Admin Web, CRUD skill/lesson/question, import có
-    kiểm soát và analytics cơ bản.
-  - Nếu Admin không còn thuộc MVP, phải sửa chính thức scope và acceptance
-    criteria thay vì tiếp tục đánh dấu hoàn thành.
+- [x] **P0-09 — Admin tối thiểu.**
+  - [x] Role/authorization fail-closed ở backend và route guard phía React.
+  - [x] CRUD skill/lesson/question có validation quan hệ, draft/publish,
+    soft-delete và audit log.
+  - [x] Import hai bước validate/preview → apply, transactional, versioned và
+    idempotent.
+  - [x] Analytics cơ bản cho learner activity, completion, correctness, due
+    review, mastery, item usage và content usage.
+  - [x] Unit/component/API test, 2 Playwright E2E và browser smoke trên
+    API/PostgreSQL thật.
 
 ### P1 — Production readiness
 
@@ -215,8 +227,10 @@
 5. **Backend learner loop và content seed đã đạt:** 20 lesson/100 item/3 type;
    start/resume/submit/complete/mastery/review/reward idempotent. Mobile đã nối
    toàn vòng và đã xác minh MuMu/offline/restart.
-6. Hoàn tất speaking validation/retention và test learner fixtures.
-7. Hoàn thiện Admin, CI/full-stack E2E, deployment và mobile release.
+6. Hoàn tất Advisor/Writing/Speaking mobile, speaking validation/retention và
+   ML productionization; bổ sung test learner fixtures.
+7. Hoàn thiện analytics/privacy lifecycle, CI/full-stack E2E, deployment và
+   mobile release.
 
 ---
 

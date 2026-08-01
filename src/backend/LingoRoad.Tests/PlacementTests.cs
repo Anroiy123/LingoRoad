@@ -3,8 +3,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using LingoRoad.Data;
 using LingoRoad.Endpoints;
 using LingoRoad.Domain;
 using LingoRoad.Services;
@@ -88,17 +90,24 @@ public class PlacementTests : IClassFixture<PlacementFactory>
 
     private async Task SeedItemsAsync(int count = 12)
     {
-        var items = Enumerable.Range(0, count).Select(i => new
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var skillId = await db.Skills.Where(x => x.Code == "grammar.tenses.present_simple")
+            .Select(x => x.Id).SingleAsync();
+        db.Items.AddRange(Enumerable.Range(0, count).Select(i => new Item
         {
-            skillCode = "grammar.tenses.present_simple",
-            cefrLevel = "B1",
-            type = "mcq",
-            stem = $"Question {i}: she ___ tea.",
-            options = new[] { "drinks", "drink", "drinking", "drank" },
-            correctAnswer = "drinks",
-            source = "test"
-        });
-        (await _client.PostAsJsonAsync("/admin/items/import", items)).EnsureSuccessStatusCode();
+            SkillId = skillId,
+            CefrLevel = "B1",
+            Type = "mcq",
+            Stem = $"Question {Guid.NewGuid():N}-{i}: she ___ tea.",
+            OptionsJson = JsonSerializer.Serialize(new[] { "drinks", "drink", "drinking", "drank" }),
+            CorrectAnswer = "drinks",
+            Source = "test",
+            A = 1,
+            B = -.4,
+            C = .25
+        }));
+        await db.SaveChangesAsync();
     }
 
     [Fact]
@@ -277,8 +286,12 @@ public class PlacementTests : IClassFixture<PlacementFactory>
 public class CefrMapTests
 {
     [Theory]
-    [InlineData(-2.5, "A1")] [InlineData(-1.0, "A2")] [InlineData(0.0, "B1")]
-    [InlineData(1.0, "B2")] [InlineData(2.0, "C1")] [InlineData(3.0, "C2")]
+    [InlineData(-2.5, "A1")]
+    [InlineData(-1.0, "A2")]
+    [InlineData(0.0, "B1")]
+    [InlineData(1.0, "B2")]
+    [InlineData(2.0, "C1")]
+    [InlineData(3.0, "C2")]
     public void Maps_theta_to_cefr(double theta, string expected) =>
         Assert.Equal(expected, CefrMap.FromTheta(theta));
 }
