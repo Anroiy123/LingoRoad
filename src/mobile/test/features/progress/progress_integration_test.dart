@@ -80,7 +80,7 @@ void main() {
       MasteryRow('orphan', 1),
     ]);
     expect(result.map((e) => e.category), ['grammar', 'vocabulary', 'future']);
-    expect(result[0].percent, 40); // two grammar leaves, one absent mastery
+    expect(result[0].percent, 80); // unpracticed leaves do not dilute mastery
     expect(result[0].practiced, isTrue);
     expect(result[1].percent, 0);
     expect(result[1].practiced, isFalse);

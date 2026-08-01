@@ -140,7 +140,8 @@ at existing endpoints" like most of mobile's gaps.
   policy to every new CRUD/import/analytics mutation and add browser route guards.
 - **Lesson domain is complete on the learner API and wired on mobile**, including
   versioned content, attempts, feedback and completion. Admin draft/publish
-  tooling and device E2E remain.
+  tooling remains. The post-placement learner loop passed a MuMu smoke with
+  offline retry, application restart and ML unavailable.
 - **Idempotency is enforced server-side** for start/answer/completion, review
   grading and rewards; the lesson/review clients retain operation UUIDs across
   uncertain retries and block duplicate taps.
@@ -149,14 +150,14 @@ at existing endpoints" like most of mobile's gaps.
 
 Concrete next steps, ordered by dependency:
 
-1. **Run the full learner loop on MuMu/device**, including offline retry,
-   application restart and temporary ML unavailability.
-2. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
+1. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
    existing Admin role policy, then replace the Vite scaffold with guarded pages.
-3. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
+2. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
    MIME/size/duration validation and guaranteed raw-audio deletion first.
-4. **Add learning analytics/event APIs** now that lesson traffic and the reward
+3. **Add learning analytics/event APIs** now that lesson traffic and the reward
    ledger exist, so
    completion, correctness and item-difficulty reports have real inputs.
+4. **Add a clean-account full-stack E2E** for registration, placement, profile
+   setup and the already smoke-tested learner loop.
 5. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
    changing; Flutter can keep its existing hand-written repository pattern.

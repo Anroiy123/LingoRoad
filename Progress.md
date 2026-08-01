@@ -3,7 +3,9 @@
 > Cập nhật tích hợp 2026-08-01: mobile đã nối `Path → Lesson → Exercise →
 > Feedback → Mastery → Review`, Home dùng dashboard aggregate thật và
 > gamification có ledger append-only cho XP/coin/streak/quest. Widget/API test
-> đã bao phủ retry và double-submit; smoke toàn vòng trên MuMu vẫn còn mở.
+> đã bao phủ retry và double-submit; smoke learner loop trên MuMu đã đạt cả
+> grade Review, refresh Progress/Home, mất mạng/retry, app restart và ML tạm
+> ngừng.
 > Lịch sử bên dưới giữ nguyên.
 
 > Cập nhật lần cuối: **2026-08-01**
@@ -16,8 +18,8 @@
   nghiên cứu backend/AI, không phải trạng thái hoàn thành của toàn bộ MVP.
 - Luồng đã được triển khai và kiểm thử ở API/widget:
   `Register/Login → Placement → Profile Setup → Home/Path → Lesson → Exercise →
-  Feedback → Mastery → Review → Dashboard`; smoke toàn vòng trên thiết bị vẫn
-  là gate chưa hoàn thành.
+  Feedback → Mastery → Review → Dashboard`; phần learner loop sau placement đã
+  được smoke trên MuMu bằng API/PostgreSQL thật.
 - Backend và mobile cùng hỗ trợ start/resume lesson, ba loại exercise, feedback,
   completion, refresh Path/Progress/Review/Home và chống double-submit. Home,
   Profile/onboarding, Review và Progress đều dùng API thật; không còn
@@ -30,8 +32,9 @@
 - Admin Web mới là Vite scaffold. Gamification đã có XP/coin/streak/quest nhưng
   chưa có badge/reward tuning; mastery passive decay vẫn thiếu.
 - Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile và có test tự động**,
-  nhưng chưa đạt MVP nghiệm thu do thiếu MuMu/full-stack E2E, Admin, Speaking
-  safety và production readiness.
+  đồng thời đã có device smoke sau placement, nhưng chưa đạt MVP nghiệm thu do
+  thiếu full-stack E2E từ account mới, Admin, Speaking safety và production
+  readiness.
 
 ## Snapshot bằng chứng ngày 2026-08-01
 
@@ -40,8 +43,8 @@
   nguyên.
 - .NET hiện có **35 route/12 feature group**: 34 lệnh `Map*` trong `Endpoints`
   cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **78/78 test**.
-- .NET Release test đạt **64/64**; migration identity/profile, Lesson/content
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **79/79 test**.
+- .NET Release test đạt **65/65**; migration identity/profile, Lesson/content
   và gamification
   loop đã apply thành công trên PostgreSQL local. Concurrent start/answer/
   completion và reward replay test đều xanh.
@@ -55,6 +58,12 @@
   gói API, ML, model/RAG artifacts hoặc reverse proxy.
 - `dotnet list package --vulnerable --include-transitive` hiện không báo package
   vulnerable cho cả API và test project.
+- MuMu Android 12 đã hoàn thành lesson 5 câu (MCQ/cloze/reorder), nhận feedback,
+  tạo và grade ReviewCard, cập nhật mastery 77%, streak 1, XP 45, coin 3 và due
+  review về 0. Force-stop/relaunch giữ phiên; tháo ADB reverse làm submit lỗi và
+  nối lại retry thành công với cùng operation ID. ML không chạy trong lượt này;
+  fixture chỉ seed placement-completed cho tài khoản test nên không được tính là
+  E2E placement mới.
 
 ## Ma trận trạng thái sản phẩm
 
@@ -64,12 +73,12 @@
 | Onboarding và profile | API thật | Sau placement có Profile Setup; target chỉ được xác nhận khi user chọn A1–B2. Daily goal, purpose, focus, reminder/timezone, email/app preferences và change-password đều lưu qua API; toggle rollback khi save lỗi |
 | Placement | Partial, E2E thật | Answer đã session-bound/idempotent và email đã normalize/validate; vẫn chỉ trả CEFR tổng và mới có 12 smoke items |
 | Home/Today Plan | API thật trên mobile | `GET /dashboard` + `/path/today` cấp name, CEFR/target, mastery, goal, next lesson, due review, recent activity và reward stats |
-| Learning Path | API thật trên mobile, chưa device-E2E | `/path` mở lesson từ `/path/today`; complete refresh Path/Progress/Review/Home; còn smoke MuMu |
+| Learning Path | API thật, MuMu smoke đạt | `/path` mở lesson từ `/path/today`; complete refresh Path/Progress/Review/Home; offline retry và app restart đã được xác minh |
 | Lesson | API thật trên mobile | Detail/player start-resume-progress-submit-feedback-complete có loading/error/retry và giữ operation ID khi retry |
 | Exercise/AI feedback | API thật trên mobile | Player hỗ trợ MCQ, cloze, reorder; đáp án chỉ xuất hiện sau submit; backend idempotent và cập nhật mastery một lần |
 | Mastery/KT | Partial, read API thật | Progress tổng hợp snapshot `/mastery` với catalog `/skills`; chưa áp dụng passive decay và SAINT+ `/kt/predict` chưa được .NET production flow sử dụng |
-| SRS Review | API thật trên mobile và producer backend | Dùng `/reviews/due`, grade idempotent và tự tạo card từ câu lesson sai; còn thiếu device-E2E toàn vòng |
-| Dashboard/Progress | API thật, còn thiếu decay | Progress dùng `/skills` + `/mastery`; Home dùng `/dashboard`; aggregate có CEFR/mastery/weak-strong/due/completed/next lesson/reward stats |
+| SRS Review | API thật, producer backend và MuMu smoke đạt | Dùng `/reviews/due`, grade idempotent, tự tạo card từ câu lesson sai và cập nhật reward/due đúng một lần |
+| Dashboard/Progress | API thật, MuMu smoke đạt, còn thiếu decay | Progress dùng `/skills` + `/mastery` và dashboard/gamification aggregate; category chỉ tính skill đã thực hành; Home dùng `/dashboard` |
 | Advisor/Writing/Speaking | Backend/ML-only | Chưa có learner UI; thiếu quota, privacy, fallback và quyết định có thuộc MVP hay không |
 | Gamification | Partial, API/UI thật | Ledger append-only cho XP/coin/streak/quest, timezone, API, Home/Streak UI và replay test đã có; badge và reward tuning còn thiếu |
 | Admin CMS/analytics | Missing | Chưa có Admin Web, role model, admin auth, CRUD nội dung và analytics |
@@ -110,13 +119,14 @@
   - [ ] Bổ sung 5–10 test learners; admin production dùng bootstrap secret đã có.
   - [x] Có version, nguồn, validation, deduplication, seed/import và artifact
     distribution; không phụ thuộc file chỉ tồn tại trên một máy.
-- [ ] **P0-05 — Learning Path end-to-end.**
+- [x] **P0-05 — Learning Path end-to-end.**
   - [x] Mobile dùng repository/API model/ViewModel thật cho `GET /path`, có
     loading, empty, error, retry và Flutter test.
   - [x] Backend định nghĩa path item → lesson, today plan, complete và recalculation.
   - [x] Nối các API learner path mới vào mobile.
-  - [ ] Xác minh lại backend/mobile flow trên MuMu.
-- [ ] **P0-06 — Lesson/Exercise/AI feedback end-to-end.**
+  - [x] Xác minh lại backend/mobile flow trên MuMu, gồm offline retry, app
+    restart và ML tạm ngừng.
+- [x] **P0-06 — Lesson/Exercise/AI feedback end-to-end.**
   - [x] Bổ sung Lesson domain/API và dữ liệu lesson.
   - [x] Tạo mobile lesson detail/player; backend submit/result/explanation đã có.
   - [x] Backend cập nhật mastery đúng một lần và recalculation sau hoàn thành.
@@ -191,20 +201,20 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 78/78;
+1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 79/79;
    tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.
 2. Đồng bộ tài liệu hiện hành, sau đó xử lý Git bằng commit/PR riêng với danh
    sách file được kiểm tra rõ ràng.
 3. **Learner loop mobile đã nối:** Review/Progress/Home/Lesson đều dùng API,
-   có API states, operation ID/retry guard và reward ledger. Còn smoke MuMu và
-   mastery passive decay.
+   có API states, operation ID/retry guard và reward ledger; smoke MuMu đã đạt.
+   Phần còn lại là mastery passive decay và full-stack E2E từ account mới.
 4. **Profile/Onboarding đã đạt:** `GET/PATCH /auth/me`, refresh/logout,
    change-password và Profile Setup đã nối mobile; PostgreSQL migration đã apply.
 5. **Backend learner loop và content seed đã đạt:** 20 lesson/100 item/3 type;
    start/resume/submit/complete/mastery/review/reward idempotent. Mobile đã nối
-   toàn vòng; bước còn lại của lát cắt này là xác minh MuMu/offline/restart.
+   toàn vòng và đã xác minh MuMu/offline/restart.
 6. Hoàn tất speaking validation/retention và test learner fixtures.
 7. Hoàn thiện Admin, CI/full-stack E2E, deployment và mobile release.
 

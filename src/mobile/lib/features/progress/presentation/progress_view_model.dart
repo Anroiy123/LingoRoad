@@ -76,10 +76,12 @@ class ProgressViewModel extends ChangeNotifier {
         () {
           final rows = grouped[category]!;
           final known = rows.where((s) => values.containsKey(s.code)).toList();
-          final average = rows
-                  .map((s) => (values[s.code] ?? 0).clamp(0, 1))
-                  .reduce((a, b) => a + b) /
-              rows.length;
+          final average = known.isEmpty
+              ? 0.0
+              : known
+                      .map((s) => values[s.code]!.clamp(0, 1))
+                      .reduce((a, b) => a + b) /
+                  known.length;
           return CategoryProgress(
               category, (average * 100).round(), known.isNotEmpty);
         }()

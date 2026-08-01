@@ -234,8 +234,13 @@
     },
     "overview": {
       "current_level": "TRÌNH ĐỘ HIỆN TẠI",
+      "target_level": "MỤC TIÊU CEFR",
       "total_xp": "TỔNG XP",
+      "coins": "XU",
       "streak": "CHUỖI NGÀY",
+      "longest_streak": "CHUỖI DÀI NHẤT",
+      "completed_lessons": "BÀI ĐÃ HOÀN THÀNH",
+      "due_reviews": "THẺ CẦN ÔN",
       "quests": "NHIỆM VỤ",
       "badges": "HUY HIỆU",
       "cefr_journey": "Hành trình CEFR",
@@ -245,8 +250,8 @@
       "improvements": "Cần cải thiện"
     },
     "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
-    "summary_unavailable": "Các chỉ số tổng hợp như XP, chuỗi ngày, CEFR và huy hiệu hiện chưa có API.",
-    "achievements_unavailable": "Thành tích hiện chưa có API.",
+    "summary_error": "Không thể tải các chỉ số tổng hợp.",
+    "quests_empty": "Hiện chưa có nhiệm vụ nào.",
     "suggestion": {"start": "Hãy bắt đầu một hoạt động để cập nhật tiến độ.", "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."},
     "skills_analysis": {
       "title": "Phân tích kỹ năng",

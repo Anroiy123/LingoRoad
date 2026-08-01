@@ -234,8 +234,13 @@
     },
     "overview": {
       "current_level": "CURRENT LEVEL",
+      "target_level": "CEFR TARGET",
       "total_xp": "TOTAL XP",
+      "coins": "COINS",
       "streak": "STREAK",
+      "longest_streak": "LONGEST STREAK",
+      "completed_lessons": "COMPLETED LESSONS",
+      "due_reviews": "REVIEWS DUE",
       "quests": "QUESTS",
       "badges": "BADGES",
       "cefr_journey": "CEFR Journey",
@@ -245,8 +250,8 @@
       "improvements": "Needs Improvement"
     },
     "empty": "The skill catalog is currently empty.",
-    "summary_unavailable": "Summary metrics such as XP, streaks, CEFR, and badges do not have APIs yet.",
-    "achievements_unavailable": "Achievements do not have an API yet.",
+    "summary_error": "Unable to load summary metrics.",
+    "quests_empty": "There are no quests yet.",
     "suggestion": {"start": "Start an activity to see your progress.", "weakest": "Prioritize more practice in: {}."},
     "skills_analysis": {
       "title": "Skills Analysis",

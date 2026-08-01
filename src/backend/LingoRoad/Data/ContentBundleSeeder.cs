@@ -26,7 +26,7 @@ public static class ContentBundleSeeder
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "content.v1.json");
         var bytes = await File.ReadAllBytesAsync(path);
-        var checksum = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+        var checksum = ComputeChecksum(bytes);
         var bundle = JsonSerializer.Deserialize<Bundle>(bytes,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
             ?? throw new InvalidOperationException("Content bundle is empty.");
@@ -181,5 +181,14 @@ public static class ContentBundleSeeder
     {
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes($"lingoroad:{value}"));
         return new Guid(hash.AsSpan(0, 16));
+    }
+
+    internal static string ComputeChecksum(ReadOnlySpan<byte> bytes)
+    {
+        var text = Encoding.UTF8.GetString(bytes);
+        var canonical = text.Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))
+            .ToLowerInvariant();
     }
 }
