@@ -7,13 +7,11 @@ service (`src/backend/ml`) is out of scope — it is an internal seam
 *(giao diện nội bộ)* called only by the `.NET` backend (`MlClient`), never
 directly by either frontend.
 
-**Method:** the API side of the comparison is the route catalog in
-`src/backend/.claude/context/backend/api-catalog.md`, cross-checked against
-`Program.cs`/`Endpoints/*.cs` and the interactive OpenAPI document now
-served at `/scalar/v1` in development. The frontend side is read from the
-actual client code where it exists (mobile), and from the original product
-spec, `MVP_architecture.md`, where the client is still an empty scaffold
-(admin).
+**Method:** the API side of the comparison is cross-checked directly against
+`Program.cs`/`Endpoints/*.cs` and the interactive OpenAPI document served at
+`/scalar/v1` in development. The frontend side is read from the actual mobile
+client code and, where the admin client is still an empty scaffold, from the
+original product spec, `MVP_architecture.md`.
 
 Each row below is classified:
 - ✅ **Fulfilled** — the backend already supports this; the frontend just needs to call it.
@@ -22,13 +20,11 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 22 routes across 10 feature groups: Health, Auth,
+The `.NET` API exposes 23 routes across 10 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
-Exercises (incl. writing evaluation), and Speaking. Full route-by-route
-detail (verb, auth, request/response shape) is maintained in
-`src/backend/.claude/context/backend/api-catalog.md` — this report doesn't
-duplicate it.
+Exercises (incl. writing evaluation), and Speaking. This summary does not
+duplicate every route's verb, auth requirement and request/response shape.
 
 As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
 gives an interactive view of the same surface, generated from the
@@ -51,11 +47,11 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Learning path (recommendation) | ✅ `/path` (`PathBuilder`) | ✅ Wired (`ApiLearningPathRepository`) | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
 | Mastery tracking | ✅ `/mastery` | ⚠️ Mocked — Progress screen's static skill list, not driven by real data | ❌ No aggregate/per-user view |
-| Spaced-repetition reviews (SRS) | ✅ Full FSRS flow (`/reviews/*`) | ⚠️ Mocked — no due-date UI, no grade buttons | — |
+| Spaced-repetition reviews (SRS) | ✅ Full FSRS flow (`/reviews/*`) | ⚠️ Mock-backed — four grade controls exist, but cards are static and no `/reviews/*` endpoint is called | — |
 | Exercises (MCQ + grading) | ✅ `/exercises/generate`, `/exercises/{id}/submit` | ❌ No exercise screen | — |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
 | Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
-| User profile (read/update) | ❌ No `GET`/`PUT /users/me` | ❌ Static toggles, no data fetch | — |
+| User profile (read/update) | ⚠️ `GET /auth/me` exists; no authenticated update endpoint | ⚠️ Read is wired via `ApiAuthRepository.getProfile`; target/preferences/password updates are missing and toggles remain local state | — |
 | Dashboard / gamification (XP, streak, badges) | ❌ No concept anywhere in the domain model | ❌ Hardcoded (Home's quests, Progress's streak/XP/badges) | ❌ Missing (MVP spec expected a stats view) |
 | Admin auth / roles | ❌ No `Role`/`IsAdmin` field on `User` | — | ❌ Missing — blocks any real admin-gated route |
 | Analytics (user/skill/question) | ❌ No `/admin/analytics/*` routes | — | ❌ Missing |
@@ -63,15 +59,15 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 
 ## 3. Mobile (Flutter) gap analysis
 
-Mobile's own `.claude/context/frontend/component-architecture.md` already
-documents the mock-vs-live data split at the code level; the tables below
-reframe it against backend capability.
+The tables below derive the mobile mock-vs-live split from the current client
+code and reframe it against backend capability.
 
 ### 3.1 Already wired to the real API
 
 | Feature | Status | Notes |
 |---|---|---|
 | Auth (login/register) | ✅ Fulfilled | `ApiAuthRepository` → `/auth/register`, `/auth/login`. |
+| Profile (read) | ✅ Fulfilled | `ApiAuthRepository.getProfile` → `GET /auth/me`. `ProfileScreen` handles loading/error/retry and renders the name plus current level/CEFR and badge/profile statistics from the response; email is only used as a fallback to derive the display name. Although `targetCefr` is parsed, the target tile remains localized hardcoded UI and does not render it. Profile/onboarding updates are not covered by this read path. |
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
 | Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §6 item 3 (resolved). |
 
@@ -80,9 +76,8 @@ reframe it against backend capability.
 | Screen | Mock data shape | Closest backend endpoint | Status | Recommendation |
 |---|---|---|---|---|
 | Progress | `SkillProgress(skillKey, percent, icon)` — 6 hardcoded skills | `GET /mastery` → `[{skillCode, skillName, pCorrect, updatedAt}]` | ⚠️ Partial | The endpoint returns the right kind of data (`pCorrect` → `percent`), but mobile's 6 skills are a static localization-key list, not driven by the real skill graph (`GET /skills`, 156 leaf skills) or the caller's actual mastery rows. Needs a mapping from returned `skillCode`s to display/i18n keys and icons, and handling for skills the endpoint hasn't returned yet (unpracticed skills). |
-| Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards, no grading | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | Full FSRS scheduling *(lịch ôn tập FSRS)* exists end-to-end (`front`/`back`/`due`/`state`, grade 1–4 → next interval), but the screen has no due-date UI and no grade buttons, and nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
-| Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline (lines 122–140), with no backend equivalent — this is a net-new feature, not a wiring task. |
-| Profile | static notification toggles (`reminder`/`email`/`updates`), no data fetch | none | ❌ Missing | No `GET /users/me` (or equivalent) exists — `/auth/login`/`/auth/register` return only `{token}`. `User.Name` and `User.TargetCefr` are already columns in the database (`Domain/User.cs`), but nothing reads or writes them over HTTP after registration. The notification-preference toggles have no backend field at all. |
+| Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards with Forgot/Hard/Good/Easy controls | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | The four grade controls are present, but the screen still loads `const MockRepository().reviews()`. It has no due-date/API loading/error/empty states, no double-submit guard, and neither fetches due cards nor posts a grade. Nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
+| Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline, with no backend equivalent — this is a net-new feature, not a wiring task. |
 
 ### 3.3 Backend capability with no mobile UI at all yet
 
@@ -166,9 +161,12 @@ leverage (cheapest wins first):
    building lesson management — either build the entity, or drop "lesson
    management" from the admin scope in favor of "question/skill
    management" as already implemented.
-8. **Add `GET`/`PUT /users/me`** so mobile's Profile screen and the MVP
-   doc's onboarding flow (`TargetCefr`, already a column) have something to
-   read/write.
+8. **Add an authenticated profile/onboarding update API alongside
+   `GET /auth/me`** (for example `PUT` or `PATCH /auth/me`) for target CEFR,
+   daily goal, purpose/focus skills and preferences. Profile read already
+   exists and is wired on mobile. If `/users/me` is preferred as the public
+   convention, standardize the existing read and the new write route together
+   instead of treating read as missing.
 9. **Client codegen from OpenAPI, optionally.** Now that the `.NET` API has
    a machine-readable OpenAPI document (surfaced via Scalar at
    `/scalar/v1`), `admin` could generate a typed TS client (e.g.

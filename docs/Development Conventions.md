@@ -1,67 +1,196 @@
 # Development Conventions
 
-This document outlines the coding standards, guidelines, and conventions for development in the LingoRoad project. All developers (and AI assistants) must adhere to these rules when generating or modifying code.
+Tài liệu này quy định cách tạo và chỉnh sửa code trong dự án LingoRoad. Mọi thay đổi phải bám theo kiến trúc đang được sử dụng trong codebase; không tự ý đưa thêm framework hoặc pattern mới chỉ vì ví dụ sinh code thuận tiện hơn.
 
----
+## 1. Flutter architecture và state management
 
-## 1. Flutter/Dart Code Generation Guidelines
+### Provider là state-management chuẩn
 
-### Responsive UI Design (BẮT BUỘC)
-Tuyệt đối không sử dụng các con số fixed (cố định) cho kích thước giao diện. Phải luôn sử dụng `flutter_screenutil` để UI tự động co giãn theo tỷ lệ màn hình (Design Size mặc định: `390x844`). Cụ thể:
-* **Font chữ**: Dùng `.sp` (ví dụ: `fontSize: 14.sp`).
-* **Chiều rộng, lề ngang** (width, horizontal padding/margin): Dùng `.w` (ví dụ: `width: 50.w`, `horizontal: 16.w`).
-* **Chiều cao, lề dọc** (height, vertical padding/margin): Dùng `.h` (ví dụ: `height: 50.h`, `vertical: 16.h`). 
-  > [!WARNING]
-  > Không lạm dụng `.h` cho các chiều cao quá nhỏ (< 3) vì có thể làm vỡ line-height của text.
-* **Bo góc** (Border Radius): Dùng `.r` (ví dụ: `Radius.circular(8.r)`).
+Ứng dụng hiện dùng package `provider`, không dùng Riverpod.
 
-## 2. Flutter/Dart Localization Guidelines
+- Dùng `context.watch<T>()` khi widget phải rebuild theo trạng thái.
+- Dùng `context.read<T>()` cho thao tác một lần hoặc trong callback.
+- Có thể dùng `context.select<T, R>()` khi chỉ cần theo dõi một phần nhỏ của state.
+- Không dùng `ref.watch`, `WidgetRef`, `ConsumerWidget` hoặc tạo `*Provider` theo API của Riverpod nếu chưa có quyết định thay đổi kiến trúc.
 
-### JSON-Based Translations
-Do NOT hardcode user-facing strings or use custom in-file translation classes (e.g. `Chào mừng trở lại`, `welcome back`). All translations must reside in the standard assets translation JSON files:
-* **Vietnamese**: `assets/translations/vi.json`
-* **English**: `assets/translations/en.json`
+Ví dụ lấy localization provider:
 
-### Strict Enforcement During Code Generation
-Whenever you create or modify a widget, you **MUST** proactively extract any new user-facing text into the JSON files and replace them with `l10n.translate(...)`. **NEVER** output hardcoded UI text in the Dart file, even as placeholders.
+```dart
+final l10n = context.watch<AppLanguageProvider>();
+```
 
-### Mandatory JSON Verification Step
-It is **NOT** enough to just use `l10n.translate()` in the Dart code. Every time you introduce a new translation key, you **MUST** immediately edit both `vi.json` and `en.json` to insert the new key-value pair. Make this a verified checklist item before concluding any localization task.
+### Dependency injection và data flow
 
-### Using Translations in Code
-* Watch the localization helper using:
-  ```dart
-  final l10n = ref.watch(localizationsProvider);
-  ```
-* Translate keys using dot notation:
-  ```dart
-  l10n.translate('namespace.key')
-  ```
-* Use placeholders for dynamic values (which replaces `{}` placeholders in the JSON value):
-  ```dart
-  l10n.translate('namespace.key', [arg1, arg2])
-  ```
+- `LingoRoadApp` là composition root, chịu trách nhiệm cung cấp các dependency dùng chung qua `MultiProvider`.
+- Mỗi luồng API nên đi theo hướng: `Screen/Widget -> ViewModel hoặc Controller -> Repository interface -> ApiRepository -> ApiClient`.
+- Screen không tự khởi tạo `ApiClient` hoặc repository thật.
+- Dùng `ChangeNotifier` cho ViewModel/Controller đang cần phát trạng thái cho UI.
+- Dùng repository giả hoặc fake trong test; không đưa `MockRepository` vào luồng production nếu backend tương ứng đã được tích hợp.
+- Điều hướng phải đi qua cấu hình `GoRouter` tập trung; không tạo router độc lập trong từng feature.
+- Các màn hình gọi API phải xử lý tối thiểu các trạng thái loading, success, empty, error và retry.
 
----
+## 2. Responsive Flutter UI
 
-## 3. Backend Execution Guidelines
+### Cấu hình chuẩn
 
-* **EF Core (Entity Framework Core) Commands**: All commands related to EF Core (e.g., `dotnet ef migrations add <MigrationName>`, `dotnet ef database update`) or backend running commands (e.g., `dotnet run`) MUST be executed within the `src/backend/LingoRoad` directory.
-  - Alternatively, if run from the root workspace, you MUST explicitly specify the target project and startup project paths:
-    ```powershell
-    dotnet ef database update --project src/backend/LingoRoad --startup-project src/backend/LingoRoad
-    ```
+Ứng dụng dùng `flutter_screenutil` với design size `390x844`. `ScreenUtilInit` chỉ nên được cấu hình tại composition root của app.
 
----
+Áp dụng ScreenUtil cho kích thước giao diện lấy từ thiết kế:
 
-## 4. File Length Limitation
+- Font chữ: `.sp`, ví dụ `fontSize: 14.sp`.
+- Chiều rộng và khoảng cách ngang: `.w`.
+- Chiều cao và khoảng cách dọc: `.h`.
+- Bo góc: `.r`.
+- Ưu tiên các design token như `AppSpacing`, `AppColors` và typography trong `AppTheme` thay vì lặp lại magic numbers.
 
-* **Soft Limit (Warning)**: Code files should not exceed **800 lines**. When a file reaches this length, it is highly recommended to plan a refactoring.
-* **Hard Limit (Block/Error)**: Code files must not exceed **1000 lines** under any circumstances (except for pure static config files, mock data, or auto-generated files like migrations which are allowed up to **1500 lines**).
-* **Component-specific Thresholds**:
-  - **C# / .NET Endpoints/Controllers**: Max **300 lines** (all business logic must be delegated to Services).
-  - **C# / .NET Services**: Max **600 - 800 lines** (split logic into sub-services or helper classes if exceeded).
-  - **Flutter Screen/Widget Files (Dart)**: Max **500 - 800 lines** (extract sub-widgets, separate UI from business logic using state management providers if exceeded).
-  - **React Admin Page/Component Files (TSX)**: Max **500 - 800 lines** (extract sub-components, table columns, modals, and logic to custom hooks or helper files if exceeded).
-  - **Python / FastAPI Endpoint & Utility Files (ML)**: Max **500 - 800 lines** (extract helper functions or model integration logic to separate modules if exceeded).
-* **Action**: If a file exceeds or is approaching these limits, refactor it by splitting smaller sections/parts into separate components, custom hooks, helper classes/services, or extension methods to ensure readability and long-term maintainability.
+Không chuyển các giá trị không phải kích thước giao diện sang ScreenUtil, ví dụ:
+
+- Tỷ lệ từ `0` đến `1`, progress, opacity.
+- Số lượng, index, flex, enum hoặc mã trạng thái.
+- Duration, retry count và các hằng số nghiệp vụ.
+- Kích thước hairline rất nhỏ khi cần giữ đúng một logical pixel.
+
+Không lạm dụng `.h` cho line-height hoặc khoảng cách rất nhỏ dưới `3`, vì có thể làm vỡ bố cục chữ trên màn hình có tỷ lệ khác biệt lớn.
+
+### Widget tests dùng ScreenUtil
+
+Widget test render component có `.w`, `.h`, `.sp` hoặc `.r` phải khởi tạo ScreenUtil trong test harness:
+
+```dart
+Widget buildTestApp(Widget child) {
+  return ScreenUtilInit(
+    designSize: const Size(390, 844),
+    minTextAdapt: true,
+    splitScreenMode: true,
+    builder: (context, _) => MaterialApp(home: child),
+  );
+}
+```
+
+Nếu widget cần Provider, bọc các fake dependency bằng `MultiProvider` bên trong `builder`. Không phụ thuộc vào việc một test khác đã khởi tạo ScreenUtil.
+
+## 3. Localization
+
+### Nguồn translation
+
+Không hardcode chuỗi hiển thị cho người dùng trong Dart. Mọi translation phải nằm trong cả hai file:
+
+- `src/mobile/assets/translations/vi.json`
+- `src/mobile/assets/translations/en.json`
+
+Khi thêm key mới, phải cập nhật và kiểm tra cả hai file trong cùng một thay đổi.
+
+### Cách sử dụng
+
+```dart
+final l10n = context.watch<AppLanguageProvider>();
+
+Text(l10n.translate('namespace.key'));
+Text(l10n.translate('namespace.key_with_args', [value]));
+```
+
+- Dùng dot notation cho key.
+- Dùng `{}` trong JSON cho giá trị động và truyền đối số theo đúng thứ tự.
+- Tên người dùng, dữ liệu API và nội dung do người dùng nhập là dữ liệu động, không phải translation; không hardcode các giá trị này làm placeholder production.
+- Data layer nên trả về error code ổn định. UI chịu trách nhiệm ánh xạ error code sang translation key; không hiển thị trực tiếp message tiếng Việt hardcode từ repository.
+- Test phải phát hiện key bị thiếu; `translate()` trả lại chính key không được xem là nội dung hợp lệ để phát hành.
+
+## 4. Backend conventions
+
+### Thư mục chạy lệnh
+
+Chạy ứng dụng và lệnh EF Core trong `src/backend/LingoRoad`:
+
+```powershell
+dotnet run
+dotnet ef migrations add <MigrationName>
+dotnet ef database update
+```
+
+Nếu chạy từ workspace root, phải chỉ rõ project và startup project:
+
+```powershell
+dotnet ef database update --project src/backend/LingoRoad --startup-project src/backend/LingoRoad
+```
+
+Chạy toàn bộ backend tests từ `src/backend`:
+
+```powershell
+dotnet test LingoRoad.sln --configuration Release
+```
+
+### API và dữ liệu
+
+- Endpoint cần xác thực phải dùng `RequireAuthorization()` và lấy user ID từ JWT principal.
+- Validate input ở boundary; không để dữ liệu không hợp lệ đi vào service hoặc database.
+- Business logic có thể tái sử dụng phải nằm trong service, không dồn vào endpoint.
+- Thay đổi schema phải đi kèm EF Core migration và test phù hợp.
+- Không hardcode secret, JWT key, connection string hoặc địa chỉ môi trường trong source code.
+
+## 5. File length limits
+
+| Loại file | Cảnh báo từ | Tối đa |
+|---|---:|---:|
+| C# endpoint/controller | 250 dòng | 300 dòng |
+| C# service | 600 dòng | 800 dòng |
+| Flutter screen/widget | 500 dòng | 800 dòng |
+| React page/component | 500 dòng | 800 dòng |
+| Python endpoint/utility | 500 dòng | 800 dòng |
+| Code file khác | 800 dòng | 1000 dòng |
+| Generated file/migration/static config | 1000 dòng | 1500 dòng |
+
+- Khi chạm ngưỡng cảnh báo, phải cân nhắc tách widget, service, hook, helper hoặc extension method.
+- Không lách giới hạn bằng cách nén nhiều statement trên một dòng.
+- File generated hoặc migration không chỉnh tay chỉ để đáp ứng giới hạn.
+- Giới hạn dòng là guardrail; độ phức tạp, trách nhiệm và khả năng test vẫn là tiêu chí chính.
+
+## 6. Quality gates
+
+Chỉ chạy các bộ kiểm tra liên quan tới phần đã thay đổi, nhưng không được bỏ qua lỗi mới do thay đổi đó tạo ra.
+
+### Flutter
+
+Chạy trong `src/mobile`:
+
+```powershell
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
+
+### Backend
+
+Chạy trong `src/backend`:
+
+```powershell
+dotnet test LingoRoad.sln --configuration Release
+```
+
+### React admin
+
+Chạy trong `src/admin` khi thay đổi admin:
+
+```powershell
+npm run lint
+npm run build
+```
+
+Nếu full-suite đang có lỗi baseline không liên quan, phải ghi rõ bộ kiểm tra nào pass, bộ nào fail và bằng chứng lỗi có tồn tại trước thay đổi. Không được báo hoàn thành chỉ dựa trên test đơn vị khi luồng cần backend, database, ML service hoặc thiết bị thật.
+
+## 7. Documentation sync
+
+- Khi thêm, xóa hoặc đổi route backend, phải cập nhật tài liệu API/gap tương ứng trong cùng thay đổi.
+- Khi một màn hình chuyển từ mock sang API thật, phải cập nhật `docs/api-frontend-gap-analysis.md` và test trạng thái loading/success/empty/error/retry.
+- Tài liệu đánh giá trạng thái phải ghi commit hoặc ngày được kiểm chứng để tránh được hiểu là luôn cập nhật.
+- Không tham chiếu tới file nội bộ hoặc file không được track trong repository như một source of truth bắt buộc.
+
+## 8. Definition of Done
+
+Một thay đổi chỉ được xem là hoàn thành khi:
+
+1. Code tuân theo kiến trúc và conventions ở trên.
+2. Chuỗi UI mới có đủ translation Việt/Anh.
+3. Test liên quan đã được thêm hoặc cập nhật và chạy thành công.
+4. Formatter, analyzer/linter và build liên quan không có lỗi mới.
+5. Mock, placeholder và hardcoded data còn lại được ghi rõ nếu chưa nằm trong phạm vi xử lý.
+6. Tài liệu trạng thái/API được đồng bộ khi hành vi hoặc mức tích hợp thay đổi.
