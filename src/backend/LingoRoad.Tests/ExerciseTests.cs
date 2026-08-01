@@ -37,7 +37,7 @@ public class ExerciseTests : IClassFixture<PlacementFactory>
         Assert.NotEmpty(list!);
 
         var submit = await _client.PostAsJsonAsync($"/exercises/{list![0].Id}/submit",
-            new { answer = "has lived" });   // FakeMlClient's fixed correct answer
+            new { answer = "has lived", operationId = Guid.NewGuid() });
         var result = await submit.Content.ReadFromJsonAsync<SubmitDto>();
         Assert.True(result!.Correct);
 
@@ -52,9 +52,12 @@ public class ExerciseTests : IClassFixture<PlacementFactory>
         var gen = await _client.PostAsJsonAsync("/exercises/generate",
             new { skillCode = "grammar.tenses.present_perfect" });
         var list = await gen.Content.ReadFromJsonAsync<List<ExDto>>();
-        await _client.PostAsJsonAsync($"/exercises/{list![0].Id}/submit", new { answer = "has lived" });
+        var operationId = Guid.NewGuid();
+        await _client.PostAsJsonAsync($"/exercises/{list![0].Id}/submit",
+            new { answer = "has lived", operationId });
         var after1 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");
-        var submit2 = await _client.PostAsJsonAsync($"/exercises/{list[0].Id}/submit", new { answer = "has lived" });
+        var submit2 = await _client.PostAsJsonAsync($"/exercises/{list[0].Id}/submit",
+            new { answer = "has lived", operationId });
         var result2 = await submit2.Content.ReadFromJsonAsync<SubmitDto>();
         Assert.True(result2!.Correct);                       // still graded
         var after2 = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>("/mastery");

@@ -10,6 +10,7 @@ namespace LingoRoad.Tests;
 
 public class TestAppFactory : WebApplicationFactory<Program>
 {
+    protected virtual bool SeedContent => false;
     private readonly string _connectionString = new SqliteConnectionStringBuilder
     {
         DataSource = $"lingoroad-tests-{Guid.NewGuid():N}",
@@ -29,6 +30,7 @@ public class TestAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimits:AuthWrite", "10000");
         builder.UseSetting("RateLimits:Refresh", "10000");
         builder.UseSetting("RateLimits:MlUpload", "10000");
+        builder.UseSetting("ContentSeed:Enabled", SeedContent.ToString());
         builder.ConfigureServices(services =>
         {
             foreach (var d in services.Where(d =>
@@ -41,7 +43,7 @@ public class TestAppFactory : WebApplicationFactory<Program>
             using var scope = services.BuildServiceProvider().CreateScope();
             scope.ServiceProvider.GetRequiredService<AppDbContext>()
                  .Database.EnsureCreated();
-            DbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>())
+            DbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), SeedContent)
                 .GetAwaiter().GetResult();
         });
     }

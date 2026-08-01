@@ -106,7 +106,9 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (app.Environment.IsDevelopment()) await DbSeeder.SeedAsync(db);
+    if (app.Environment.IsDevelopment() &&
+        (app.Configuration.GetValue<bool?>("ContentSeed:Enabled") ?? true))
+        await DbSeeder.SeedAsync(db);
     await AdminBootstrapper.BootstrapAsync(db, app.Configuration);
 }
 
@@ -125,6 +127,7 @@ app.MapMastery();
 app.MapReviews();
 app.MapPath();
 app.MapExercises();
+app.MapLessons();
 app.MapSpeaking();
 
 app.Run();
