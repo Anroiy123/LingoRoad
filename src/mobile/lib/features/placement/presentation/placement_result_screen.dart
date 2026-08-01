@@ -74,11 +74,15 @@ class PlacementResultScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _ResultMetric(
-                              label: l10n.translate('placement.result.answered'),
-                              value: l10n.translate('placement.result.answered_val', [result?.itemsAnswered ?? 0]),
+                              label:
+                                  l10n.translate('placement.result.answered'),
+                              value: l10n.translate(
+                                  'placement.result.answered_val',
+                                  [result?.itemsAnswered ?? 0]),
                             ),
                             _ResultMetric(
-                              label: l10n.translate('placement.result.confidence'),
+                              label:
+                                  l10n.translate('placement.result.confidence'),
                               value: result == null
                                   ? ''
                                   : 'SE ${result.se.toStringAsFixed(2)}',
@@ -111,9 +115,10 @@ class PlacementResultScreen extends StatelessWidget {
                     key: const Key('placement_result_continue'),
                     onPressed: () {
                       sessionController.markPlacementCompleted();
-                      context.go('/home');
+                      context.go('/profile-setup');
                     },
-                    child: Text(l10n.translate('placement.result.continue_btn')),
+                    child:
+                        Text(l10n.translate('placement.result.continue_btn')),
                   ),
                 ],
               ),

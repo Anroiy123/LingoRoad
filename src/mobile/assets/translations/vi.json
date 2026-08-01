@@ -239,6 +239,14 @@
   "profile": {
     "status": "Cấp {} · {} · {} huy hiệu",
     "error_load_failed": "Không thể tải thông tin cá nhân",
+    "save_failed": "Không thể lưu thay đổi. Vui lòng thử lại.",
+    "save": "Lưu",
+    "current_password": "Mật khẩu hiện tại",
+    "new_password": "Mật khẩu mới",
+    "password_failed": "Không thể đổi mật khẩu.",
+    "complete_setup": "Hoàn tất thiết lập",
+    "not_set": "Chưa thiết lập",
+    "skills_selected": "Đã chọn {} kỹ năng",
     "groups": {
       "goals": "Mục tiêu học tập",
       "schedule": "Lịch học",
@@ -250,6 +258,8 @@
       "daily_goal_val": "30 phút / ngày",
       "target_level": "Trình độ mục tiêu",
       "target_level_val": "B2 - Trung cao cấp",
+      "learning_purpose": "Mục đích học tập",
+      "focus_skills": "Kỹ năng ưu tiên",
       "study_reminder": "Nhắc nhở học tập",
       "reminder_time": "Cài đặt thời gian nhắc nhở",
       "email_notif": "Thông báo qua Email",
@@ -259,7 +269,7 @@
     },
     "logout_dialog": {
       "title": "Đăng xuất",
-      "content": "Đây là thao tác mô phỏng trong phiên bản giao diện.",
+      "content": "Bạn có chắc muốn đăng xuất khỏi tài khoản?",
       "cancel": "Hủy",
       "confirm": "Đồng ý"
     }

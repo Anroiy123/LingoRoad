@@ -110,4 +110,53 @@ void main() {
       ),
     );
   });
+
+  test('hai 401 đồng thời chỉ xoay refresh token một lần', () async {
+    session =
+        SessionController(MemorySessionStore('expired-token', 'refresh-1'));
+    await session.restore();
+    var expiredCalls = 0;
+    var refreshCalls = 0;
+    final bothExpired = Completer<void>();
+    final client = ApiClient(
+      config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+      session: session,
+      httpClient: MockClient((request) async {
+        if (request.url.path == '/auth/refresh') {
+          refreshCalls++;
+          await bothExpired.future;
+          return http.Response(
+            jsonEncode({
+              'accessToken': 'access-2',
+              'refreshToken': 'refresh-2',
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        if (request.headers['Authorization'] == 'Bearer access-2') {
+          return http.Response(
+            jsonEncode({'ok': true}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        expiredCalls++;
+        if (expiredCalls == 2) bothExpired.complete();
+        return http.Response('', 401);
+      }),
+    );
+
+    final results = await Future.wait([
+      client.get('/first'),
+      client.get('/second'),
+    ]);
+    expect(results, [
+      {'ok': true},
+      {'ok': true},
+    ]);
+    expect(refreshCalls, 1);
+    expect(session.token, 'access-2');
+    expect(session.refreshToken, 'refresh-2');
+  });
 }

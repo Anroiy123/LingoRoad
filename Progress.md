@@ -14,18 +14,18 @@
 - Mốc **16/16 task hoàn thành** trong ledger backend là kết quả của kế hoạch
   nghiên cứu backend/AI, không phải trạng thái hoàn thành của toàn bộ MVP.
 - Luồng sản phẩm thật hiện chạy được:
-  `Register/Login → Placement → MainShell → Logout/Login`; trong `MainShell`,
+  `Register/Login → Placement → Profile Setup → MainShell → Logout/Login`; trong `MainShell`,
   Learning Path gọi `GET /path`, Profile đọc `GET /auth/me`, Review dùng
   `/reviews/*`, và Progress tổng hợp `/skills` + `/mastery`.
 - Home vẫn dùng dữ liệu mock/tĩnh. Review không tự tạo thẻ vì chưa có Lesson/
-  Exercise producer; Profile đã hiện dữ liệu đọc thật nhưng các thay đổi mục tiêu,
-  preferences/toggles và mật khẩu chưa có API.
+  Exercise producer; Profile/onboarding đã lưu target, daily goal, purpose,
+  focus, reminder/preferences và đổi mật khẩu qua API thật.
   Các màn hình đã bổ sung trên Figma mới là design coverage, chưa được tính là
   Flutter implementation.
-- Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency và chuẩn
-  hóa/validation email đã được xử lý; các kiểm soát speaking, rate limit, token
-  lifecycle và secrets/config validation vẫn còn thiếu.
-- Admin Web chưa tồn tại. Lesson, onboarding, gamification và dashboard aggregate
+- Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency, chuẩn hóa
+  email, rate limit, refresh rotation/reuse, role policy và startup config
+  validation đã được xử lý; validation/retention Speaking vẫn còn thiếu.
+- Admin Web chưa tồn tại. Lesson, gamification và dashboard aggregate
   chưa có domain/API đầy đủ.
 - Vì vậy, dự án hiện là **backend/AI foundation + auth/placement E2E + các lát
   cắt API thật cho Learning Path/Profile read**, chưa phải MVP sản phẩm có vòng
@@ -36,11 +36,12 @@
 - Trước khi cập nhật tài liệu, checkout ở `main@f6da732` và đã đồng bộ với
   `origin/main`. Working tree có thay đổi ngoài phạm vi tài liệu này và được giữ
   nguyên.
-- .NET hiện có **23 route/10 feature group**: 22 lệnh `Map*` trong `Endpoints`
+- .NET hiện có **27 route/10 feature group**: 26 lệnh `Map*` trong `Endpoints`
   cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **70/70 test**.
-- .NET Release test đạt **52/52**; các mốc thấp hơn trong phụ lục chỉ là bằng
-  chứng lịch sử của lần xác minh trước.
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **72/72 test**.
+- .NET Release test đạt **57/57**; migration identity/profile đã apply thành
+  công trên PostgreSQL local. Các mốc thấp hơn trong phụ lục chỉ là bằng chứng
+  lịch sử của lần xác minh trước.
 - ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
   thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.
   Con số 47 test đạt trong tài liệu cũ chỉ được coi là bằng chứng lịch sử.
@@ -49,15 +50,15 @@
   `ReviewCards=0`, `Exercises=0`, `SpeakingAttempts=0`.
 - `docker` chưa có trong `PATH`. Compose hiện chỉ khai báo PostgreSQL, chưa đóng
   gói API, ML, model/RAG artifacts hoặc reverse proxy.
-- Hai dependency transitive .NET đang có advisory mức **High**:
-  `Microsoft.OpenApi 2.0.0` và `SQLitePCLRaw.lib.e_sqlite3 2.1.11`.
+- `dotnet list package --vulnerable --include-transitive` hiện không báo package
+  vulnerable cho cả API và test project.
 
 ## Ma trận trạng thái sản phẩm
 
 | Hạng mục | Trạng thái | Phần còn thiếu |
 |---|---|---|
-| Auth và session | Partial, API thật | Register/login và `GET /auth/me` đã nối mobile; thiếu profile update, refresh/revoke token, forgot-password và role/admin |
-| Onboarding và profile | Partial, read API thật | Profile có loading/error/retry; UI render name, level/CEFR hiện tại và badge/profile stats từ response. Email chỉ làm fallback suy ra display name; `targetCefr` đã parse nhưng target tile vẫn hard-code theo localization. Thiếu onboarding, update target/daily goal/purpose/focus/preferences/password; các toggle vẫn là local state |
+| Auth và session | API thật | Access token 15 phút, refresh token hash/rotation/reuse detection, logout/revoke, đổi mật khẩu, role claim/policy và mobile single-flight refresh đã có; forgot-password là phần mở rộng sau MVP |
+| Onboarding và profile | API thật | Sau placement có Profile Setup; target chỉ được xác nhận khi user chọn A1–B2. Daily goal, purpose, focus, reminder/timezone, email/app preferences và change-password đều lưu qua API; toggle rollback khi save lỗi |
 | Placement | Partial, E2E thật | Answer đã session-bound/idempotent và email đã normalize/validate; vẫn chỉ trả CEFR tổng và mới có 12 smoke items |
 | Home/Today Plan | Mobile mock | Quest, lesson hôm nay, due review và recent activity chưa lấy từ backend |
 | Learning Path | API thật trên mobile | `ApiLearningPathRepository` đã gọi `GET /path` với loading/empty/error/retry; thiếu path persistence, today plan, lesson mapping, complete/recalculate và smoke test MuMu mới |
@@ -87,19 +88,19 @@
   - [x] Placement answer idempotent, chỉ chấp nhận item đã cấp cho session và
     không tăng mastery hai lần khi client retry.
   - [x] Normalize và validate email ở backend.
-  - [ ] Bổ sung rate limit, token lifecycle và startup validation cho
+  - [x] Bổ sung rate limit, token lifecycle và startup validation cho
     secrets/config nhạy cảm.
   - [ ] Speaking phải từ chối MIME sai, giới hạn dung lượng/thời lượng và có
     chính sách retention/lưu/xóa audio.
-- [ ] **P0-03 — User profile và onboarding thật.**
+- [x] **P0-03 — User profile và onboarding thật.**
   - [x] `GET /auth/me` và Flutter profile read đã có loading/error/retry; UI
     render name, level/CEFR hiện tại và badge/profile stats từ response. Email
     chỉ dùng làm fallback cho display name.
-  - [ ] Render `targetCefr` đã parse thay cho target tile đang hard-code theo
+  - [x] Render `targetCefr` đã parse thay cho target tile đang hard-code theo
     localization.
-  - [ ] Thêm schema/migration/update API/test cho target CEFR, daily minutes,
+  - [x] Thêm schema/migration/update API/test cho target CEFR, daily minutes,
     purpose, focus skills và preferences.
-  - [ ] Tạo Flutter onboarding/update flow, nối toggles/change-password và bỏ
+  - [x] Tạo Flutter onboarding/update flow, nối toggles/change-password và bỏ
     việc mặc định mục tiêu B2 khi người dùng chưa xác nhận.
 - [ ] **P0-04 — Data/content có thể tái tạo.**
   - Tối thiểu 100 câu hỏi, 20 lesson, 3 exercise types, 5–10 test learners và
@@ -122,7 +123,7 @@
 - [ ] **P0-08 — Home/Dashboard/Progress/Profile dùng dữ liệu thật.**
   - [x] Profile read đã dùng `GET /auth/me` cho name, level/CEFR hiện tại và
     badge/profile stats; email chỉ là fallback cho display name.
-  - [ ] Hiển thị `targetCefr` đã parse thay cho target tile hard-code.
+  - [x] Hiển thị `targetCefr` đã parse thay cho target tile hard-code.
   - [ ] Tạo aggregate API cho CEFR, mastery, weak/strong skills, due count,
     completed lessons và next lesson.
   - [ ] Áp dụng mastery decay nhất quán khi đọc path/dashboard.
@@ -146,9 +147,9 @@
   quest, timezone, idempotency, API, DB, UI và test.
 - [ ] Tạo CI chạy .NET, ML, Flutter analyze/test/build; thêm contract test,
   authorization test, 503/degradation test, main-tab API flow và full-stack E2E.
-- [ ] Nâng hai dependency High severity; externalize secrets; thêm startup config
-  validation, token refresh/revoke, exception handling, CORS/admin audit log,
-  security headers và HTTPS.
+- [x] Nâng dependency có advisory; thêm startup config validation, token
+  refresh/revoke, exception handling, CORS, role policy và security audit log.
+- [ ] Hoàn thiện security headers và HTTPS trong production topology.
 - [ ] Tạo Dockerfile .NET/ML và production topology gồm API, ML, PostgreSQL,
   migration/seed, persistent uploads/object storage, backup, logs và metrics.
 - [ ] Hoàn thiện mobile release: application ID/name, keystore, dev/staging/prod
@@ -184,7 +185,7 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 70/70;
+1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 72/72;
    tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.
@@ -193,12 +194,11 @@
 3. **Review/Progress integration đã đạt:** dùng `/reviews/*`, `/skills` và
    `/mastery`, có API states, double-submit guard và test. Còn producer ReviewCard
    và dashboard aggregate theo P0-07/P0-08.
-4. Hoàn thiện Profile/Onboarding update API và Flutter flow; giữ `GET /auth/me`
-   làm read path hiện có hoặc chuẩn hóa read/write route cùng lúc.
+4. **Profile/Onboarding đã đạt:** `GET/PATCH /auth/me`, refresh/logout,
+   change-password và Profile Setup đã nối mobile; PostgreSQL migration đã apply.
 5. Khép kín learner loop:
    `Path → Lesson → Exercise → Mastery → Review → Dashboard` và xác minh MuMu.
-6. Chuẩn hóa data/content có thể tái tạo; hoàn tất speaking validation/retention,
-   rate limit, token lifecycle và secrets/config validation.
+6. Chuẩn hóa data/content có thể tái tạo; hoàn tất speaking validation/retention.
 7. Hoàn thiện Admin, CI/full-stack E2E, deployment và mobile release.
 
 ---

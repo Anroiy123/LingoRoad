@@ -35,19 +35,19 @@ AppLanguageProvider loadTestLanguageProvider() {
 
 class FlowAuthRepository implements AuthRepository {
   @override
-  Future<String> login({
+  Future<AuthTokens> login({
     required String email,
     required String password,
   }) async =>
-      'login-token';
+      const AuthTokens(accessToken: 'login-token', refreshToken: 'refresh');
 
   @override
-  Future<String> register({
+  Future<AuthTokens> register({
     required String email,
     required String password,
     String? name,
   }) async =>
-      'register-token';
+      const AuthTokens(accessToken: 'register-token', refreshToken: 'refresh');
 
   @override
   Future<UserProfile> getProfile() async => const UserProfile(
@@ -59,6 +59,15 @@ class FlowAuthRepository implements AuthRepository {
         level: 12,
         badgesCount: 6,
       );
+
+  @override
+  Future<UserProfile> updateProfile(Map<String, Object?> values) =>
+      getProfile();
+  @override
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword}) async {}
+  @override
+  Future<void> logout(String? refreshToken) async {}
 }
 
 class AuthFlowPlacementRepository implements PlacementRepository {
@@ -98,7 +107,6 @@ class AuthFlowPlacementRepository implements PlacementRepository {
   Future<PlacementResult> result(String sessionId) =>
       throw UnimplementedError('Không gọi trong auth flow test');
 }
-
 
 class TestAppFixture {
   TestAppFixture({

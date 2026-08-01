@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/login_screen.dart';
@@ -9,6 +10,7 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_resul
 import 'package:lingoroad_mobile/features/placement/presentation/placement_status_error_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
+import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
 
 GoRouter createAppRouter({
@@ -55,7 +57,8 @@ GoRouter createAppRouter({
               placementViewModel.currentItem == null) {
             return '/placement';
           }
-          if (location == '/placement/result' && placementViewModel.result == null) {
+          if (location == '/placement/result' &&
+              placementViewModel.result == null) {
             return '/placement';
           }
           return null;
@@ -95,10 +98,15 @@ GoRouter createAppRouter({
         builder: (context, state) => const MainShell(),
       ),
       GoRoute(
+        path: '/profile-setup',
+        builder: (context, state) => const Scaffold(
+          body: ProfileScreen(onboarding: true),
+        ),
+      ),
+      GoRoute(
         path: '/streak-details',
         builder: (context, state) => const StreakDetailsScreen(),
       ),
     ],
   );
 }
-

@@ -47,7 +47,7 @@ public static class SpeakingEndpoints
                 try { File.Delete(path); } catch { /* best effort */ }
                 return ApiResults.MlUnavailable();
             }
-        }).DisableAntiforgery();
+        }).DisableAntiforgery().RequireRateLimiting("ml-upload");
 
         g.MapGet("/attempts", async (System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
             await db.SpeakingAttempts.Where(a => a.UserId == user.UserId())
