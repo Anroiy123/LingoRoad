@@ -31,7 +31,7 @@ void main() {
           'password': 'password123',
         });
         return http.Response(
-          jsonEncode({'token': 'jwt-token'}),
+          jsonEncode({'token': 'jwt-token', 'refreshToken': 'refresh-token'}),
           200,
           headers: {'content-type': 'application/json'},
         );
@@ -43,7 +43,10 @@ void main() {
         email: 'user@example.com',
         password: 'password123',
       ),
-      'jwt-token',
+      isA<AuthTokens>()
+          .having((value) => value.accessToken, 'accessToken', 'jwt-token')
+          .having(
+              (value) => value.refreshToken, 'refreshToken', 'refresh-token'),
     );
   });
 
@@ -57,7 +60,7 @@ void main() {
           'name': null,
         });
         return http.Response(
-          jsonEncode({'token': 'new-token'}),
+          jsonEncode({'token': 'new-token', 'refreshToken': 'new-refresh'}),
           201,
           headers: {'content-type': 'application/json'},
         );
@@ -69,7 +72,9 @@ void main() {
         email: 'new@example.com',
         password: 'password123',
       ),
-      'new-token',
+      isA<AuthTokens>()
+          .having((value) => value.accessToken, 'accessToken', 'new-token')
+          .having((value) => value.refreshToken, 'refreshToken', 'new-refresh'),
     );
   });
 

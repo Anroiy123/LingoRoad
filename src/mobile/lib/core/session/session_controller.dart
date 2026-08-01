@@ -23,6 +23,7 @@ class SessionController extends ChangeNotifier {
   PlacementOnboardingStatus _placementStatus =
       PlacementOnboardingStatus.unknown;
   String? _token;
+  String? _refreshToken;
   PlacementStatusLoader? _placementStatusLoader;
   int _sessionEpoch = 0;
   int _placementLookupGeneration = 0;
@@ -31,6 +32,7 @@ class SessionController extends ChangeNotifier {
   SessionStatus get status => _status;
   PlacementOnboardingStatus get placementStatus => _placementStatus;
   String? get token => _token;
+  String? get refreshToken => _refreshToken;
 
   void configurePlacementStatusLoader(PlacementStatusLoader loader) {
     _placementStatusLoader = loader;
@@ -40,9 +42,15 @@ class SessionController extends ChangeNotifier {
     final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
     String? stored;
+    String? storedRefresh;
     try {
       final value = (await _enqueueStore(_store.readToken))?.trim();
       stored = value == null || value.isEmpty ? null : value;
+      if (_store case final RefreshSessionStore refreshStore) {
+        final value =
+            (await _enqueueStore(refreshStore.readRefreshToken))?.trim();
+        storedRefresh = value == null || value.isEmpty ? null : value;
+      }
     } catch (_) {
       stored = null;
     }
@@ -50,6 +58,7 @@ class SessionController extends ChangeNotifier {
       return;
     }
     _token = stored;
+    _refreshToken = storedRefresh;
     if (_token == null) {
       _setSession(
         status: SessionStatus.unauthenticated,
@@ -66,6 +75,7 @@ class SessionController extends ChangeNotifier {
 
   Future<void> authenticate(
     String token, {
+    String? refreshToken,
     bool checkPlacement = true,
   }) async {
     final normalized = token.trim();
@@ -75,10 +85,18 @@ class SessionController extends ChangeNotifier {
     final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
     await _enqueueStore(() => _store.writeToken(normalized));
+    if (refreshToken != null) {
+      if (_store case final RefreshSessionStore refreshStore) {
+        await _enqueueStore(() => refreshStore.writeRefreshToken(refreshToken));
+      }
+    }
     if (epoch != _sessionEpoch) {
       return;
     }
     _token = normalized;
+    if (refreshToken != null) {
+      _refreshToken = refreshToken;
+    }
     _setSession(
       status: SessionStatus.authenticated,
       placementStatus: checkPlacement
@@ -138,11 +156,42 @@ class SessionController extends ChangeNotifier {
     _sessionEpoch++;
     _placementLookupGeneration++;
     _token = null;
+    _refreshToken = null;
     _setSession(
       status: SessionStatus.unauthenticated,
       placementStatus: PlacementOnboardingStatus.unknown,
     );
     await _enqueueStore(_store.clearToken);
+    if (_store case final RefreshSessionStore refreshStore) {
+      await _enqueueStore(refreshStore.clearRefreshToken);
+    }
+  }
+
+  Future<bool> updateTokens(
+    String accessToken,
+    String refreshToken, {
+    required String expectedRefreshToken,
+  }) async {
+    final normalized = accessToken.trim();
+    if (normalized.isEmpty || refreshToken.trim().isEmpty) {
+      throw ArgumentError('Token không được để trống');
+    }
+    final epoch = _sessionEpoch;
+    if (_status != SessionStatus.authenticated ||
+        _refreshToken != expectedRefreshToken) {
+      return false;
+    }
+    await _enqueueStore(() => _store.writeToken(normalized));
+    if (_store case final RefreshSessionStore refreshStore) {
+      await _enqueueStore(() => refreshStore.writeRefreshToken(refreshToken));
+    }
+    if (epoch != _sessionEpoch || _refreshToken != expectedRefreshToken) {
+      return false;
+    }
+    _token = normalized;
+    _refreshToken = refreshToken;
+    notifyListeners();
+    return true;
   }
 
   Future<void> invalidate() => logout();

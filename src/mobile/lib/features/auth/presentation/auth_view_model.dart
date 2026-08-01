@@ -46,7 +46,7 @@ class AuthViewModel extends ChangeNotifier {
       );
 
   Future<bool> _submit(
-    Future<String> Function() request, {
+    Future<AuthTokens> Function() request, {
     required bool checkPlacement,
   }) async {
     if (_isSubmitting) {
@@ -56,9 +56,10 @@ class AuthViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      final token = await request();
+      final tokens = await request();
       await _sessionController.authenticate(
-        token,
+        tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         checkPlacement: checkPlacement,
       );
       return true;

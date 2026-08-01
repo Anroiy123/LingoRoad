@@ -38,7 +38,7 @@ public static class ExerciseEndpoints
                     options = JsonSerializer.Deserialize<string[]>(r.OptionsJson) }));
             }
             catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
-        });
+        }).RequireRateLimiting("ml-upload");
 
         g.MapPost("/{id:guid}/submit", async (Guid id, SubmitExerciseRequest req,
             System.Security.Claims.ClaimsPrincipal user, AppDbContext db,
@@ -64,6 +64,6 @@ public static class ExerciseEndpoints
             try { return Results.Ok(await ml.EvaluateWritingAsync(
                 new AweRequest(req.TaskPrompt, req.Essay))); }
             catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
-        }).RequireAuthorization();
+        }).RequireAuthorization().RequireRateLimiting("ml-upload");
     }
 }

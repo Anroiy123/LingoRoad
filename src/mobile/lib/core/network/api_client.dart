@@ -20,6 +20,7 @@ class ApiClient {
   final SessionController _session;
   final http.Client _httpClient;
   final Duration defaultTimeout;
+  Future<bool>? _refreshInFlight;
 
   Uri resolveUrl(String value) {
     final uri = Uri.tryParse(value.trim());
@@ -42,6 +43,7 @@ class ApiClient {
           headers: _headers(authenticated: authenticated),
         ),
         timeout: timeout,
+        allowRefresh: authenticated,
       );
 
   Future<Object?> postJson(
@@ -60,6 +62,23 @@ class ApiClient {
           body: jsonEncode(body),
         ),
         timeout: timeout,
+        allowRefresh: authenticated,
+      );
+
+  Future<Object?> patchJson(
+    String path, {
+    Object? body,
+    bool authenticated = true,
+    Duration? timeout,
+  }) =>
+      _send(
+        () => _httpClient.patch(
+          _config.resolve(path),
+          headers: _headers(authenticated: authenticated, hasJsonBody: true),
+          body: jsonEncode(body),
+        ),
+        timeout: timeout,
+        allowRefresh: authenticated,
       );
 
   Map<String, String> _headers({
@@ -80,10 +99,18 @@ class ApiClient {
   Future<Object?> _send(
     Future<http.Response> Function() request, {
     Duration? timeout,
+    bool allowRefresh = false,
   }) async {
     try {
-      final response = await request().timeout(timeout ?? defaultTimeout);
-      final body = _decode(response);
+      var response = await request().timeout(timeout ?? defaultTimeout);
+      var body = _decode(response);
+      if (response.statusCode == 401 &&
+          allowRefresh &&
+          _session.refreshToken != null &&
+          await _refreshTokens()) {
+        response = await request().timeout(timeout ?? defaultTimeout);
+        body = _decode(response);
+      }
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return body;
       }
@@ -92,9 +119,8 @@ class ApiClient {
         await _session.invalidate();
       }
 
-      final errorCode = body is Map<String, dynamic>
-          ? body['error']?.toString()
-          : null;
+      final errorCode =
+          body is Map<String, dynamic> ? body['error']?.toString() : null;
       throw ApiException(
         statusCode: response.statusCode,
         code: errorCode ?? 'http_${response.statusCode}',
@@ -120,6 +146,55 @@ class ApiClient {
         message: 'Không thể kết nối đến máy chủ',
         cause: error,
       );
+    }
+  }
+
+  Future<bool> _refreshTokens() {
+    final active = _refreshInFlight;
+    if (active != null) return active;
+    final future = _performRefresh();
+    _refreshInFlight = future;
+    future.whenComplete(() {
+      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+    });
+    return future;
+  }
+
+  Future<bool> _performRefresh() async {
+    final refreshToken = _session.refreshToken;
+    if (refreshToken == null) return false;
+    try {
+      final response = await _httpClient
+          .post(
+            _config.resolve('/auth/refresh'),
+            headers: _headers(authenticated: false, hasJsonBody: true),
+            body: jsonEncode({'refreshToken': refreshToken}),
+          )
+          .timeout(defaultTimeout);
+      final body = _decode(response);
+      if (response.statusCode < 200 ||
+          response.statusCode >= 300 ||
+          body is! Map<String, dynamic>) {
+        await _session.invalidate();
+        return false;
+      }
+      final access = body['accessToken']?.toString();
+      final refresh = body['refreshToken']?.toString();
+      if (access == null ||
+          access.isEmpty ||
+          refresh == null ||
+          refresh.isEmpty) {
+        await _session.invalidate();
+        return false;
+      }
+      return _session.updateTokens(
+        access,
+        refresh,
+        expectedRefreshToken: refreshToken,
+      );
+    } catch (_) {
+      await _session.invalidate();
+      return false;
     }
   }
 

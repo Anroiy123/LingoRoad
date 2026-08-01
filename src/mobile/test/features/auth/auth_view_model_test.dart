@@ -11,13 +11,13 @@ import 'package:lingoroad_mobile/features/auth/presentation/auth_view_model.dart
 class FakeAuthRepository implements AuthRepository {
   String token = 'token';
   Object? error;
-  Completer<String>? pending;
+  Completer<AuthTokens>? pending;
   String? receivedEmail;
   String? receivedName;
   int loginCalls = 0;
 
   @override
-  Future<String> login({
+  Future<AuthTokens> login({
     required String email,
     required String password,
   }) async {
@@ -26,11 +26,12 @@ class FakeAuthRepository implements AuthRepository {
     if (error != null) {
       throw error!;
     }
-    return pending?.future ?? token;
+    return pending?.future ??
+        AuthTokens(accessToken: token, refreshToken: 'refresh');
   }
 
   @override
-  Future<String> register({
+  Future<AuthTokens> register({
     required String email,
     required String password,
     String? name,
@@ -40,7 +41,7 @@ class FakeAuthRepository implements AuthRepository {
     if (error != null) {
       throw error!;
     }
-    return token;
+    return AuthTokens(accessToken: token, refreshToken: 'refresh');
   }
 
   @override
@@ -58,6 +59,17 @@ class FakeAuthRepository implements AuthRepository {
       badgesCount: 6,
     );
   }
+
+  @override
+  Future<UserProfile> updateProfile(Map<String, Object?> values) =>
+      getProfile();
+
+  @override
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword}) async {}
+
+  @override
+  Future<void> logout(String? refreshToken) async {}
 }
 
 void main() {
@@ -118,7 +130,7 @@ void main() {
   });
 
   test('chặn double submit', () async {
-    repository.pending = Completer<String>();
+    repository.pending = Completer<AuthTokens>();
 
     final first = viewModel.login(
       email: 'user@example.com',
@@ -131,12 +143,14 @@ void main() {
 
     expect(second, isFalse);
     expect(repository.loginCalls, 1);
-    repository.pending!.complete('token');
+    repository.pending!.complete(
+        const AuthTokens(accessToken: 'token', refreshToken: 'refresh'));
     expect(await first, isTrue);
   });
 
   test('validation email và mật khẩu', () {
-    expect(AuthViewModel.validateEmail('bad-email'), 'auth.validation.email_invalid');
+    expect(AuthViewModel.validateEmail('bad-email'),
+        'auth.validation.email_invalid');
     expect(AuthViewModel.validateEmail('a@b.com'), isNull);
     expect(
       AuthViewModel.validatePassword('short'),

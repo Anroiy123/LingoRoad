@@ -32,22 +32,21 @@ AppLanguageProvider loadTestLanguageProvider() {
   );
 }
 
-
 class PlacementFlowAuthRepository implements AuthRepository {
   @override
-  Future<String> login({
+  Future<AuthTokens> login({
     required String email,
     required String password,
   }) async =>
-      'token';
+      const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
 
   @override
-  Future<String> register({
+  Future<AuthTokens> register({
     required String email,
     required String password,
     String? name,
   }) async =>
-      'token';
+      const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
 
   @override
   Future<UserProfile> getProfile() async => const UserProfile(
@@ -59,6 +58,15 @@ class PlacementFlowAuthRepository implements AuthRepository {
         level: 12,
         badgesCount: 6,
       );
+
+  @override
+  Future<UserProfile> updateProfile(Map<String, Object?> values) =>
+      getProfile();
+  @override
+  Future<void> changePassword(
+      {required String currentPassword, required String newPassword}) async {}
+  @override
+  Future<void> logout(String? refreshToken) async {}
 }
 
 class FlowPlacementRepository implements PlacementRepository {
@@ -129,7 +137,6 @@ class FakePlacementAudioPlayer implements PlacementAudioPlayer {
   @override
   Future<void> dispose() async {}
 }
-
 
 class TestAppFixture {
   TestAppFixture({
@@ -212,6 +219,14 @@ void main() {
     await tester.ensureVisible(continueButton);
     await tester.tap(continueButton);
     await tester.pumpAndSettle();
+    expect(find.text('Mục tiêu học tập'), findsOneWidget);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('profile_setup_complete')), findsOneWidget);
+    final completeSetup = find.byKey(const Key('profile_setup_complete'));
+    await tester.ensureVisible(completeSetup);
+    await tester.tap(completeSetup);
+    await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
     fixture.dispose();
   });
@@ -245,7 +260,8 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider<PlacementViewModel>.value(value: listeningViewModel),
+          ChangeNotifierProvider<PlacementViewModel>.value(
+              value: listeningViewModel),
           ChangeNotifierProvider<AppLanguageProvider>.value(value: l10n),
         ],
         child: MaterialApp(

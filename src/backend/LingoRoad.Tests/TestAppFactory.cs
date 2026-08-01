@@ -24,6 +24,11 @@ public class TestAppFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _keeper.Open();
+        builder.UseSetting("RateLimits:Anonymous", "10000");
+        builder.UseSetting("RateLimits:Authenticated", "10000");
+        builder.UseSetting("RateLimits:AuthWrite", "10000");
+        builder.UseSetting("RateLimits:Refresh", "10000");
+        builder.UseSetting("RateLimits:MlUpload", "10000");
         builder.ConfigureServices(services =>
         {
             foreach (var d in services.Where(d =>

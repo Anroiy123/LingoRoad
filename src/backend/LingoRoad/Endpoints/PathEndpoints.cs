@@ -42,6 +42,6 @@ public static class PathEndpoints
                 return Results.Ok(new { answer = res.Answer });
             }
             catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
-        });
+        }).RequireRateLimiting("ml-upload");
     }
 }

@@ -6,15 +6,31 @@ abstract interface class SessionStore {
   Future<void> clearToken();
 }
 
-class MemorySessionStore implements SessionStore {
-  MemorySessionStore([this._token]);
+abstract interface class RefreshSessionStore {
+  Future<String?> readRefreshToken();
+  Future<void> writeRefreshToken(String token);
+  Future<void> clearRefreshToken();
+}
+
+class MemorySessionStore implements SessionStore, RefreshSessionStore {
+  MemorySessionStore([this._token, this._refreshToken]);
 
   String? _token;
+  String? _refreshToken;
 
   @override
   Future<void> clearToken() async {
     _token = null;
   }
+
+  @override
+  Future<void> clearRefreshToken() async => _refreshToken = null;
+
+  @override
+  Future<String?> readRefreshToken() async => _refreshToken;
+
+  @override
+  Future<void> writeRefreshToken(String token) async => _refreshToken = token;
 
   @override
   Future<String?> readToken() async => _token;

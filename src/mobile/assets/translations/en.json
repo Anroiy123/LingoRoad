@@ -239,6 +239,14 @@
   "profile": {
     "status": "Level {} · {} · {} badges",
     "error_load_failed": "Unable to load profile",
+    "save_failed": "Unable to save changes. Please try again.",
+    "save": "Save",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "password_failed": "Unable to change password.",
+    "complete_setup": "Complete setup",
+    "not_set": "Not set",
+    "skills_selected": "{} skills selected",
     "groups": {
       "goals": "Learning Goals",
       "schedule": "Study Schedule",
@@ -250,6 +258,8 @@
       "daily_goal_val": "30 minutes / day",
       "target_level": "Target level",
       "target_level_val": "B2 - Upper Intermediate",
+      "learning_purpose": "Learning purpose",
+      "focus_skills": "Focus skills",
       "study_reminder": "Study reminder",
       "reminder_time": "Reminder time settings",
       "email_notif": "Email Notifications",
@@ -259,7 +269,7 @@
     },
     "logout_dialog": {
       "title": "Log Out",
-      "content": "This is a simulated action in the UI version.",
+      "content": "Are you sure you want to log out?",
       "cancel": "Cancel",
       "confirm": "Confirm"
     }
