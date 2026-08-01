@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Response> Responses => Set<Response>();
     public DbSet<Mastery> Masteries => Set<Mastery>();
     public DbSet<ReviewCard> ReviewCards => Set<ReviewCard>();
+    public DbSet<ReviewGradeOperation> ReviewGradeOperations => Set<ReviewGradeOperation>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<SpeakingAttempt> SpeakingAttempts => Set<SpeakingAttempt>();
 
@@ -34,5 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .OnDelete(DeleteBehavior.Restrict);
         mb.Entity<Mastery>().HasKey(m => new { m.UserId, m.SkillId });
         mb.Entity<ReviewCard>().HasIndex(c => new { c.UserId, c.Due });
+        mb.Entity<ReviewCard>().Property(c => c.Reps).IsConcurrencyToken();
+        mb.Entity<ReviewGradeOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
     }
 }

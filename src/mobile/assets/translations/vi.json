@@ -184,10 +184,13 @@
       "easy": "Dễ"
     },
     "hint": "Hãy nhớ nghĩa của từ trước khi lật thẻ",
+    "empty": {"title": "Chưa có thẻ cần ôn", "message": "Khi bạn hoàn thành bài học, thẻ ôn tập đến hạn sẽ xuất hiện ở đây."},
+    "error": {"title": "Không thể tải thẻ ôn", "message": "Hãy kiểm tra kết nối và thử lại."},
+    "grade_error": "Không thể ghi nhận đánh giá. Hãy thử lại.",
     "complete": {
       "title": "Đã ôn tập xong!",
       "subtitle": "Bạn đã hoàn thành tất cả thẻ hôm nay.",
-      "restart": "Ôn lại từ đầu"
+      "restart": "Tải lại"
     }
   },
   "progress": {
@@ -210,6 +213,10 @@
       "strengths": "Điểm mạnh",
       "improvements": "Cần cải thiện"
     },
+    "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
+    "summary_unavailable": "Các chỉ số tổng hợp như XP, chuỗi ngày, CEFR và huy hiệu hiện chưa có API.",
+    "achievements_unavailable": "Thành tích hiện chưa có API.",
+    "suggestion": {"start": "Hãy bắt đầu một hoạt động để cập nhật tiến độ.", "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."},
     "skills_analysis": {
       "title": "Phân tích kỹ năng",
       "suggestion": "Tập trung vào Phát âm và Nói để cải thiện toàn diện."

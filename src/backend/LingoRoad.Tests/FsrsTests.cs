@@ -79,7 +79,7 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
     private readonly HttpClient _client;
     public ReviewEndpointTests(TestAppFactory f) => _client = f.CreateClient();
 
-    private record CardDto(Guid Id, string Front, string Back, DateTime Due, string State);
+    private record CardDto(Guid Id, string Front, string Back, DateTime Due, string State, int Reps);
 
     [Fact]
     public async Task Create_grade_and_requeue_flow()
@@ -97,10 +97,45 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
         var due = await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due");
         var card = Assert.Single(due!);
 
-        var graded = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade", new { rating = 3 });
+        var operationId = Guid.NewGuid();
+        var gradeRequest = new { rating = 3, operationId, expectedReps = card.Reps };
+        var graded = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade", gradeRequest);
         graded.EnsureSuccessStatusCode();
+
+        var replay = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade", gradeRequest);
+        replay.EnsureSuccessStatusCode(); // same operation is a stored response, not a second FSRS transition
+        var conflict = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade",
+            new { rating = 2, operationId, expectedReps = card.Reps });
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, conflict.StatusCode);
+        var stale = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade",
+            new { rating = 3, operationId = Guid.NewGuid(), expectedReps = card.Reps });
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, stale.StatusCode);
 
         var dueAfter = await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due");
         Assert.Empty(dueAfter!);   // Good pushes it days into the future
     }
+
+    [Fact]
+    public async Task Grade_rejects_a_card_that_is_not_due()
+    {
+        var reg = await _client.PostAsJsonAsync("/auth/register",
+            new { email = $"{Guid.NewGuid():N}@t.com", password = "secret123", name = "R" });
+        var token = (await reg.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["token"];
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var created = await _client.PostAsJsonAsync("/reviews/cards",
+            new { skillCode = "vocabulary.everyday", front = "hello", back = "xin chào" });
+        created.EnsureSuccessStatusCode();
+        var card = Assert.Single((await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due"))!);
+        var first = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade",
+            new { rating = 3, operationId = Guid.NewGuid(), expectedReps = card.Reps });
+        first.EnsureSuccessStatusCode();
+
+        var early = await _client.PostAsJsonAsync($"/reviews/{card.Id}/grade",
+            new { rating = 3, operationId = Guid.NewGuid(), expectedReps = card.Reps + 1 });
+        Assert.Equal(System.Net.HttpStatusCode.Conflict, early.StatusCode);
+        Assert.Equal("review_not_due", (await early.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["error"]);
+    }
+
 }

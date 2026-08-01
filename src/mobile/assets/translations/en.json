@@ -184,10 +184,13 @@
       "easy": "Easy"
     },
     "hint": "Remember the meaning before flipping",
+    "empty": {"title": "No cards due", "message": "Due review cards will appear here after you complete learning activities."},
+    "error": {"title": "Could not load review cards", "message": "Check your connection and try again."},
+    "grade_error": "Could not save this grade. Please try again.",
     "complete": {
       "title": "Review Completed!",
       "subtitle": "You have completed all cards for today.",
-      "restart": "Review from start"
+      "restart": "Refresh"
     }
   },
   "progress": {
@@ -210,6 +213,10 @@
       "strengths": "Strengths",
       "improvements": "Needs Improvement"
     },
+    "empty": "The skill catalog is currently empty.",
+    "summary_unavailable": "Summary metrics such as XP, streaks, CEFR, and badges do not have APIs yet.",
+    "achievements_unavailable": "Achievements do not have an API yet.",
+    "suggestion": {"start": "Start an activity to see your progress.", "weakest": "Prioritize more practice in: {}."},
     "skills_analysis": {
       "title": "Skills Analysis",
       "suggestion": "Focus on Pronunciation and Speaking for comprehensive improvement."

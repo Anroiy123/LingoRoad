@@ -24,8 +24,8 @@ class _MainShellState extends State<MainShell> {
     final screens = [
       const HomeScreen(),
       LearningPathScreen(active: _index == 1),
-      const ReviewScreen(),
-      const ProgressScreen(),
+      ReviewScreen(active: _index == 2),
+      ProgressScreen(active: _index == 3),
       const ProfileScreen(),
     ];
     return Scaffold(

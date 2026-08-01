@@ -71,7 +71,19 @@ code and reframe it against backend capability.
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
 | Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §6 item 3 (resolved). |
 
-### 3.2 Tab screens still on `MockRepository` (`lib/data/mock_repository.dart`)
+### 3.2 Review and Progress integration update (2026-08-01)
+
+Review now consumes authenticated `GET /reviews/due` and posts explicit ratings to
+`POST /reviews/{cardId}/grade`. The grade request carries an operation UUID and
+expected repetition count, so manual retry after an uncertain outcome is
+idempotent. `POST /reviews/cards` remains a future Lesson/Exercise producer API,
+therefore an empty Review state is valid.
+
+Progress now joins public `GET /skills` with authenticated `GET /mastery` and
+shows aggregated leaf-skill categories. XP, streaks, CEFR, achievements and
+dashboard summaries remain unavailable because no backing API exists.
+
+### 3.3 Historical mock gap snapshot
 
 | Screen | Mock data shape | Closest backend endpoint | Status | Recommendation |
 |---|---|---|---|---|

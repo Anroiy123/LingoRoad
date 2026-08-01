@@ -14,6 +14,10 @@ import 'package:lingoroad_mobile/features/learning_path/data/learning_path_repos
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
+import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
+import 'package:lingoroad_mobile/features/progress/presentation/progress_view_model.dart';
+import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
+import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +37,8 @@ void main() async {
   final placementViewModel = PlacementViewModel(placementRepository);
   final learningPathRepository = ApiLearningPathRepository(apiClient);
   final learningPathViewModel = LearningPathViewModel(learningPathRepository);
+  final reviewRepository = ApiReviewRepository(apiClient);
+  final progressRepository = ApiProgressRepository(apiClient);
 
   final viJson = await rootBundle.loadString('assets/translations/vi.json');
   final enJson = await rootBundle.loadString('assets/translations/en.json');
@@ -63,6 +69,8 @@ void main() async {
       placementViewModel: placementViewModel,
       learningPathRepository: learningPathRepository,
       learningPathViewModel: learningPathViewModel,
+      reviewRepository: reviewRepository,
+      progressRepository: progressRepository,
       languageProvider: languageProvider,
     ),
   );
@@ -79,6 +87,8 @@ class LingoRoadApp extends StatelessWidget {
     this.placementViewModel,
     this.learningPathRepository,
     this.learningPathViewModel,
+    this.reviewRepository,
+    this.progressRepository,
     super.key,
   });
 
@@ -89,6 +99,8 @@ class LingoRoadApp extends StatelessWidget {
   final PlacementViewModel? placementViewModel;
   final LearningPathRepository? learningPathRepository;
   final LearningPathViewModel? learningPathViewModel;
+  final ReviewRepository? reviewRepository;
+  final ProgressRepository? progressRepository;
   final AppLanguageProvider languageProvider;
 
   @override
@@ -159,6 +171,28 @@ class LingoRoadApp extends StatelessWidget {
               context.read<LearningPathRepository>(),
             ),
           ),
+        if (reviewRepository != null)
+          Provider<ReviewRepository>.value(value: reviewRepository!)
+        else
+          Provider<ReviewRepository>(
+              create: (context) => ApiReviewRepository(ApiClient(
+                  config: AppConfig(),
+                  session: context.read<SessionController>()))),
+        ChangeNotifierProvider<ReviewViewModel>(
+          create: (context) =>
+              ReviewViewModel(context.read<ReviewRepository>()),
+        ),
+        if (progressRepository != null)
+          Provider<ProgressRepository>.value(value: progressRepository!)
+        else
+          Provider<ProgressRepository>(
+              create: (context) => ApiProgressRepository(ApiClient(
+                  config: AppConfig(),
+                  session: context.read<SessionController>()))),
+        ChangeNotifierProvider<ProgressViewModel>(
+          create: (context) =>
+              ProgressViewModel(context.read<ProgressRepository>()),
+        ),
       ],
       child: Builder(
         builder: (context) {

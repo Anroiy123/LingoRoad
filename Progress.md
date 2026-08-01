@@ -1,5 +1,10 @@
 # Tổng quan tiến độ
 
+> Cập nhật tích hợp 2026-08-01: Review dùng `GET /reviews/due` và grade
+> idempotent; Progress dùng `/skills` + `/mastery` để tổng hợp nhóm kỹ năng.
+> Review vẫn chưa có producer thẻ từ Lesson/Exercise; Home, XP, streak, quest,
+> CEFR, huy hiệu và dashboard aggregate chưa có API. Lịch sử bên dưới giữ nguyên.
+
 > Cập nhật lần cuối: **2026-08-01**
 > Phạm vi: toàn bộ LingoRoad gồm backend .NET, ML service, Flutter mobile,
 > PostgreSQL, dữ liệu nội dung, Admin Web, kiểm thử và phát hành.
@@ -10,10 +15,11 @@
   nghiên cứu backend/AI, không phải trạng thái hoàn thành của toàn bộ MVP.
 - Luồng sản phẩm thật hiện chạy được:
   `Register/Login → Placement → MainShell → Logout/Login`; trong `MainShell`,
-  Learning Path đã gọi `GET /path` và Profile đã đọc `GET /auth/me`.
-- Home, Review và Progress vẫn dùng dữ liệu mock/tĩnh. Review đã có bốn nút
-  Forgot/Hard/Good/Easy nhưng chưa gọi `/reviews/*`; Profile đã hiện dữ liệu đọc
-  thật nhưng các thay đổi mục tiêu, preferences/toggles và mật khẩu chưa có API.
+  Learning Path gọi `GET /path`, Profile đọc `GET /auth/me`, Review dùng
+  `/reviews/*`, và Progress tổng hợp `/skills` + `/mastery`.
+- Home vẫn dùng dữ liệu mock/tĩnh. Review không tự tạo thẻ vì chưa có Lesson/
+  Exercise producer; Profile đã hiện dữ liệu đọc thật nhưng các thay đổi mục tiêu,
+  preferences/toggles và mật khẩu chưa có API.
   Các màn hình đã bổ sung trên Figma mới là design coverage, chưa được tính là
   Flutter implementation.
 - Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency và chuẩn
@@ -32,9 +38,9 @@
   nguyên.
 - .NET hiện có **23 route/10 feature group**: 22 lệnh `Map*` trong `Endpoints`
   cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **62/62 test**.
-- .NET test chưa được chạy lại trong lượt đồng bộ tài liệu này; mốc **42/42**
-  bên dưới phụ lục chỉ là bằng chứng lịch sử của lần xác minh trước.
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **70/70 test**.
+- .NET Release test đạt **50/50**; các mốc thấp hơn trong phụ lục chỉ là bằng
+  chứng lịch sử của lần xác minh trước.
 - ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
   thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.
   Con số 47 test đạt trong tài liệu cũ chỉ được coi là bằng chứng lịch sử.
@@ -57,9 +63,9 @@
 | Learning Path | API thật trên mobile | `ApiLearningPathRepository` đã gọi `GET /path` với loading/empty/error/retry; thiếu path persistence, today plan, lesson mapping, complete/recalculate và smoke test MuMu mới |
 | Lesson | Missing | Chưa có entity/table/API, lesson detail, lesson player và completion flow |
 | Exercise/AI feedback | Backend primitives | Chưa nối với lesson/path; thiếu mobile exercise/result/explanation và transaction idempotent |
-| Mastery/KT | Partial | Read path chưa áp dụng passive decay; SAINT+ `/kt/predict` chưa được .NET production flow sử dụng |
-| SRS Review | Backend API + mobile mock-backed UI | Đã có Forgot/Hard/Good/Easy nhưng vẫn tải card từ `MockRepository`; chưa tự tạo card, gọi due/grade, xử lý API state hoặc chặn double-submit; snapshot database có 0 card |
-| Dashboard/Progress | Mobile hard-code | Profile read đã thật; Home/Progress vẫn thiếu aggregate API cho CEFR, mastery, weak/strong skill, due count và completed lessons |
+| Mastery/KT | Partial, read API thật | Progress tổng hợp snapshot `/mastery` với catalog `/skills`; chưa áp dụng passive decay và SAINT+ `/kt/predict` chưa được .NET production flow sử dụng |
+| SRS Review | API thật trên mobile | Dùng `/reviews/due` và grade idempotent với loading/empty/error/complete/double-submit guard; chưa có producer tạo `ReviewCard`, snapshot database cũ có 0 card |
+| Dashboard/Progress | Partial, skill progress API thật | Progress hiển thị mastery/weak-strong skill từ API; Home và dashboard aggregate vẫn thiếu CEFR, due count, completed lessons, XP/streak/badge/quest |
 | Advisor/Writing/Speaking | Backend/ML-only | Chưa có learner UI; thiếu quota, privacy, fallback và quyết định có thuộc MVP hay không |
 | Gamification | Lý thuyết/UI tĩnh | Chưa có XP/streak/badge/quest ledger, rule, API hoặc test idempotency |
 | Admin CMS/analytics | Missing | Chưa có Admin Web, role model, admin auth, CRUD nội dung và analytics |
@@ -110,11 +116,9 @@
   - Tạo lesson detail/player, exercise submit/result/explanation.
   - Cập nhật mastery đúng một lần và quay lại path/progress sau hoàn thành.
 - [ ] **P0-07 — SRS Review end-to-end.**
-  - [x] Flutter đã có bốn grade control Forgot/Hard/Good/Easy.
+  - [x] Flutter dùng `/reviews/due`, gửi grade 1–4 idempotent và có
+    loading/empty/error/complete state cùng double-submit guard/test lịch ôn.
   - [ ] Tự tạo `ReviewCard` từ nội dung đã học hoặc trả lời sai.
-  - [ ] Thay card mock bằng `/reviews/due` và gửi grade 1–4 qua API.
-  - [ ] Có loading/empty/error/complete state, double-submit guard và test lịch
-    ôn.
 - [ ] **P0-08 — Home/Dashboard/Progress/Profile dùng dữ liệu thật.**
   - [x] Profile read đã dùng `GET /auth/me` cho name, level/CEFR hiện tại và
     badge/profile stats; email chỉ là fallback cho display name.
@@ -122,7 +126,8 @@
   - [ ] Tạo aggregate API cho CEFR, mastery, weak/strong skills, due count,
     completed lessons và next lesson.
   - [ ] Áp dụng mastery decay nhất quán khi đọc path/dashboard.
-  - [ ] Thay dữ liệu mock/hard-code còn lại ở Home/Progress và các mục profile
+  - [x] Progress thay mastery/weak-strong skill mock bằng `/skills` + `/mastery`.
+  - [ ] Thay dữ liệu mock/hard-code còn lại ở Home và các mục profile
     chưa có update API.
 - [ ] **P0-09 — Admin tối thiểu.**
   - Thêm role/authorization, Admin Web, CRUD skill/lesson/question, import có
@@ -179,14 +184,15 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** `main@f6da732` đã đồng bộ `origin/main`,
-   Flutter analyze sạch và test đạt 62/62; tiếp tục duy trì gate sau mỗi lát
+1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 70/70;
+   tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.
 2. Đồng bộ tài liệu hiện hành, sau đó xử lý Git bằng commit/PR riêng với danh
    sách file được kiểm tra rõ ràng.
-3. Nối Review và Progress với `/reviews/*`, `/mastery`; thêm API states,
-   double-submit guard và test.
+3. **Review/Progress integration đã đạt:** dùng `/reviews/*`, `/skills` và
+   `/mastery`, có API states, double-submit guard và test. Còn producer ReviewCard
+   và dashboard aggregate theo P0-07/P0-08.
 4. Hoàn thiện Profile/Onboarding update API và Flutter flow; giữ `GET /auth/me`
    làm read path hiện có hoặc chuẩn hóa read/write route cùng lúc.
 5. Khép kín learner loop:
