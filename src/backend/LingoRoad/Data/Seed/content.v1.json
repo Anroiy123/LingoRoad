@@ -1,0 +1,208 @@
+{
+  "version": "2026.08.01-v1",
+  "source": "Original exercises authored for the LingoRoad MVP",
+  "license": "Proprietary - LingoRoad educational use",
+  "reviewer": "LingoRoad content review 2026-08-01",
+  "lessons": [
+    {
+      "id": "lesson-a1-present-simple", "slug": "a1-present-simple", "title": "Present Simple Basics", "titleVi": "Hiện tại đơn cơ bản", "skillCode": "grammar.tenses.present_simple", "cefr": "A1", "order": 1,
+      "items": [
+        {"id":"item-a1-ps-01","type":"mcq","stem":"Lan ___ English every day.","options":["study","studies","studying","studied"],"correctAnswer":"studies","explanationVi":"Chủ ngữ ngôi thứ ba số ít dùng động từ thêm -s."},
+        {"id":"item-a1-ps-02","type":"cloze","stem":"I ___ coffee in the morning. (drink)","options":[],"correctAnswer":"drink","explanationVi":"Với I, dùng động từ nguyên mẫu ở hiện tại đơn."},
+        {"id":"item-a1-ps-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["usually","walk","I","to school"],"correctAnswer":"I usually walk to school","explanationVi":"Trạng từ tần suất đứng trước động từ thường."},
+        {"id":"item-a1-ps-04","type":"mcq","stem":"My parents ___ in Da Nang.","options":["lives","live","living","is live"],"correctAnswer":"live","explanationVi":"Chủ ngữ số nhiều dùng động từ nguyên mẫu."},
+        {"id":"item-a1-ps-05","type":"cloze","stem":"The shop ___ at nine. (open)","options":[],"correctAnswer":"opens","explanationVi":"The shop là ngôi thứ ba số ít."}
+      ]
+    },
+    {
+      "id": "lesson-a1-articles", "slug": "a1-articles", "title": "A, An and The", "titleVi": "Mạo từ a, an và the", "skillCode": "grammar.articles", "cefr": "A1", "order": 2,
+      "items": [
+        {"id":"item-a1-ar-01","type":"mcq","stem":"She is ___ engineer.","options":["a","an","the","no article"],"correctAnswer":"an","explanationVi":"Engineer bắt đầu bằng nguyên âm khi phát âm."},
+        {"id":"item-a1-ar-02","type":"cloze","stem":"I saw ___ dog in the park.","options":[],"correctAnswer":"a","explanationVi":"Dùng a khi nhắc lần đầu một danh từ số ít."},
+        {"id":"item-a1-ar-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["sun","the","is","hot"],"correctAnswer":"The sun is hot","explanationVi":"Dùng the với sự vật duy nhất như mặt trời."},
+        {"id":"item-a1-ar-04","type":"mcq","stem":"Please close ___ door.","options":["a","an","the","some"],"correctAnswer":"the","explanationVi":"Người nói và người nghe đều biết cánh cửa nào."},
+        {"id":"item-a1-ar-05","type":"cloze","stem":"He ate ___ apple after lunch.","options":[],"correctAnswer":"an","explanationVi":"Apple bắt đầu bằng âm nguyên âm."}
+      ]
+    },
+    {
+      "id": "lesson-a1-yes-no-questions", "slug": "a1-yes-no-questions", "title": "Yes or No Questions", "titleVi": "Câu hỏi Yes/No", "skillCode": "grammar.questions.yes_no", "cefr": "A1", "order": 3,
+      "items": [
+        {"id":"item-a1-yn-01","type":"mcq","stem":"___ you like music?","options":["Do","Does","Are","Is"],"correctAnswer":"Do","explanationVi":"Dùng Do với you ở hiện tại đơn."},
+        {"id":"item-a1-yn-02","type":"cloze","stem":"___ she work here?","options":[],"correctAnswer":"Does","explanationVi":"Dùng Does với she."},
+        {"id":"item-a1-yn-03","type":"reorder","stem":"Sắp xếp thành câu hỏi đúng.","options":["they","Are","ready"],"correctAnswer":"Are they ready","explanationVi":"Đưa động từ to be lên trước chủ ngữ."},
+        {"id":"item-a1-yn-04","type":"mcq","stem":"Is Minh at home? — Yes, ___.","options":["he is","he does","is he","does he"],"correctAnswer":"he is","explanationVi":"Câu trả lời ngắn lặp lại động từ to be."},
+        {"id":"item-a1-yn-05","type":"cloze","stem":"___ your friends play football?","options":[],"correctAnswer":"Do","explanationVi":"Friends là chủ ngữ số nhiều."}
+      ]
+    },
+    {
+      "id": "lesson-a1-some-any", "slug": "a1-some-any", "title": "Some and Any", "titleVi": "Cách dùng some và any", "skillCode": "grammar.quantifiers.some_any", "cefr": "A1", "order": 4,
+      "items": [
+        {"id":"item-a1-sa-01","type":"mcq","stem":"There are ___ bananas on the table.","options":["some","any","much","a"],"correctAnswer":"some","explanationVi":"Some thường dùng trong câu khẳng định."},
+        {"id":"item-a1-sa-02","type":"cloze","stem":"We do not have ___ milk.","options":[],"correctAnswer":"any","explanationVi":"Any thường dùng trong câu phủ định."},
+        {"id":"item-a1-sa-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["some","would like","I","water"],"correctAnswer":"I would like some water","explanationVi":"Some dùng trong lời đề nghị hoặc yêu cầu lịch sự."},
+        {"id":"item-a1-sa-04","type":"mcq","stem":"Are there ___ questions?","options":["any","some","a","much"],"correctAnswer":"any","explanationVi":"Any thường dùng trong câu hỏi chung."},
+        {"id":"item-a1-sa-05","type":"cloze","stem":"Could I have ___ bread, please?","options":[],"correctAnswer":"some","explanationVi":"Some phù hợp với lời yêu cầu lịch sự."}
+      ]
+    },
+    {
+      "id": "lesson-a1-family", "slug": "a1-family", "title": "Talking about Family", "titleVi": "Nói về gia đình", "skillCode": "vocabulary.family", "cefr": "A1", "order": 5,
+      "items": [
+        {"id":"item-a1-fa-01","type":"mcq","stem":"Your mother's brother is your ___.","options":["uncle","cousin","nephew","grandfather"],"correctAnswer":"uncle","explanationVi":"Uncle nghĩa là chú, bác hoặc cậu."},
+        {"id":"item-a1-fa-02","type":"cloze","stem":"My father's mother is my ___.","options":[],"correctAnswer":"grandmother","explanationVi":"Grandmother nghĩa là bà."},
+        {"id":"item-a1-fa-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["two","I","sisters","have"],"correctAnswer":"I have two sisters","explanationVi":"Cấu trúc have + số lượng + danh từ số nhiều."},
+        {"id":"item-a1-fa-04","type":"mcq","stem":"A son and a daughter are ___.","options":["children","parents","couples","adults"],"correctAnswer":"children","explanationVi":"Children là dạng số nhiều của child."},
+        {"id":"item-a1-fa-05","type":"cloze","stem":"My aunt's daughter is my ___.","options":[],"correctAnswer":"cousin","explanationVi":"Con của cô hoặc dì là cousin."}
+      ]
+    },
+    {
+      "id": "lesson-a2-past-simple", "slug": "a2-past-simple", "title": "Past Simple Events", "titleVi": "Sự kiện ở quá khứ đơn", "skillCode": "grammar.tenses.past_simple", "cefr": "A2", "order": 6,
+      "items": [
+        {"id":"item-a2-pa-01","type":"mcq","stem":"We ___ Hue last summer.","options":["visit","visited","visits","are visiting"],"correctAnswer":"visited","explanationVi":"Last summer là dấu hiệu của quá khứ đơn."},
+        {"id":"item-a2-pa-02","type":"cloze","stem":"She ___ a new bag yesterday. (buy)","options":[],"correctAnswer":"bought","explanationVi":"Quá khứ bất quy tắc của buy là bought."},
+        {"id":"item-a2-pa-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["did not","the bus","miss","I"],"correctAnswer":"I did not miss the bus","explanationVi":"Sau did not dùng động từ nguyên mẫu."},
+        {"id":"item-a2-pa-04","type":"mcq","stem":"___ they arrive on time?","options":["Did","Do","Were","Have"],"correctAnswer":"Did","explanationVi":"Câu hỏi quá khứ đơn dùng Did."},
+        {"id":"item-a2-pa-05","type":"cloze","stem":"He ___ tired after the trip. (be)","options":[],"correctAnswer":"was","explanationVi":"He đi với was ở quá khứ."}
+      ]
+    },
+    {
+      "id": "lesson-a2-future-forms", "slug": "a2-future-forms", "title": "Plans and Predictions", "titleVi": "Kế hoạch và dự đoán", "skillCode": "grammar.tenses.future_forms", "cefr": "A2", "order": 7,
+      "items": [
+        {"id":"item-a2-fu-01","type":"mcq","stem":"Look at those clouds. It ___ rain.","options":["is going to","will be","goes to","was going to"],"correctAnswer":"is going to","explanationVi":"Dùng be going to khi có dấu hiệu hiện tại."},
+        {"id":"item-a2-fu-02","type":"cloze","stem":"I think people ___ live longer. (will)","options":[],"correctAnswer":"will","explanationVi":"Will dùng cho dự đoán mang tính ý kiến."},
+        {"id":"item-a2-fu-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["meeting","are","tomorrow","We"],"correctAnswer":"We are meeting tomorrow","explanationVi":"Hiện tại tiếp diễn có thể diễn tả kế hoạch đã sắp xếp."},
+        {"id":"item-a2-fu-04","type":"mcq","stem":"The phone is ringing. I ___ answer it.","options":["will","am going","do","am"],"correctAnswer":"will","explanationVi":"Will dùng cho quyết định ngay lúc nói."},
+        {"id":"item-a2-fu-05","type":"cloze","stem":"They are going to ___ a house. (buy)","options":[],"correctAnswer":"buy","explanationVi":"Sau going to dùng động từ nguyên mẫu."}
+      ]
+    },
+    {
+      "id": "lesson-a2-prepositions", "slug": "a2-prepositions", "title": "Time and Place Prepositions", "titleVi": "Giới từ thời gian và nơi chốn", "skillCode": "grammar.prepositions", "cefr": "A2", "order": 8,
+      "items": [
+        {"id":"item-a2-pr-01","type":"mcq","stem":"The class starts ___ 8 a.m.","options":["at","on","in","by"],"correctAnswer":"at","explanationVi":"At dùng với thời điểm cụ thể."},
+        {"id":"item-a2-pr-02","type":"cloze","stem":"My birthday is ___ May.","options":[],"correctAnswer":"in","explanationVi":"In dùng với tháng."},
+        {"id":"item-a2-pr-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["on","is","the desk","The book"],"correctAnswer":"The book is on the desk","explanationVi":"On diễn tả vị trí trên bề mặt."},
+        {"id":"item-a2-pr-04","type":"mcq","stem":"We have a test ___ Monday.","options":["on","at","in","from"],"correctAnswer":"on","explanationVi":"On dùng với ngày trong tuần."},
+        {"id":"item-a2-pr-05","type":"cloze","stem":"The bank is ___ the post office and the cafe.","options":[],"correctAnswer":"between","explanationVi":"Between diễn tả vị trí ở giữa hai nơi."}
+      ]
+    },
+    {
+      "id": "lesson-a2-comparatives", "slug": "a2-comparatives", "title": "Comparing Things", "titleVi": "So sánh sự vật", "skillCode": "grammar.comparatives_superlatives.comparative_adjectives", "cefr": "A2", "order": 9,
+      "items": [
+        {"id":"item-a2-co-01","type":"mcq","stem":"A train is ___ than a bicycle.","options":["faster","fastest","more fast","fast"],"correctAnswer":"faster","explanationVi":"Tính từ ngắn thêm -er trong so sánh hơn."},
+        {"id":"item-a2-co-02","type":"cloze","stem":"This exercise is ___ than the last one. (easy)","options":[],"correctAnswer":"easier","explanationVi":"Easy đổi y thành i rồi thêm -er."},
+        {"id":"item-a2-co-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["than","My room","yours","is smaller"],"correctAnswer":"My room is smaller than yours","explanationVi":"Cấu trúc comparative + than."},
+        {"id":"item-a2-co-04","type":"mcq","stem":"This book is ___ than that one.","options":["more interesting","interestinger","most interesting","interesting"],"correctAnswer":"more interesting","explanationVi":"Tính từ dài dùng more."},
+        {"id":"item-a2-co-05","type":"cloze","stem":"Today is ___ than yesterday. (hot)","options":[],"correctAnswer":"hotter","explanationVi":"Hot gấp đôi phụ âm cuối trước -er."}
+      ]
+    },
+    {
+      "id": "lesson-a2-travel", "slug": "a2-travel", "title": "Travel Essentials", "titleVi": "Từ vựng du lịch thiết yếu", "skillCode": "vocabulary.travel", "cefr": "A2", "order": 10,
+      "items": [
+        {"id":"item-a2-tr-01","type":"mcq","stem":"You show your ___ before boarding an international flight.","options":["passport","receipt","menu","ticket office"],"correctAnswer":"passport","explanationVi":"Passport là hộ chiếu."},
+        {"id":"item-a2-tr-02","type":"cloze","stem":"We booked a double ___ at the hotel.","options":[],"correctAnswer":"room","explanationVi":"A double room là phòng đôi."},
+        {"id":"item-a2-tr-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["leaves","The train","six","at"],"correctAnswer":"The train leaves at six","explanationVi":"Leave dùng cho lịch trình phương tiện."},
+        {"id":"item-a2-tr-04","type":"mcq","stem":"The place where you collect suitcases is ___.","options":["baggage claim","check-in desk","platform","customs form"],"correctAnswer":"baggage claim","explanationVi":"Baggage claim là khu nhận hành lý."},
+        {"id":"item-a2-tr-05","type":"cloze","stem":"Our flight was ___ for two hours.","options":[],"correctAnswer":"delayed","explanationVi":"Delayed nghĩa là bị hoãn."}
+      ]
+    },
+    {
+      "id": "lesson-b1-present-perfect", "slug": "b1-present-perfect", "title": "Life Experience", "titleVi": "Trải nghiệm với hiện tại hoàn thành", "skillCode": "grammar.tenses.present_perfect", "cefr": "B1", "order": 11,
+      "items": [
+        {"id":"item-b1-pp-01","type":"mcq","stem":"I ___ this film three times.","options":["have seen","saw","see","am seeing"],"correctAnswer":"have seen","explanationVi":"Trải nghiệm không nêu thời điểm dùng hiện tại hoàn thành."},
+        {"id":"item-b1-pp-02","type":"cloze","stem":"She has ___ finished her report. (just)","options":[],"correctAnswer":"just","explanationVi":"Just đứng giữa have/has và quá khứ phân từ."},
+        {"id":"item-b1-pp-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["since 2020","have lived","They","here"],"correctAnswer":"They have lived here since 2020","explanationVi":"Since chỉ mốc bắt đầu."},
+        {"id":"item-b1-pp-04","type":"mcq","stem":"Have you ___ eaten sushi?","options":["ever","yesterday","last","ago"],"correctAnswer":"ever","explanationVi":"Ever hỏi về trải nghiệm cho đến hiện tại."},
+        {"id":"item-b1-pp-05","type":"cloze","stem":"We have not received the email ___.","options":[],"correctAnswer":"yet","explanationVi":"Yet thường đứng cuối câu phủ định."}
+      ]
+    },
+    {
+      "id": "lesson-b1-first-conditional", "slug": "b1-first-conditional", "title": "Real Future Conditions", "titleVi": "Điều kiện có thể xảy ra", "skillCode": "grammar.conditionals.first", "cefr": "B1", "order": 12,
+      "items": [
+        {"id":"item-b1-fc-01","type":"mcq","stem":"If it rains, we ___ at home.","options":["will stay","stayed","would stay","stay yesterday"],"correctAnswer":"will stay","explanationVi":"Mệnh đề chính loại 1 dùng will + động từ."},
+        {"id":"item-b1-fc-02","type":"cloze","stem":"If you ___ now, you will catch the bus. (leave)","options":[],"correctAnswer":"leave","explanationVi":"Mệnh đề if loại 1 dùng hiện tại đơn."},
+        {"id":"item-b1-fc-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["will pass","you study","If","you"],"correctAnswer":"If you study you will pass","explanationVi":"If + hiện tại đơn, will + động từ."},
+        {"id":"item-b1-fc-04","type":"mcq","stem":"I will call you when I ___ home.","options":["get","will get","got","would get"],"correctAnswer":"get","explanationVi":"Mệnh đề thời gian tương lai dùng hiện tại đơn."},
+        {"id":"item-b1-fc-05","type":"cloze","stem":"Unless we hurry, we ___ be late.","options":[],"correctAnswer":"will","explanationVi":"Unless tương đương if not; mệnh đề chính dùng will."}
+      ]
+    },
+    {
+      "id": "lesson-b1-passive", "slug": "b1-passive", "title": "Passive Voice", "titleVi": "Câu bị động", "skillCode": "grammar.passive_voice", "cefr": "B1", "order": 13,
+      "items": [
+        {"id":"item-b1-pv-01","type":"mcq","stem":"English ___ in many countries.","options":["is spoken","speaks","spoke","is speaking"],"correctAnswer":"is spoken","explanationVi":"Bị động hiện tại: am/is/are + past participle."},
+        {"id":"item-b1-pv-02","type":"cloze","stem":"The bridge was ___ in 2010. (build)","options":[],"correctAnswer":"built","explanationVi":"Quá khứ phân từ của build là built."},
+        {"id":"item-b1-pv-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["every day","is delivered","The mail"],"correctAnswer":"The mail is delivered every day","explanationVi":"Đối tượng nhận hành động đứng đầu câu bị động."},
+        {"id":"item-b1-pv-04","type":"mcq","stem":"The results ___ tomorrow.","options":["will be announced","will announce","are announcing","announced"],"correctAnswer":"will be announced","explanationVi":"Bị động tương lai: will be + past participle."},
+        {"id":"item-b1-pv-05","type":"cloze","stem":"This photo was taken ___ my sister.","options":[],"correctAnswer":"by","explanationVi":"By giới thiệu tác nhân trong câu bị động."}
+      ]
+    },
+    {
+      "id": "lesson-b1-relative-clauses", "slug": "b1-relative-clauses", "title": "Relative Clauses", "titleVi": "Mệnh đề quan hệ", "skillCode": "grammar.relative_clauses", "cefr": "B1", "order": 14,
+      "items": [
+        {"id":"item-b1-rc-01","type":"mcq","stem":"The woman ___ lives next door is a doctor.","options":["who","which","where","whose"],"correctAnswer":"who","explanationVi":"Who thay cho người làm chủ ngữ."},
+        {"id":"item-b1-rc-02","type":"cloze","stem":"This is the cafe ___ we first met.","options":[],"correctAnswer":"where","explanationVi":"Where thay cho nơi chốn."},
+        {"id":"item-b1-rc-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["that","I lost","the key","This is"],"correctAnswer":"This is the key that I lost","explanationVi":"That có thể thay cho vật trong mệnh đề xác định."},
+        {"id":"item-b1-rc-04","type":"mcq","stem":"I know a student ___ father is a pilot.","options":["whose","who","which","where"],"correctAnswer":"whose","explanationVi":"Whose diễn tả sở hữu."},
+        {"id":"item-b1-rc-05","type":"cloze","stem":"The laptop ___ I bought is very light.","options":[],"correctAnswer":"which","explanationVi":"Which thay cho vật."}
+      ]
+    },
+    {
+      "id": "lesson-b1-emails", "slug": "b1-emails", "title": "Clear Emails", "titleVi": "Viết email rõ ràng", "skillCode": "writing.emails", "cefr": "B1", "order": 15,
+      "items": [
+        {"id":"item-b1-em-01","type":"mcq","stem":"Which opening is suitable for a formal email?","options":["Dear Ms Nguyen,","Hey there!","Yo!","What's up?"],"correctAnswer":"Dear Ms Nguyen,","explanationVi":"Dear + title + surname phù hợp email trang trọng."},
+        {"id":"item-b1-em-02","type":"cloze","stem":"I am writing to ___ about the course.","options":[],"correctAnswer":"inquire","explanationVi":"Inquire about là hỏi thông tin một cách trang trọng."},
+        {"id":"item-b1-em-03","type":"reorder","stem":"Sắp xếp thành câu lịch sự.","options":["your reply","look forward to","I"],"correctAnswer":"I look forward to your reply","explanationVi":"Cụm kết thư lịch sự thường dùng trong email."},
+        {"id":"item-b1-em-04","type":"mcq","stem":"Which closing is formal?","options":["Kind regards,","See ya,","Bye bye,","Cheers mate,"],"correctAnswer":"Kind regards,","explanationVi":"Kind regards là lời kết thư lịch sự."},
+        {"id":"item-b1-em-05","type":"cloze","stem":"Could you please ___ the attached document?","options":[],"correctAnswer":"review","explanationVi":"Review nghĩa là xem xét."}
+      ]
+    },
+    {
+      "id": "lesson-b2-past-perfect", "slug": "b2-past-perfect", "title": "Earlier Past Events", "titleVi": "Sự kiện xảy ra trước trong quá khứ", "skillCode": "grammar.tenses.past_perfect", "cefr": "B2", "order": 16,
+      "items": [
+        {"id":"item-b2-pp-01","type":"mcq","stem":"By the time we arrived, the film ___.","options":["had started","started","has started","was starting now"],"correctAnswer":"had started","explanationVi":"Quá khứ hoàn thành diễn tả hành động xảy ra trước một mốc quá khứ."},
+        {"id":"item-b2-pp-02","type":"cloze","stem":"She had never ___ snow before that trip. (see)","options":[],"correctAnswer":"seen","explanationVi":"Past participle của see là seen."},
+        {"id":"item-b2-pp-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["had left","when","He","I called"],"correctAnswer":"He had left when I called","explanationVi":"Hành động rời đi xảy ra trước cuộc gọi."},
+        {"id":"item-b2-pp-04","type":"mcq","stem":"After they ___ dinner, they went for a walk.","options":["had finished","have finished","finish","are finishing"],"correctAnswer":"had finished","explanationVi":"Hành động hoàn tất trước hành động went."},
+        {"id":"item-b2-pp-05","type":"cloze","stem":"I realized I had ___ my keys at work. (leave)","options":[],"correctAnswer":"left","explanationVi":"Past participle của leave là left."}
+      ]
+    },
+    {
+      "id": "lesson-b2-third-conditional", "slug": "b2-third-conditional", "title": "Imagining a Different Past", "titleVi": "Giả định trái với quá khứ", "skillCode": "grammar.conditionals.third", "cefr": "B2", "order": 17,
+      "items": [
+        {"id":"item-b2-tc-01","type":"mcq","stem":"If I had known, I ___ you.","options":["would have told","will tell","would tell","told"],"correctAnswer":"would have told","explanationVi":"Loại 3: would have + past participle."},
+        {"id":"item-b2-tc-02","type":"cloze","stem":"If they had left earlier, they would have ___ the train. (catch)","options":[],"correctAnswer":"caught","explanationVi":"Past participle của catch là caught."},
+        {"id":"item-b2-tc-03","type":"reorder","stem":"Sắp xếp thành câu đúng.","options":["had studied","she would have passed","If she","harder"],"correctAnswer":"If she had studied harder she would have passed","explanationVi":"Mệnh đề if dùng past perfect."},
+        {"id":"item-b2-tc-04","type":"mcq","stem":"We would not have been late if the taxi ___ on time.","options":["had arrived","arrived","would arrive","has arrived"],"correctAnswer":"had arrived","explanationVi":"Điều kiện quá khứ dùng had + past participle."},
+        {"id":"item-b2-tc-05","type":"cloze","stem":"Had you called me, I ___ have helped.","options":[],"correctAnswer":"would","explanationVi":"Đảo ngữ Had you called tương đương If you had called."}
+      ]
+    },
+    {
+      "id": "lesson-b2-reported-speech", "slug": "b2-reported-speech", "title": "Reported Speech", "titleVi": "Câu tường thuật", "skillCode": "grammar.reported_speech", "cefr": "B2", "order": 18,
+      "items": [
+        {"id":"item-b2-rs-01","type":"mcq","stem":"She said, 'I am tired.' → She said that she ___.","options":["was tired","is tired now","has tired","tired"],"correctAnswer":"was tired","explanationVi":"Am thường lùi thì thành was."},
+        {"id":"item-b2-rs-02","type":"cloze","stem":"He told me that he had ___ the email. (send)","options":[],"correctAnswer":"sent","explanationVi":"Past participle của send là sent."},
+        {"id":"item-b2-rs-03","type":"reorder","stem":"Sắp xếp thành câu tường thuật.","options":["where I lived","asked me","She"],"correctAnswer":"She asked me where I lived","explanationVi":"Câu hỏi tường thuật dùng trật tự câu khẳng định."},
+        {"id":"item-b2-rs-04","type":"mcq","stem":"'Do not touch it,' he said. → He told us ___.","options":["not to touch it","do not touch it","to not touched it","not touching it"],"correctAnswer":"not to touch it","explanationVi":"Mệnh lệnh phủ định: told + object + not to + verb."},
+        {"id":"item-b2-rs-05","type":"cloze","stem":"Mai said she ___ visit us the next day.","options":[],"correctAnswer":"would","explanationVi":"Will thường lùi thì thành would."}
+      ]
+    },
+    {
+      "id": "lesson-b2-collocations", "slug": "b2-collocations", "title": "Natural Collocations", "titleVi": "Kết hợp từ tự nhiên", "skillCode": "vocabulary.collocations", "cefr": "B2", "order": 19,
+      "items": [
+        {"id":"item-b2-cl-01","type":"mcq","stem":"Which verb goes with 'a decision'?","options":["make","do","take up","create on"],"correctAnswer":"make","explanationVi":"Ta nói make a decision."},
+        {"id":"item-b2-cl-02","type":"cloze","stem":"The company needs to ___ attention to customer feedback.","options":[],"correctAnswer":"pay","explanationVi":"Cụm đúng là pay attention."},
+        {"id":"item-b2-cl-03","type":"reorder","stem":"Sắp xếp thành cụm và câu đúng.","options":["heavy","had","rain","We"],"correctAnswer":"We had heavy rain","explanationVi":"Heavy thường kết hợp với rain."},
+        {"id":"item-b2-cl-04","type":"mcq","stem":"Choose the natural phrase.","options":["strong coffee","powerful coffee","hard coffee","deep coffee"],"correctAnswer":"strong coffee","explanationVi":"Strong coffee là kết hợp từ tự nhiên."},
+        {"id":"item-b2-cl-05","type":"cloze","stem":"The new policy had a significant ___ on sales.","options":[],"correctAnswer":"impact","explanationVi":"Cụm have an impact on."}
+      ]
+    },
+    {
+      "id": "lesson-b2-academic", "slug": "b2-academic-vocabulary", "title": "Academic Vocabulary", "titleVi": "Từ vựng học thuật", "skillCode": "vocabulary.academic", "cefr": "B2", "order": 20,
+      "items": [
+        {"id":"item-b2-ac-01","type":"mcq","stem":"The data ___ a clear trend.","options":["indicate","say casually","chat","guess"],"correctAnswer":"indicate","explanationVi":"Indicate nghĩa là chỉ ra, thường dùng trong văn học thuật."},
+        {"id":"item-b2-ac-02","type":"cloze","stem":"The study aims to ___ the causes of the problem.","options":[],"correctAnswer":"identify","explanationVi":"Identify nghĩa là xác định."},
+        {"id":"item-b2-ac-03","type":"reorder","stem":"Sắp xếp thành câu học thuật.","options":["supports","the hypothesis","The evidence"],"correctAnswer":"The evidence supports the hypothesis","explanationVi":"Evidence supports a hypothesis là cách diễn đạt học thuật tự nhiên."},
+        {"id":"item-b2-ac-04","type":"mcq","stem":"Which word means 'a result or effect'?","options":["consequence","conversation","convenience","conference"],"correctAnswer":"consequence","explanationVi":"Consequence là hậu quả hoặc kết quả."},
+        {"id":"item-b2-ac-05","type":"cloze","stem":"Researchers must ___ the limitations of their work.","options":[],"correctAnswer":"acknowledge","explanationVi":"Acknowledge limitations nghĩa là thừa nhận giới hạn."}
+      ]
+    }
+  ]
+}

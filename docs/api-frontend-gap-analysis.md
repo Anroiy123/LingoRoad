@@ -20,10 +20,10 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 23 routes across 10 feature groups: Health, Auth,
+The `.NET` API exposes 32 routes across 11 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
-Exercises (incl. writing evaluation), and Speaking. This summary does not
+Lessons, Exercises (incl. writing evaluation), and Speaking. This summary does not
 duplicate every route's verb, auth requirement and request/response shape.
 
 As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
@@ -38,24 +38,24 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 
 | Feature domain | Backend (`.NET`) | Mobile (Flutter) | Admin (React) |
 |---|---|---|---|
-| Auth (register/login) | ✅ `/auth/register`, `/auth/login` | ✅ Wired (`ApiAuthRepository`) | ❌ No role-aware login — same endpoint as learners, no role check |
-| Onboarding (goal, daily study minutes) | ❌ No endpoint (`User.TargetCefr` column exists but nothing reads/writes it over HTTP) | ❌ No onboarding screen | — |
-| Skill graph (read) | ✅ `/skills`, `/skills/graph` | ⚠️ Not consumed at all — Progress screen uses a static 6-skill list, no call to `/skills` anywhere in the app | ⚠️ Read-only if wired; no create/update/delete |
+| Auth/session | ✅ Access + rotating refresh, logout, password change, role policy | ✅ Wired (`ApiAuthRepository`/`ApiClient`) | ⚠️ Backend role-ready; Admin UI still scaffold |
+| Onboarding (goal, daily study minutes) | ✅ `GET/PATCH /auth/me` | ✅ Profile Setup and editable Profile | — |
+| Skill graph (read) | ✅ `/skills`, `/skills/graph` | ✅ Progress joins `/skills` + `/mastery` | ⚠️ Read-only if wired; no create/update/delete |
 | Skill/Item management (write) | ⚠️ Bulk import only (`/admin/items/import`, dev-gated); no single create/update/delete | — | ❌ No CRUD UI exists |
-| Lesson management | ❌ No `Lessons` entity — collapsed into `Items` | — | ❌ Missing (MVP spec expected this) |
+| Lesson management | ⚠️ Lesson domain/read learner API exists; Admin CRUD missing | ✅ Backend-ready, mobile player missing | ❌ CRUD UI missing |
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
-| Learning path (recommendation) | ✅ `/path` (`PathBuilder`) | ✅ Wired (`ApiLearningPathRepository`) | — |
+| Learning path (recommendation) | ✅ `/path` + `/path/today` | ⚠️ `/path` wired; today lesson/player not wired | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
-| Mastery tracking | ✅ `/mastery` | ⚠️ Mocked — Progress screen's static skill list, not driven by real data | ❌ No aggregate/per-user view |
-| Spaced-repetition reviews (SRS) | ✅ Full FSRS flow (`/reviews/*`) | ⚠️ Mock-backed — four grade controls exist, but cards are static and no `/reviews/*` endpoint is called | — |
-| Exercises (MCQ + grading) | ✅ `/exercises/generate`, `/exercises/{id}/submit` | ❌ No exercise screen | — |
+| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ❌ No aggregate/per-user view |
+| Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
+| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ❌ No exercise player | — |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
 | Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
-| User profile (read/update) | ⚠️ `GET /auth/me` exists; no authenticated update endpoint | ⚠️ Read is wired via `ApiAuthRepository.getProfile`; target/preferences/password updates are missing and toggles remain local state | — |
+| User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
 | Dashboard / gamification (XP, streak, badges) | ❌ No concept anywhere in the domain model | ❌ Hardcoded (Home's quests, Progress's streak/XP/badges) | ❌ Missing (MVP spec expected a stats view) |
-| Admin auth / roles | ❌ No `Role`/`IsAdmin` field on `User` | — | ❌ Missing — blocks any real admin-gated route |
+| Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ❌ Route guard/login UI missing |
 | Analytics (user/skill/question) | ❌ No `/admin/analytics/*` routes | — | ❌ Missing |
-| Cross-origin access (CORS) | ❌ No CORS policy configured | — (native app, not affected) | ❌ Blocks every browser call, regardless of endpoint |
+| Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ⚠️ Admin still needs an allowed production origin |
 
 ## 3. Mobile (Flutter) gap analysis
 
@@ -67,7 +67,7 @@ code and reframe it against backend capability.
 | Feature | Status | Notes |
 |---|---|---|
 | Auth (login/register) | ✅ Fulfilled | `ApiAuthRepository` → `/auth/register`, `/auth/login`. |
-| Profile (read) | ✅ Fulfilled | `ApiAuthRepository.getProfile` → `GET /auth/me`. `ProfileScreen` handles loading/error/retry and renders the name plus current level/CEFR and badge/profile statistics from the response; email is only used as a fallback to derive the display name. Although `targetCefr` is parsed, the target tile remains localized hardcoded UI and does not render it. Profile/onboarding updates are not covered by this read path. |
+| Profile/onboarding | ✅ Fulfilled | `GET/PATCH /auth/me` plus `/auth/change-password`; target CEFR, daily goal, purpose, focus, reminder and preferences persist through the API with rollback on save failure. |
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
 | Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §6 item 3 (resolved). |
 
@@ -76,8 +76,8 @@ code and reframe it against backend capability.
 Review now consumes authenticated `GET /reviews/due` and posts explicit ratings to
 `POST /reviews/{cardId}/grade`. The grade request carries an operation UUID and
 expected repetition count, so manual retry after an uncertain outcome is
-idempotent. `POST /reviews/cards` remains a future Lesson/Exercise producer API,
-therefore an empty Review state is valid.
+idempotent. Completing a lesson now creates `ReviewCard` rows for wrong answers;
+an empty Review state remains valid when no learned item is due.
 
 Progress now joins public `GET /skills` with authenticated `GET /mastery` and
 shows aggregated leaf-skill categories. XP, streaks, CEFR, achievements and
@@ -99,6 +99,7 @@ screen calls them:
 
 | Backend capability | Status | Notes |
 |---|---|---|
+| `/path/today`, `/lessons/*`, `/lesson-attempts/*` | ✅ Fulfilled, unused | Versioned lesson content, resume, completion and review-card production are backend-ready; mobile lesson player is Phase 3. |
 | `POST /exercises/generate`, `POST /exercises/{id}/submit` | ✅ Fulfilled, unused | AI-generated MCQ exercises with grading + explanation; no lesson/exercise screen exists in `lib/screens/`. |
 | `POST /writing/evaluate` | ✅ Fulfilled, unused | Automated writing evaluation (AWE); no writing-practice screen exists. |
 | `POST /speaking/attempts`, `GET /speaking/attempts` | ✅ Fulfilled, unused | Speech scoring (accuracy/completeness/fluency) from an uploaded audio recording; mobile only has audio *playback* (`placement_audio_player.dart`, listening items), no recording UI. |
@@ -115,9 +116,9 @@ Analytics).
 
 | Feature (from MVP spec) | Status | Notes |
 |---|---|---|
-| Admin login / role separation | ❌ Missing | `Domain/User.cs` has no role/`IsAdmin` field at all; `/auth/login` is the same endpoint for every caller. The one admin-flavored route (`POST /admin/items/import`) is gated by `IsDevelopment()`, not by identity or role. |
+| Admin login / role separation | ⚠️ Backend-ready | `User.Role`, JWT role claim, Admin policy and secret-driven bootstrap exist; Admin React login/guard and Admin CRUD authorization are still missing. The legacy import route remains development-only until Phase 4 replaces it. |
 | Skill management (create/edit/delete, assign prerequisites) | ⚠️ Partial | `GET /skills`, `GET /skills/graph` exist (read-only). No create/update/delete route exists for skills at all. |
-| Lesson management | ❌ Missing | The MVP spec's separate `Lessons` entity (grouping questions, `LESSON_QUESTIONS` join) was never built — the actual schema only has `Items` (skill+CEFR-tagged questions), with no lesson grouping concept. This reads as a product decision to revisit (does LingoRoad still want a "lesson" as a unit, or has it settled on skill-tagged items directly?), not just a missing CRUD screen. |
+| Lesson management | ⚠️ Partial | `Lesson`, `LessonItem`, content version/checksum and learner attempt APIs exist. Draft/publish CRUD, validation preview/import and Admin UI remain Phase 4 work. |
 | Question management (create/edit/delete, assign answer/difficulty/CEFR) | ⚠️ Partial | `POST /admin/items/import` (bulk create, dev-gated) and `GET /items` (read, filterable by skill/CEFR) exist. No single-item create, no update, no delete. |
 | User / skill / question analytics | ❌ Missing | No `/admin/analytics/*` (or equivalent) route exists anywhere in the API — no user counts, no weak-skill aggregation, no question error-rate. |
 
@@ -128,64 +129,27 @@ at existing endpoints" like most of mobile's gaps.
 
 ## 5. Cross-cutting gaps
 
-- **No CORS policy** on the `.NET` API (already flagged in
-  `src/backend/CLAUDE.md`). This blocks *any* browser-based client —
-  including `admin` — from calling the API at all, regardless of which
-  endpoints exist. This has to be solved before `admin` can call anything,
-  even `GET /skills`.
-- **No admin role/authorization concept** in the data model (see above) —
-  a prerequisite for gating any real admin route behind authentication
-  rather than `IsDevelopment()`.
-- **The `Lessons` entity was never built.** Flagged once here as a
-  cross-cutting note because it affects both the Admin table (lesson
-  management) and, implicitly, mobile's learning-path/exercise screens
-  (which page of content does a "lesson" correspond to, if there is no
-  lesson?).
+- **CORS and role foundations are complete**, but Phase 4 must apply the Admin
+  policy to every new CRUD/import/analytics mutation and add browser route guards.
+- **Lesson domain is complete on the learner API**, including versioned content,
+  attempts and completion. Mobile player and Admin draft/publish tooling remain.
+- **Idempotency is enforced server-side** for start/answer/completion and review
+  grading; clients still need to retain operation UUIDs across uncertain retries.
 
 ## 6. Integration options
 
-Concrete, scoped next steps — not full API designs. Roughly ordered by
-leverage (cheapest wins first):
+Concrete next steps, ordered by dependency:
 
-1. **Wire mobile's four fully-built-but-unused backend features**
-   (exercises, writing evaluation, speaking, advisor) to new screens. Zero
-   backend work; this is the single highest-leverage gap in the report.
-2. **Rewire the Progress and Review tab screens** to `GET /mastery` and the
-   `/reviews/*` trio respectively, replacing `MockRepository` calls one at
-   a time — both endpoints already return data close to what's needed,
-   following the existing `ApiPlacementRepository`/`ApiAuthRepository`
-   pattern (abstract interface + `Api*` implementation).
-3. ~~Decide the Learning Path / gamification question before building
-   it~~ — **Resolved.** The screen has since been redesigned around what
-   `/path` actually returns (an ordered, reasoned skill recommendation
-   list: `code/name/nameVi/cefr/mastery/reason`) rather than the old
-   lesson-tree-with-XP mock; see §3.1.
-4. **Add a CORS policy** to the `.NET` API — required before `admin` can
-   call anything at all. Scope it to the admin dev origin(s) only.
-5. **Add an admin role.** Minimally, a `Role` (or `IsAdmin`) field on
-   `User`, checked via a JWT claim, replacing the `IsDevelopment()` gate on
-   `/admin/items/import` and gating any future admin-only route the same
-   way.
-6. **Build real Skills/Items CRUD** (single create, update, delete) once
-   the role exists — bulk import already covers create-at-scale, but an
-   admin UI needs single-record operations.
-7. **Resolve the Lessons-entity question** with the product owner before
-   building lesson management — either build the entity, or drop "lesson
-   management" from the admin scope in favor of "question/skill
-   management" as already implemented.
-8. **Add an authenticated profile/onboarding update API alongside
-   `GET /auth/me`** (for example `PUT` or `PATCH /auth/me`) for target CEFR,
-   daily goal, purpose/focus skills and preferences. Profile read already
-   exists and is wired on mobile. If `/users/me` is preferred as the public
-   convention, standardize the existing read and the new write route together
-   instead of treating read as missing.
-9. **Client codegen from OpenAPI, optionally.** Now that the `.NET` API has
-   a machine-readable OpenAPI document (surfaced via Scalar at
-   `/scalar/v1`), `admin` could generate a typed TS client (e.g.
-   `openapi-typescript`) instead of hand-writing fetch calls — worth it
-   once admin has enough endpoints to justify it. Mobile's existing
-   hand-written `ApiClient` pattern is deliberate and doesn't need to
-   change.
-10. **Analytics endpoints are the least urgent** — they depend on having
-    real usage data (users, attempts) to aggregate, which is thin in
-    dev/seed data anyway.
+1. **Build the mobile lesson detail/exercise player** on `/path/today`,
+   `/lessons/*`, `/lesson-attempts/*` and the idempotent exercise submit API;
+   refresh Path, Progress and Review after completion.
+2. **Replace Home hardcodes with a dashboard aggregate** for learner name,
+   today lesson, daily/weekly progress, due review, recent activity and streak.
+3. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
+   existing Admin role policy, then replace the Vite scaffold with guarded pages.
+4. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
+   MIME/size/duration validation and guaranteed raw-audio deletion first.
+5. **Add analytics/event ledger APIs** only after lesson traffic exists, so
+   completion, correctness and item-difficulty reports have real inputs.
+6. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
+   changing; Flutter can keep its existing hand-written repository pattern.
