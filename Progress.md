@@ -39,7 +39,7 @@
 - .NET hiện có **23 route/10 feature group**: 22 lệnh `Map*` trong `Endpoints`
   cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
 - Flutter: `flutter analyze` sạch; `flutter test` đạt **70/70 test**.
-- .NET Release test đạt **50/50**; các mốc thấp hơn trong phụ lục chỉ là bằng
+- .NET Release test đạt **52/52**; các mốc thấp hơn trong phụ lục chỉ là bằng
   chứng lịch sử của lần xác minh trước.
 - ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
   thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.

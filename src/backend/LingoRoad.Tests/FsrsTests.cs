@@ -77,7 +77,12 @@ public class FsrsTests
 public class ReviewEndpointTests : IClassFixture<TestAppFactory>
 {
     private readonly HttpClient _client;
-    public ReviewEndpointTests(TestAppFactory f) => _client = f.CreateClient();
+    private readonly TestAppFactory _factory;
+    public ReviewEndpointTests(TestAppFactory f)
+    {
+        _factory = f;
+        _client = f.CreateClient();
+    }
 
     private record CardDto(Guid Id, string Front, string Back, DateTime Due, string State, int Reps);
 
@@ -136,6 +141,34 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
             new { rating = 3, operationId = Guid.NewGuid(), expectedReps = card.Reps + 1 });
         Assert.Equal(System.Net.HttpStatusCode.Conflict, early.StatusCode);
         Assert.Equal("review_not_due", (await early.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["error"]);
+    }
+
+    [Fact]
+    public async Task Same_grade_operation_is_safe_when_sent_concurrently()
+    {
+        var reg = await _client.PostAsJsonAsync("/auth/register",
+            new { email = $"{Guid.NewGuid():N}@t.com", password = "secret123", name = "R" });
+        var token = (await reg.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["token"];
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var created = await _client.PostAsJsonAsync("/reviews/cards",
+            new { skillCode = "vocabulary.everyday", front = "hello", back = "xin chào" });
+        created.EnsureSuccessStatusCode();
+        var card = Assert.Single((await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due"))!);
+        var request = new { rating = 3, operationId = Guid.NewGuid(), expectedReps = card.Reps };
+
+        using var firstClient = _factory.CreateClient();
+        using var secondClient = _factory.CreateClient();
+        firstClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        secondClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        var responses = await Task.WhenAll(
+            firstClient.PostAsJsonAsync($"/reviews/{card.Id}/grade", request),
+            secondClient.PostAsJsonAsync($"/reviews/{card.Id}/grade", request));
+
+        Assert.All(responses, response => response.EnsureSuccessStatusCode());
+        Assert.Empty((await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due"))!);
     }
 
 }
