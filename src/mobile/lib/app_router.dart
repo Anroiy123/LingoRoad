@@ -9,9 +9,13 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_quest
 import 'package:lingoroad_mobile/features/placement/presentation/placement_result_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_status_error_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
+import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
+import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
+import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
+import 'package:provider/provider.dart';
 
 GoRouter createAppRouter({
   required SessionController session,
@@ -50,6 +54,7 @@ GoRouter createAppRouter({
           } else if (location == '/splash' ||
               isAuthRoute ||
               location == '/home' ||
+              location.startsWith('/lesson/') ||
               location == '/placement/status-error') {
             return '/placement';
           }
@@ -106,6 +111,13 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/streak-details',
         builder: (context, state) => const StreakDetailsScreen(),
+      ),
+      GoRoute(
+        path: '/lesson/:id',
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (_) => LessonViewModel(context.read<LessonRepository>()),
+          child: LessonScreen(lessonId: state.pathParameters['id']!),
+        ),
       ),
     ],
   );

@@ -205,6 +205,18 @@ public static class LessonEndpoints
                 CompletedAt = completedAt,
             };
             db.LessonCompletionOperations.Add(operation);
+            db.RewardLedgerEntries.Add(new RewardLedgerEntry
+            {
+                UserId = userId,
+                SourceOperationId = req.OperationId,
+                SourceType = RewardSources.LessonCompletion,
+                SourceEntityId = id,
+                Xp = 20 + correctAnswers * 5,
+                Coins = 2,
+                StreakQualified = true,
+                QuestCode = "daily_lesson",
+                CreatedAt = completedAt,
+            });
             try
             {
                 await db.SaveChangesAsync();

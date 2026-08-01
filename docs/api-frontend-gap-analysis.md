@@ -20,11 +20,12 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 32 routes across 11 feature groups: Health, Auth,
+The `.NET` API exposes 35 routes across 12 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
-Lessons, Exercises (incl. writing evaluation), and Speaking. This summary does not
-duplicate every route's verb, auth requirement and request/response shape.
+Lessons, Exercises (incl. writing evaluation), Dashboard/Gamification, and
+Speaking. This summary does not duplicate every route's verb, auth requirement
+and request/response shape.
 
 As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
 gives an interactive view of the same surface, generated from the
@@ -42,17 +43,17 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Onboarding (goal, daily study minutes) | ✅ `GET/PATCH /auth/me` | ✅ Profile Setup and editable Profile | — |
 | Skill graph (read) | ✅ `/skills`, `/skills/graph` | ✅ Progress joins `/skills` + `/mastery` | ⚠️ Read-only if wired; no create/update/delete |
 | Skill/Item management (write) | ⚠️ Bulk import only (`/admin/items/import`, dev-gated); no single create/update/delete | — | ❌ No CRUD UI exists |
-| Lesson management | ⚠️ Lesson domain/read learner API exists; Admin CRUD missing | ✅ Backend-ready, mobile player missing | ❌ CRUD UI missing |
+| Lesson management | ⚠️ Lesson learner API exists; Admin CRUD missing | ✅ Detail/player wired to learner API | ❌ CRUD UI missing |
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
-| Learning path (recommendation) | ✅ `/path` + `/path/today` | ⚠️ `/path` wired; today lesson/player not wired | — |
+| Learning path (recommendation) | ✅ `/path` + `/path/today` | ✅ Path/today lesson/player wired | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
 | Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ❌ No aggregate/per-user view |
 | Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
-| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ❌ No exercise player | — |
+| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | — |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
 | Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
 | User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
-| Dashboard / gamification (XP, streak, badges) | ❌ No concept anywhere in the domain model | ❌ Hardcoded (Home's quests, Progress's streak/XP/badges) | ❌ Missing (MVP spec expected a stats view) |
+| Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ❌ Missing |
 | Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ❌ Route guard/login UI missing |
 | Analytics (user/skill/question) | ❌ No `/admin/analytics/*` routes | — | ❌ Missing |
 | Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ⚠️ Admin still needs an allowed production origin |
@@ -70,6 +71,9 @@ code and reframe it against backend capability.
 | Profile/onboarding | ✅ Fulfilled | `GET/PATCH /auth/me` plus `/auth/change-password`; target CEFR, daily goal, purpose, focus, reminder and preferences persist through the API with rollback on save failure. |
 | Placement test | ✅ Fulfilled | `ApiPlacementRepository` → `/placement/status`, `/placement/start`, `/placement/{sessionId}/answer`, `/placement/{sessionId}/result`. |
 | Learning Path | ✅ Fulfilled | `ApiLearningPathRepository` → `GET /path?limit=N`, parsed into `LearningPathStep(code, name, nameVi, cefr, mastery, reason)` — matches the endpoint's actual shape exactly. Wired since this report was first drafted (`mock_repository.dart`'s old `path()`/`PathNode` mock was removed); the screen was redesigned around what `/path` returns rather than the old lesson-tree/XP mock — see §6 item 3 (resolved). |
+| Lesson/Exercise | ✅ Fulfilled | `/path/today` opens a start/resume attempt; the player supports MCQ, cloze and reorder, retains operation UUIDs across retry and refreshes Path/Progress/Review/Dashboard after completion. |
+| Home/Dashboard | ✅ Fulfilled | `GET /dashboard` supplies learner name, current/target CEFR, mastery, weak/strong skills, goals, next lesson, due reviews, completion/recent activity and reward stats. `/quests` supplies daily quest state. |
+| Streak | ✅ Fulfilled | The details screen derives current/longest streak and active calendar dates from the reward ledger; the former October 2025 mock was removed. |
 
 ### 3.2 Review and Progress integration update (2026-08-01)
 
@@ -80,10 +84,15 @@ idempotent. Completing a lesson now creates `ReviewCard` rows for wrong answers;
 an empty Review state remains valid when no learned item is due.
 
 Progress now joins public `GET /skills` with authenticated `GET /mastery` and
-shows aggregated leaf-skill categories. XP, streaks, CEFR, achievements and
-dashboard summaries remain unavailable because no backing API exists.
+shows aggregated leaf-skill categories. Home consumes `GET /dashboard`; XP,
+coin, streak and quests come from the append-only reward ledger. Achievements/
+badges and mastery passive decay remain unavailable.
 
-### 3.3 Historical mock gap snapshot
+### 3.3 Historical mock gap snapshot (resolved, retained for traceability)
+
+The rows below describe the state when this report was first drafted. They are
+not the current implementation: Progress, Review and Home have since moved to
+API repositories, and `mock_repository.dart` has been deleted from production.
 
 | Screen | Mock data shape | Closest backend endpoint | Status | Recommendation |
 |---|---|---|---|---|
@@ -91,22 +100,20 @@ dashboard summaries remain unavailable because no backing API exists.
 | Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards with Forgot/Hard/Good/Easy controls | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | The four grade controls are present, but the screen still loads `const MockRepository().reviews()`. It has no due-date/API loading/error/empty states, no double-submit guard, and neither fetches due cards nor posts a grade. Nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
 | Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline, with no backend equivalent — this is a net-new feature, not a wiring task. |
 
-### 3.3 Backend capability with no mobile UI at all yet
+### 3.4 Backend capability with no mobile UI at all yet
 
-These are fully built and tested on the backend (per
-`src/backend/.superpowers/sdd/progress.md`, tasks 13/14), but no mobile
-screen calls them:
+The remaining backend-only learner capabilities are:
 
 | Backend capability | Status | Notes |
 |---|---|---|
-| `/path/today`, `/lessons/*`, `/lesson-attempts/*` | ✅ Fulfilled, unused | Versioned lesson content, resume, completion and review-card production are backend-ready; mobile lesson player is Phase 3. |
-| `POST /exercises/generate`, `POST /exercises/{id}/submit` | ✅ Fulfilled, unused | AI-generated MCQ exercises with grading + explanation; no lesson/exercise screen exists in `lib/screens/`. |
+| `/path/today`, `/lessons/*`, `/lesson-attempts/*` | ✅ Fulfilled, used | Versioned content, resume, completion and review-card production are wired to the mobile player. |
+| `POST /exercises/generate`, `POST /exercises/{id}/submit` | ⚠️ Partial mobile use | Lesson-bound submit/feedback is wired; standalone AI-generated exercise creation still has no mobile entry point. |
 | `POST /writing/evaluate` | ✅ Fulfilled, unused | Automated writing evaluation (AWE); no writing-practice screen exists. |
 | `POST /speaking/attempts`, `GET /speaking/attempts` | ✅ Fulfilled, unused | Speech scoring (accuracy/completeness/fluency) from an uploaded audio recording; mobile only has audio *playback* (`placement_audio_player.dart`, listening items), no recording UI. |
 | `POST /path/advisor` | ✅ Fulfilled, unused | RAG-grounded Q&A advisor over the learner's path; no chat/advisor screen exists. |
 
-These four are the cheapest wins in the whole report: no backend work
-needed, only frontend screens plus wiring.
+Advisor, Writing and Speaking still need frontend flows; Speaking also needs
+server-side upload safety and raw-audio deletion before it can be accepted.
 
 ## 4. Admin (React) gap analysis
 
@@ -131,25 +138,25 @@ at existing endpoints" like most of mobile's gaps.
 
 - **CORS and role foundations are complete**, but Phase 4 must apply the Admin
   policy to every new CRUD/import/analytics mutation and add browser route guards.
-- **Lesson domain is complete on the learner API**, including versioned content,
-  attempts and completion. Mobile player and Admin draft/publish tooling remain.
-- **Idempotency is enforced server-side** for start/answer/completion and review
-  grading; clients still need to retain operation UUIDs across uncertain retries.
+- **Lesson domain is complete on the learner API and wired on mobile**, including
+  versioned content, attempts, feedback and completion. Admin draft/publish
+  tooling and device E2E remain.
+- **Idempotency is enforced server-side** for start/answer/completion, review
+  grading and rewards; the lesson/review clients retain operation UUIDs across
+  uncertain retries and block duplicate taps.
 
 ## 6. Integration options
 
 Concrete next steps, ordered by dependency:
 
-1. **Build the mobile lesson detail/exercise player** on `/path/today`,
-   `/lessons/*`, `/lesson-attempts/*` and the idempotent exercise submit API;
-   refresh Path, Progress and Review after completion.
-2. **Replace Home hardcodes with a dashboard aggregate** for learner name,
-   today lesson, daily/weekly progress, due review, recent activity and streak.
-3. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
+1. **Run the full learner loop on MuMu/device**, including offline retry,
+   application restart and temporary ML unavailability.
+2. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
    existing Admin role policy, then replace the Vite scaffold with guarded pages.
-4. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
+3. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
    MIME/size/duration validation and guaranteed raw-audio deletion first.
-5. **Add analytics/event ledger APIs** only after lesson traffic exists, so
+4. **Add learning analytics/event APIs** now that lesson traffic and the reward
+   ledger exist, so
    completion, correctness and item-difficulty reports have real inputs.
-6. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
+5. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
    changing; Flutter can keep its existing hand-written repository pattern.

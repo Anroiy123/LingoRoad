@@ -35,6 +35,7 @@ builder.Services.AddDbContext<AppDbContext>(o =>
 
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<MasteryService>();
+builder.Services.AddScoped<GamificationService>();
 builder.Services.AddHttpClient<IMlClient, MlClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["MlService:BaseUrl"] ?? "http://localhost:8001");
@@ -128,6 +129,7 @@ app.MapReviews();
 app.MapPath();
 app.MapExercises();
 app.MapLessons();
+app.MapDashboard();
 app.MapSpeaking();
 
 app.Run();
