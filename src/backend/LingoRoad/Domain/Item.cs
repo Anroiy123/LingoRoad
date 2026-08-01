@@ -20,4 +20,5 @@ public class Item
     public string? Reviewer { get; set; }
     public string? ContentVersion { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; }
 }

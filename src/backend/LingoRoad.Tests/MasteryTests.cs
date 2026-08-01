@@ -1,4 +1,8 @@
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using LingoRoad.Data;
 using LingoRoad.Domain;
 
 namespace LingoRoad.Tests;
@@ -35,7 +39,12 @@ public class MasteryCalcTests
 public class MasteryEndpointTests : IClassFixture<PlacementFactory>
 {
     private readonly HttpClient _client;
-    public MasteryEndpointTests(PlacementFactory f) => _client = f.CreateClient();
+    private readonly PlacementFactory _factory;
+    public MasteryEndpointTests(PlacementFactory f)
+    {
+        _factory = f;
+        _client = f.CreateClient();
+    }
 
     private record MasteryRow(string SkillCode, string SkillName, double PCorrect, DateTime UpdatedAt);
     private record PlacementItem(Guid Id, string Type, string Stem, string[] Options, string? AudioUrl);
@@ -52,13 +61,26 @@ public class MasteryEndpointTests : IClassFixture<PlacementFactory>
         _client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-        var items = Enumerable.Range(0, 10).Select(i => new
+        using (var scope = _factory.Services.CreateScope())
         {
-            skillCode = "grammar.tenses.present_simple", cefrLevel = "B1", type = "mcq",
-            stem = $"M{i}: she ___ tea.", options = new[] { "drinks", "drink", "drank", "drunk" },
-            correctAnswer = "drinks", source = "test"
-        });
-        (await _client.PostAsJsonAsync("/admin/items/import", items)).EnsureSuccessStatusCode();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var skillId = await db.Skills.Where(x => x.Code == "grammar.tenses.present_simple")
+                .Select(x => x.Id).SingleAsync();
+            db.Items.AddRange(Enumerable.Range(0, 10).Select(i => new Item
+            {
+                SkillId = skillId,
+                CefrLevel = "B1",
+                Type = "mcq",
+                Stem = $"M{Guid.NewGuid():N}-{i}: she ___ tea.",
+                OptionsJson = JsonSerializer.Serialize(new[] { "drinks", "drink", "drank", "drunk" }),
+                CorrectAnswer = "drinks",
+                Source = "test",
+                A = 1,
+                B = -.4,
+                C = .25
+            }));
+            await db.SaveChangesAsync();
+        }
 
         var start = await (await _client.PostAsync("/placement/start", null))
             .Content.ReadFromJsonAsync<StartDto>();

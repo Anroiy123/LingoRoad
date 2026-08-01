@@ -1,32 +1,35 @@
-# React + TypeScript + Vite
+# LingoRoad Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React CMS dành cho tài khoản có role `Admin`. Ứng dụng dùng API thật để quản lý
+Skills, Items và Lessons; import content bundle theo hai bước; xem analytics và
+audit log. Backend vẫn là lớp bắt buộc thực thi authorization, route guard phía
+client chỉ hỗ trợ UX.
 
-Currently, two official plugins are available:
+## Chạy local
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Chạy PostgreSQL và backend tại `http://localhost:5000`.
+2. Bootstrap một tài khoản Admin bằng cấu hình backend; không commit mật khẩu.
+3. Cài dependency và chạy web:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+npm ci
+npx playwright install chromium
+$env:VITE_API_BASE_URL = "http://localhost:5000"
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Nếu không đặt `VITE_API_BASE_URL`, client dùng `http://localhost:5000`. Origin
+của Admin phải nằm trong CORS allowlist khi chạy production.
+
+## Quality gate
+
+```powershell
+npm run lint
+npm test -- --run
+npm run build
+npm run test:e2e
+```
+
+Session chỉ nằm trong `sessionStorage`; client thực hiện một refresh request tại
+một thời điểm và đăng xuất khi token không hợp lệ. Production secrets, bootstrap
+credential và API URL phải được cấp qua secret/environment store.

@@ -23,6 +23,7 @@ public class Lesson
     public required string License { get; set; }
     public required string Reviewer { get; set; }
     public bool IsPublished { get; set; } = true;
+    public bool IsDeleted { get; set; }
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
@@ -85,4 +86,15 @@ public class ContentBundleImport
     public required string Version { get; set; }
     public required string Checksum { get; set; }
     public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class AdminAuditEvent
+{
+    public long Id { get; set; }
+    public Guid AdminUserId { get; set; }
+    public required string Action { get; set; }
+    public required string EntityType { get; set; }
+    public required string EntityId { get; set; }
+    public string? Detail { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

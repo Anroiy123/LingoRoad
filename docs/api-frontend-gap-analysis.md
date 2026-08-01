@@ -10,8 +10,8 @@ directly by either frontend.
 **Method:** the API side of the comparison is cross-checked directly against
 `Program.cs`/`Endpoints/*.cs` and the interactive OpenAPI document served at
 `/scalar/v1` in development. The frontend side is read from the actual mobile
-client code and, where the admin client is still an empty scaffold, from the
-original product spec, `MVP_architecture.md`.
+and React admin clients, cross-checked against the original product spec,
+`MVP_architecture.md`.
 
 Each row below is classified:
 - ✅ **Fulfilled** — the backend already supports this; the frontend just needs to call it.
@@ -20,11 +20,11 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 35 routes across 12 feature groups: Health, Auth,
+The `.NET` API exposes 50 routes across 13 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
-Lessons, Exercises (incl. writing evaluation), Dashboard/Gamification, and
-Speaking. This summary does not duplicate every route's verb, auth requirement
+Lessons, Exercises (incl. writing evaluation), Dashboard/Gamification,
+Speaking, and Admin. This summary does not duplicate every route's verb, auth requirement
 and request/response shape.
 
 As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
@@ -39,24 +39,24 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 
 | Feature domain | Backend (`.NET`) | Mobile (Flutter) | Admin (React) |
 |---|---|---|---|
-| Auth/session | ✅ Access + rotating refresh, logout, password change, role policy | ✅ Wired (`ApiAuthRepository`/`ApiClient`) | ⚠️ Backend role-ready; Admin UI still scaffold |
+| Auth/session | ✅ Access + rotating refresh, logout, password change, role policy | ✅ Wired (`ApiAuthRepository`/`ApiClient`) | ✅ Login, bearer client, single-flight refresh and fail-closed Admin guard |
 | Onboarding (goal, daily study minutes) | ✅ `GET/PATCH /auth/me` | ✅ Profile Setup and editable Profile | — |
-| Skill graph (read) | ✅ `/skills`, `/skills/graph` | ✅ Progress joins `/skills` + `/mastery` | ⚠️ Read-only if wired; no create/update/delete |
-| Skill/Item management (write) | ⚠️ Bulk import only (`/admin/items/import`, dev-gated); no single create/update/delete | — | ❌ No CRUD UI exists |
-| Lesson management | ⚠️ Lesson learner API exists; Admin CRUD missing | ✅ Detail/player wired to learner API | ❌ CRUD UI missing |
+| Skill graph (read) | ✅ `/skills`, `/skills/graph` | ✅ Progress joins `/skills` + `/mastery` | ✅ Catalog and CRUD UI |
+| Skill/Item management (write) | ✅ Admin CRUD, validation, soft-delete and audit | — | ✅ CRUD UI with API states |
+| Lesson management | ✅ Admin CRUD, relation validation and draft/publish | ✅ Detail/player wired to learner API | ✅ CRUD/draft/publish UI |
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
 | Learning path (recommendation) | ✅ `/path` + `/path/today` | ✅ Path/today lesson/player wired | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
-| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ❌ No aggregate/per-user view |
+| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ⚠️ Aggregate by category in overview; no per-user drill-down |
 | Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
 | Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | — |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
 | Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
 | User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
-| Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ❌ Missing |
-| Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ❌ Route guard/login UI missing |
-| Analytics (user/skill/question) | ❌ No `/admin/analytics/*` routes | — | ❌ Missing |
-| Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ⚠️ Admin still needs an allowed production origin |
+| Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ✅ Overview consumes learner/reward aggregates |
+| Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ✅ Login and route guard; learner receives 403 from server |
+| Analytics (user/skill/question) | ✅ `/admin/analytics/overview` | — | ✅ Activity, completion, correctness, review, mastery, item/content usage |
+| Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ✅ Configurable API base URL; production origin is supplied at deployment |
 
 ## 3. Mobile (Flutter) gap analysis
 
@@ -117,27 +117,30 @@ server-side upload safety and raw-audio deletion before it can be accepted.
 
 ## 4. Admin (React) gap analysis
 
-`src/admin` has no real pages yet (default Vite/React scaffold). Its need
-is read from `MVP_architecture.md` §4.4/§5.2/§8.4/§10.9 (Admin CMS +
-Analytics).
+`src/admin` is now a guarded React CMS backed by Admin-only API routes. The
+surface implements the minimum scope from `MVP_architecture.md`
+§4.4/§5.2/§8.4/§10.9 (Admin CMS + Analytics).
 
 | Feature (from MVP spec) | Status | Notes |
 |---|---|---|
-| Admin login / role separation | ⚠️ Backend-ready | `User.Role`, JWT role claim, Admin policy and secret-driven bootstrap exist; Admin React login/guard and Admin CRUD authorization are still missing. The legacy import route remains development-only until Phase 4 replaces it. |
-| Skill management (create/edit/delete, assign prerequisites) | ⚠️ Partial | `GET /skills`, `GET /skills/graph` exist (read-only). No create/update/delete route exists for skills at all. |
-| Lesson management | ⚠️ Partial | `Lesson`, `LessonItem`, content version/checksum and learner attempt APIs exist. Draft/publish CRUD, validation preview/import and Admin UI remain Phase 4 work. |
-| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ⚠️ Partial | `POST /admin/items/import` (bulk create, dev-gated) and `GET /items` (read, filterable by skill/CEFR) exist. No single-item create, no update, no delete. |
-| User / skill / question analytics | ❌ Missing | No `/admin/analytics/*` (or equivalent) route exists anywhere in the API — no user counts, no weak-skill aggregation, no question error-rate. |
+| Admin login / role separation | ✅ Fulfilled | `User.Role`, JWT role claim, Admin policy, secret-driven bootstrap, React login and fail-closed route guard are implemented; anonymous gets 401 and learner gets 403. |
+| Skill management (create/edit/delete, assign prerequisites) | ✅ Fulfilled | Admin API/UI support create/update/soft-delete, parent relation validation and cycle prevention. |
+| Lesson management | ✅ Fulfilled | Draft/published CRUD, ordered item relationships, soft-delete and audit are implemented. |
+| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ✅ Fulfilled | Protected CRUD exposes answer/difficulty metadata only within the Admin surface and blocks unsafe relation deletion. |
+| User / skill / question analytics | ✅ MVP overview | Active learners, completion, correctness, due reviews, mastery by category, item usage and content usage are available. Per-user drill-down remains an extension. |
+| Versioned import | ✅ Fulfilled | `validate/preview → apply` is transactional, version/checksum idempotent and rejects changed replay, broken references, duplicates and skill cycles. |
+| Audit trail | ✅ Fulfilled | Admin mutations append content/security audit events and the protected UI can inspect recent events. |
 
-Net: essentially the entire admin surface is either missing or
-read-only-at-best. Before any admin page can go live, it needs its own
-foundational work (see Integration Options below), not just "point the UI
-at existing endpoints" like most of mobile's gaps.
+The minimum Admin gate is now implemented and has API/component/Playwright
+coverage plus a browser smoke against the real API/PostgreSQL. Remaining work
+is production deployment configuration, running browser E2E in CI, pagination/search and
+optional per-user analytics/role management.
 
 ## 5. Cross-cutting gaps
 
-- **CORS and role foundations are complete**, but Phase 4 must apply the Admin
-  policy to every new CRUD/import/analytics mutation and add browser route guards.
+- **CORS, role foundations and the Admin surface are complete** for the minimum
+  scope: every CRUD/import/analytics/audit route requires the Admin policy and
+  the browser client has a fail-closed guard.
 - **Lesson domain is complete on the learner API and wired on mobile**, including
   versioned content, attempts, feedback and completion. Admin draft/publish
   tooling remains. The post-placement learner loop passed a MuMu smoke with
@@ -150,14 +153,14 @@ at existing endpoints" like most of mobile's gaps.
 
 Concrete next steps, ordered by dependency:
 
-1. **Build Admin Skills/Lessons/Items CRUD and two-step import** using the
-   existing Admin role policy, then replace the Vite scaffold with guarded pages.
-2. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
+1. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
    MIME/size/duration validation and guaranteed raw-audio deletion first.
-3. **Add learning analytics/event APIs** now that lesson traffic and the reward
+2. **Add learning-event/privacy lifecycle APIs** now that lesson traffic and the reward
    ledger exist, so
    completion, correctness and item-difficulty reports have real inputs.
-4. **Add a clean-account full-stack E2E** for registration, placement, profile
+3. **Add a clean-account full-stack E2E** for registration, placement, profile
    setup and the already smoke-tested learner loop.
+4. **Run the committed Admin Playwright specs in CI** and add pagination/search
+   before the content catalog grows substantially.
 5. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
    changing; Flutter can keep its existing hand-written repository pattern.
