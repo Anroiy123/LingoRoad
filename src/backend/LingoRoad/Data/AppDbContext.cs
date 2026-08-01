@@ -26,6 +26,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ExerciseAnswerOperation> ExerciseAnswerOperations => Set<ExerciseAnswerOperation>();
     public DbSet<LessonCompletionOperation> LessonCompletionOperations => Set<LessonCompletionOperation>();
     public DbSet<ContentBundleImport> ContentBundleImports => Set<ContentBundleImport>();
+    public DbSet<RewardLedgerEntry> RewardLedgerEntries => Set<RewardLedgerEntry>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -96,5 +97,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<ExerciseAnswerOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
         mb.Entity<LessonCompletionOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
         mb.Entity<ContentBundleImport>().HasIndex(i => i.Version).IsUnique();
+        mb.Entity<RewardLedgerEntry>().HasIndex(e => new { e.UserId, e.SourceOperationId }).IsUnique();
+        mb.Entity<RewardLedgerEntry>().HasIndex(e => new { e.UserId, e.CreatedAt });
+        mb.Entity<RewardLedgerEntry>().HasOne<User>().WithMany().HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

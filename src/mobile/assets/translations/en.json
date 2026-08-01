@@ -101,22 +101,27 @@
   "home": {
     "welcome": "Hello {}!",
     "subtitle": "Ready to learn English today?",
+    "level_summary": "{} → {} · {}% mastery",
     "metrics": {
       "daily_goal": "Daily goal",
       "weekly_goal": "Weekly goal"
     },
     "today_lesson": {
       "tag": "Today's Lesson",
-      "title": "Airport Communication",
-      "description": "Learn how to check in, find gates, and ask for directions in English.",
       "start": "Start Learning",
-      "ready": "Ready"
+      "empty": "You have completed all recommended lessons",
+      "details": "CEFR {} · {} questions · {} minute goal"
+    },
+    "error": "Could not load today's learning data.",
+    "stats": {
+      "coins": "Coins",
+      "due": "Due"
     },
     "quests_title": "Today's Quests",
     "quests": {
-      "complete_lessons": "Complete {} lessons",
-      "listen_minutes": "Listen for {} minutes",
-      "reach_xp": "Reach {} XP"
+      "daily_lesson": "Complete one lesson",
+      "daily_review": "Review five cards",
+      "daily_xp": "Earn 50 XP"
     },
     "plan": {
       "title": "Today's Plan",
@@ -132,8 +137,7 @@
     },
     "recent": {
       "title": "Recent",
-      "order_food": "Ordering Food",
-      "completed_yesterday": "Completed • Yesterday"
+      "empty": "No completed lessons yet."
     }
   },
   "learning_path": {
@@ -153,6 +157,33 @@
       "title": "Could not load your path",
       "message": "The learning path response is unavailable. Please try again.",
       "network": "Check your connection and try again."
+    },
+    "no_lesson": "This skill is not in today's lesson plan yet.",
+    "open_error": "Could not open the lesson. Please try again."
+  },
+  "lesson": {
+    "title": "Lesson",
+    "answer_hint": "Enter your answer",
+    "submit": "Submit answer",
+    "submit_error": "Could not submit. Retrying will reuse the same operation ID.",
+    "next": "Continue",
+    "feedback": {
+      "correct": "Correct!",
+      "wrong": "Not quite. Review the answer and explanation.",
+      "answer": "Correct answer: {}"
+    },
+    "complete": {
+      "title": "Lesson complete!",
+      "message": "You answered {}/{} correctly and created {} review cards.",
+      "home": "Back to home"
+    },
+    "empty": {
+      "title": "This lesson has no content",
+      "message": "Please come back later."
+    },
+    "error": {
+      "title": "Could not continue the lesson",
+      "message": "Your progress is safe. Please try again."
     }
   },
   "review": {
@@ -203,8 +234,13 @@
     },
     "overview": {
       "current_level": "CURRENT LEVEL",
+      "target_level": "CEFR TARGET",
       "total_xp": "TOTAL XP",
+      "coins": "COINS",
       "streak": "STREAK",
+      "longest_streak": "LONGEST STREAK",
+      "completed_lessons": "COMPLETED LESSONS",
+      "due_reviews": "REVIEWS DUE",
       "quests": "QUESTS",
       "badges": "BADGES",
       "cefr_journey": "CEFR Journey",
@@ -214,8 +250,8 @@
       "improvements": "Needs Improvement"
     },
     "empty": "The skill catalog is currently empty.",
-    "summary_unavailable": "Summary metrics such as XP, streaks, CEFR, and badges do not have APIs yet.",
-    "achievements_unavailable": "Achievements do not have an API yet.",
+    "summary_error": "Unable to load summary metrics.",
+    "quests_empty": "There are no quests yet.",
     "suggestion": {"start": "Start an activity to see your progress.", "weakest": "Prioritize more practice in: {}."},
     "skills_analysis": {
       "title": "Skills Analysis",

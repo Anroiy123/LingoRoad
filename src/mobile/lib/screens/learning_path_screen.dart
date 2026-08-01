@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/learning_path/domain/learning_path_models.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
+import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
@@ -66,7 +68,10 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
           children: [
             Text(
               l10n.translate('learning_path.title'),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 28.sp),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.copyWith(fontSize: 28.sp),
             ),
             Text(
               l10n.translate(
@@ -121,9 +126,39 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       LearningPathState.success => _PathList(
           steps: viewModel.steps,
           selectedCode: _selectedCode,
-          onSelected: (code) => setState(() => _selectedCode = code),
+          onSelected: _openLesson,
         ),
     };
+  }
+
+  Future<void> _openLesson(String code) async {
+    setState(() => _selectedCode = code);
+    final repository = context.read<LessonRepository?>();
+    if (repository == null) return;
+    try {
+      final lessons = await repository.today();
+      final matches = lessons.where((lesson) => lesson.skillCode == code);
+      if (!mounted) return;
+      if (matches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(context
+                  .read<AppLanguageProvider>()
+                  .translate('learning_path.no_lesson'))),
+        );
+        return;
+      }
+      await context.push('/lesson/${matches.first.id}');
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(context
+                  .read<AppLanguageProvider>()
+                  .translate('learning_path.open_error'))),
+        );
+      }
+    }
   }
 }
 
@@ -136,7 +171,7 @@ class _PathList extends StatelessWidget {
 
   final List<LearningPathStep> steps;
   final String? selectedCode;
-  final ValueChanged<String> onSelected;
+  final Future<void> Function(String) onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -199,14 +234,16 @@ class _PathItem extends StatelessWidget {
         child: SizedBox(
           width: MediaQuery.sizeOf(context).width * .72,
           child: AppCard(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
+            padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
             color: current ? AppColors.primaryFixed : AppColors.surface,
             child: InkWell(
               key: Key('learning_path_step_${step.code}'),
               onTap: onTap,
               borderRadius: BorderRadius.circular(AppRadius.lg.r),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs.w, vertical: AppSpacing.xxs.h),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xxs.w, vertical: AppSpacing.xxs.h),
                 child: Row(
                   children: [
                     AnimatedContainer(
@@ -247,7 +284,10 @@ class _PathItem extends StatelessWidget {
                             ),
                           Text(
                             localizedName,
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontSize: 14.sp),
                           ),
                           Text(
                             '${step.cefr} · ${l10n.translate(reasonKey)}',
@@ -298,7 +338,10 @@ class _MessageCard extends StatelessWidget {
           SizedBox(height: AppSpacing.sm.h),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontSize: 20.sp),
           ),
           SizedBox(height: AppSpacing.xs.h),
           Text(

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using LingoRoad.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,17 @@ public class ContentBundleTests : IClassFixture<ContentFactory>
         Assert.Equal(20, await db.Lessons.CountAsync());
         Assert.Equal(100, await db.Items.CountAsync(i => i.StableId != null));
         Assert.Single(await db.ContentBundleImports.ToListAsync());
+    }
+
+    [Fact]
+    public void Bundle_checksum_is_independent_of_platform_line_endings()
+    {
+        var lf = Encoding.UTF8.GetBytes("{\n  \"version\": \"v1\"\n}\n");
+        var crlf = Encoding.UTF8.GetBytes("{\r\n  \"version\": \"v1\"\r\n}\r\n");
+
+        Assert.Equal(
+            ContentBundleSeeder.ComputeChecksum(lf),
+            ContentBundleSeeder.ComputeChecksum(crlf));
     }
 }
 
@@ -240,10 +252,20 @@ public class LessonEndpointTests : IClassFixture<ContentFactory>
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.Equal(1, await verifyDb.LessonCompletionOperations
             .CountAsync(o => o.AttemptId == attempt.Id));
+        Assert.Equal(1, await verifyDb.RewardLedgerEntries
+            .CountAsync(o => o.SourceEntityId == attempt.Id));
         var userId = (await verifyDb.LessonAttempts.FindAsync(attempt.Id))!.UserId;
         var progress = await verifyDb.UserLessonProgresses
             .SingleAsync(p => p.UserId == userId && p.LessonId == lesson.Id);
         Assert.Equal(1, progress.CompletionCount);
+
+        var rewards = await _client.GetFromJsonAsync<GamificationDto>("/gamification/me");
+        var quests = await _client.GetFromJsonAsync<List<QuestDto>>("/quests");
+        Assert.Equal(45, rewards!.Xp);
+        Assert.Equal(2, rewards.Coins);
+        var lessonQuest = Assert.Single(quests!, q => q.Code == "daily_lesson");
+        Assert.Equal(1, lessonQuest.Current);
+        Assert.True(lessonQuest.Completed);
     }
 
     private record TodayLesson(Guid Id, string Slug, string Title, string TitleVi,
@@ -252,4 +274,6 @@ public class LessonEndpointTests : IClassFixture<ContentFactory>
         string[] Options, bool Answered);
     private record AttemptDto(Guid Id, Guid LessonId, string Status,
         List<ExerciseDto> Exercises);
+    private record GamificationDto(int Xp, int Coins);
+    private record QuestDto(string Code, int Current, int Target, bool Completed);
 }

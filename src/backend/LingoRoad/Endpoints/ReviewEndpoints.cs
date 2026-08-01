@@ -19,8 +19,13 @@ public static class ReviewEndpoints
         {
             var skill = await db.Skills.SingleOrDefaultAsync(s => s.Code == req.SkillCode);
             if (skill is null) return Results.BadRequest(new { error = "unknown_skill" });
-            var card = new ReviewCard { UserId = user.UserId(), SkillId = skill.Id,
-                Front = req.Front, Back = req.Back };
+            var card = new ReviewCard
+            {
+                UserId = user.UserId(),
+                SkillId = skill.Id,
+                Front = req.Front,
+                Back = req.Back
+            };
             db.ReviewCards.Add(card);
             await db.SaveChangesAsync();
             return Results.Created($"/reviews/{card.Id}",
@@ -59,11 +64,29 @@ public static class ReviewEndpoints
             Fsrs.Review(card, (Grade)req.Rating, DateTime.UtcNow);
             var operation = new ReviewGradeOperation
             {
-                UserId = userId, CardId = card.Id, OperationId = req.OperationId,
-                Rating = req.Rating, ExpectedReps = req.ExpectedReps, Due = card.Due,
-                State = card.State, Stability = card.Stability, Difficulty = card.Difficulty, Reps = card.Reps,
+                UserId = userId,
+                CardId = card.Id,
+                OperationId = req.OperationId,
+                Rating = req.Rating,
+                ExpectedReps = req.ExpectedReps,
+                Due = card.Due,
+                State = card.State,
+                Stability = card.Stability,
+                Difficulty = card.Difficulty,
+                Reps = card.Reps,
             };
             db.ReviewGradeOperations.Add(operation);
+            db.RewardLedgerEntries.Add(new RewardLedgerEntry
+            {
+                UserId = userId,
+                SourceOperationId = req.OperationId,
+                SourceType = RewardSources.ReviewGrade,
+                SourceEntityId = card.Id,
+                Xp = 5,
+                Coins = 1,
+                StreakQualified = true,
+                QuestCode = "daily_review",
+            });
             try
             {
                 await db.SaveChangesAsync();
@@ -92,7 +115,12 @@ public static class ReviewEndpoints
 
     private static object Snapshot(ReviewGradeOperation operation) => new
     {
-        id = operation.CardId, operation.OperationId, operation.Due, operation.State,
-        stability = operation.Stability, difficulty = operation.Difficulty, operation.Reps,
+        id = operation.CardId,
+        operation.OperationId,
+        operation.Due,
+        operation.State,
+        stability = operation.Stability,
+        difficulty = operation.Difficulty,
+        operation.Reps,
     };
 }

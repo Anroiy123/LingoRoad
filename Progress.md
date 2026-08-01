@@ -1,10 +1,12 @@
 # Tổng quan tiến độ
 
-> Cập nhật tích hợp 2026-08-01: Review dùng `GET /reviews/due` và grade
-> idempotent; Progress dùng `/skills` + `/mastery` để tổng hợp nhóm kỹ năng.
-> Backend learner loop đã có Lesson/Exercise producer và tự tạo ReviewCard từ
-> câu sai; mobile lesson player, Home, XP, streak, quest, huy hiệu và dashboard
-> aggregate vẫn chưa hoàn thành. Lịch sử bên dưới giữ nguyên.
+> Cập nhật tích hợp 2026-08-01: mobile đã nối `Path → Lesson → Exercise →
+> Feedback → Mastery → Review`, Home dùng dashboard aggregate thật và
+> gamification có ledger append-only cho XP/coin/streak/quest. Widget/API test
+> đã bao phủ retry và double-submit; smoke learner loop trên MuMu đã đạt cả
+> grade Review, refresh Progress/Home, mất mạng/retry, app restart và ML tạm
+> ngừng.
+> Lịch sử bên dưới giữ nguyên.
 
 > Cập nhật lần cuối: **2026-08-01**
 > Phạm vi: toàn bộ LingoRoad gồm backend .NET, ML service, Flutter mobile,
@@ -14,36 +16,38 @@
 
 - Mốc **16/16 task hoàn thành** trong ledger backend là kết quả của kế hoạch
   nghiên cứu backend/AI, không phải trạng thái hoàn thành của toàn bộ MVP.
-- Luồng sản phẩm thật hiện chạy được:
-  `Register/Login → Placement → Profile Setup → MainShell → Logout/Login`; trong `MainShell`,
-  Learning Path gọi `GET /path`, Profile đọc `GET /auth/me`, Review dùng
-  `/reviews/*`, và Progress tổng hợp `/skills` + `/mastery`.
-- Backend đã chạy được `Today Plan → Lesson → Exercise → Feedback → Mastery →
-  Review`, có resume và idempotency/concurrency guard. Mobile chưa có lesson
-  detail/player nên learner loop sản phẩm vẫn chưa khép kín. Home vẫn dùng dữ
-  liệu mock/tĩnh; Profile/onboarding đã lưu target, daily goal, purpose,
-  focus, reminder/preferences và đổi mật khẩu qua API thật.
+- Luồng đã được triển khai và kiểm thử ở API/widget:
+  `Register/Login → Placement → Profile Setup → Home/Path → Lesson → Exercise →
+  Feedback → Mastery → Review → Dashboard`; phần learner loop sau placement đã
+  được smoke trên MuMu bằng API/PostgreSQL thật.
+- Backend và mobile cùng hỗ trợ start/resume lesson, ba loại exercise, feedback,
+  completion, refresh Path/Progress/Review/Home và chống double-submit. Home,
+  Profile/onboarding, Review và Progress đều dùng API thật; không còn
+  `MockRepository` trong `lib/` production.
   Các màn hình đã bổ sung trên Figma mới là design coverage, chưa được tính là
   Flutter implementation.
 - Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency, chuẩn hóa
   email, rate limit, refresh rotation/reuse, role policy và startup config
   validation đã được xử lý; validation/retention Speaking vẫn còn thiếu.
-- Admin Web mới là Vite scaffold. Gamification và dashboard aggregate chưa có
-  domain/API đầy đủ.
-- Vì vậy, dự án hiện là **backend learner-loop foundation + auth/placement E2E +
-  các lát cắt mobile API thật**, chưa phải MVP sản phẩm có vòng lặp học khép kín.
+- Admin Web mới là Vite scaffold. Gamification đã có XP/coin/streak/quest nhưng
+  chưa có badge/reward tuning; mastery passive decay vẫn thiếu.
+- Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile và có test tự động**,
+  đồng thời đã có device smoke sau placement, nhưng chưa đạt MVP nghiệm thu do
+  thiếu full-stack E2E từ account mới, Admin, Speaking safety và production
+  readiness.
 
 ## Snapshot bằng chứng ngày 2026-08-01
 
 - Trước khi cập nhật tài liệu, checkout ở `main@f6da732` và đã đồng bộ với
   `origin/main`. Working tree có thay đổi ngoài phạm vi tài liệu này và được giữ
   nguyên.
-- .NET hiện có **32 route/11 feature group**: 31 lệnh `Map*` trong `Endpoints`
+- .NET hiện có **35 route/12 feature group**: 34 lệnh `Map*` trong `Endpoints`
   cộng `GET /health` trong `Program.cs`; profile read dùng `GET /auth/me`.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **72/72 test**.
-- .NET Release test đạt **63/63**; migration identity/profile và Lesson/content
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **79/79 test**.
+- .NET Release test đạt **65/65**; migration identity/profile, Lesson/content
+  và gamification
   loop đã apply thành công trên PostgreSQL local. Concurrent start/answer/
-  completion test đều qua 5 lần liên tiếp.
+  completion và reward replay test đều xanh.
 - ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
   thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.
   Con số 47 test đạt trong tài liệu cũ chỉ được coi là bằng chứng lịch sử.
@@ -54,6 +58,12 @@
   gói API, ML, model/RAG artifacts hoặc reverse proxy.
 - `dotnet list package --vulnerable --include-transitive` hiện không báo package
   vulnerable cho cả API và test project.
+- MuMu Android 12 đã hoàn thành lesson 5 câu (MCQ/cloze/reorder), nhận feedback,
+  tạo và grade ReviewCard, cập nhật mastery 77%, streak 1, XP 45, coin 3 và due
+  review về 0. Force-stop/relaunch giữ phiên; tháo ADB reverse làm submit lỗi và
+  nối lại retry thành công với cùng operation ID. ML không chạy trong lượt này;
+  fixture chỉ seed placement-completed cho tài khoản test nên không được tính là
+  E2E placement mới.
 
 ## Ma trận trạng thái sản phẩm
 
@@ -62,15 +72,15 @@
 | Auth và session | API thật | Access token 15 phút, refresh token hash/rotation/reuse detection, logout/revoke, đổi mật khẩu, role claim/policy và mobile single-flight refresh đã có; forgot-password là phần mở rộng sau MVP |
 | Onboarding và profile | API thật | Sau placement có Profile Setup; target chỉ được xác nhận khi user chọn A1–B2. Daily goal, purpose, focus, reminder/timezone, email/app preferences và change-password đều lưu qua API; toggle rollback khi save lỗi |
 | Placement | Partial, E2E thật | Answer đã session-bound/idempotent và email đã normalize/validate; vẫn chỉ trả CEFR tổng và mới có 12 smoke items |
-| Home/Today Plan | Backend API, mobile mock | `GET /path/today` trả lesson thật; Home chưa lấy today lesson, due review và recent activity từ backend |
-| Learning Path | API thật trên mobile, learner API ở backend | `GET /path` và `/path/today` đã có lesson mapping/recalculation; mobile chưa mở lesson/refresh sau complete và chưa smoke MuMu |
-| Lesson | Backend API thật | Có Lesson/LessonItem/Attempt/Progress, detail/start/resume/get/complete; thiếu mobile detail/player |
-| Exercise/AI feedback | Backend API thật | Lesson materialize item an toàn, submit chỉ trả đáp án sau chấm và idempotent; thiếu mobile player/result/explanation |
+| Home/Today Plan | API thật trên mobile | `GET /dashboard` + `/path/today` cấp name, CEFR/target, mastery, goal, next lesson, due review, recent activity và reward stats |
+| Learning Path | API thật, MuMu smoke đạt | `/path` mở lesson từ `/path/today`; complete refresh Path/Progress/Review/Home; offline retry và app restart đã được xác minh |
+| Lesson | API thật trên mobile | Detail/player start-resume-progress-submit-feedback-complete có loading/error/retry và giữ operation ID khi retry |
+| Exercise/AI feedback | API thật trên mobile | Player hỗ trợ MCQ, cloze, reorder; đáp án chỉ xuất hiện sau submit; backend idempotent và cập nhật mastery một lần |
 | Mastery/KT | Partial, read API thật | Progress tổng hợp snapshot `/mastery` với catalog `/skills`; chưa áp dụng passive decay và SAINT+ `/kt/predict` chưa được .NET production flow sử dụng |
-| SRS Review | API thật trên mobile và producer backend | Dùng `/reviews/due`, grade idempotent và tự tạo card từ câu lesson sai; còn thiếu E2E mobile toàn vòng |
-| Dashboard/Progress | Partial, skill progress API thật | Progress hiển thị mastery/weak-strong skill từ API; Home và dashboard aggregate vẫn thiếu CEFR, due count, completed lessons, XP/streak/badge/quest |
+| SRS Review | API thật, producer backend và MuMu smoke đạt | Dùng `/reviews/due`, grade idempotent, tự tạo card từ câu lesson sai và cập nhật reward/due đúng một lần |
+| Dashboard/Progress | API thật, MuMu smoke đạt, còn thiếu decay | Progress dùng `/skills` + `/mastery` và dashboard/gamification aggregate; category chỉ tính skill đã thực hành; Home dùng `/dashboard` |
 | Advisor/Writing/Speaking | Backend/ML-only | Chưa có learner UI; thiếu quota, privacy, fallback và quyết định có thuộc MVP hay không |
-| Gamification | Lý thuyết/UI tĩnh | Chưa có XP/streak/badge/quest ledger, rule, API hoặc test idempotency |
+| Gamification | Partial, API/UI thật | Ledger append-only cho XP/coin/streak/quest, timezone, API, Home/Streak UI và replay test đã có; badge và reward tuning còn thiếu |
 | Admin CMS/analytics | Missing | Chưa có Admin Web, role model, admin auth, CRUD nội dung và analytics |
 | Dữ liệu nội dung | Versioned bundle | Có 174 skills, bundle 20 lesson/100 item/3 type với stable ID/checksum/source/license/reviewer và transactional idempotent seed; còn thiếu 5–10 test learner fixture |
 | Deployment/operations | Missing/partial | Thiếu full-stack Docker, CI/CD, secrets, HTTPS, migration job, backup và monitoring |
@@ -109,17 +119,18 @@
   - [ ] Bổ sung 5–10 test learners; admin production dùng bootstrap secret đã có.
   - [x] Có version, nguồn, validation, deduplication, seed/import và artifact
     distribution; không phụ thuộc file chỉ tồn tại trên một máy.
-- [ ] **P0-05 — Learning Path end-to-end.**
+- [x] **P0-05 — Learning Path end-to-end.**
   - [x] Mobile dùng repository/API model/ViewModel thật cho `GET /path`, có
     loading, empty, error, retry và Flutter test.
   - [x] Backend định nghĩa path item → lesson, today plan, complete và recalculation.
-  - [ ] Nối các API learner path mới vào mobile.
-  - [ ] Xác minh lại backend/mobile flow trên MuMu.
-- [ ] **P0-06 — Lesson/Exercise/AI feedback end-to-end.**
+  - [x] Nối các API learner path mới vào mobile.
+  - [x] Xác minh lại backend/mobile flow trên MuMu, gồm offline retry, app
+    restart và ML tạm ngừng.
+- [x] **P0-06 — Lesson/Exercise/AI feedback end-to-end.**
   - [x] Bổ sung Lesson domain/API và dữ liệu lesson.
-  - [ ] Tạo mobile lesson detail/player; backend submit/result/explanation đã có.
+  - [x] Tạo mobile lesson detail/player; backend submit/result/explanation đã có.
   - [x] Backend cập nhật mastery đúng một lần và recalculation sau hoàn thành.
-  - [ ] Mobile refresh path/progress sau hoàn thành.
+  - [x] Mobile refresh path/progress/review/dashboard sau hoàn thành.
 - [x] **P0-07 — SRS Review end-to-end ở API/mobile screen hiện có.**
   - [x] Flutter dùng `/reviews/due`, gửi grade 1–4 idempotent và có
     loading/empty/error/complete state cùng double-submit guard/test lịch ôn.
@@ -128,12 +139,12 @@
   - [x] Profile read đã dùng `GET /auth/me` cho name, level/CEFR hiện tại và
     badge/profile stats; email chỉ là fallback cho display name.
   - [x] Hiển thị `targetCefr` đã parse thay cho target tile hard-code.
-  - [ ] Tạo aggregate API cho CEFR, mastery, weak/strong skills, due count,
+  - [x] Tạo aggregate API cho CEFR, mastery, weak/strong skills, due count,
     completed lessons và next lesson.
   - [ ] Áp dụng mastery decay nhất quán khi đọc path/dashboard.
   - [x] Progress thay mastery/weak-strong skill mock bằng `/skills` + `/mastery`.
-  - [ ] Thay dữ liệu mock/hard-code còn lại ở Home và các mục profile
-    chưa có update API.
+  - [x] Thay dữ liệu mock/hard-code còn lại ở Home/Profile/Streak và dùng API
+    update cho profile preferences.
 - [ ] **P0-09 — Admin tối thiểu.**
   - Thêm role/authorization, Admin Web, CRUD skill/lesson/question, import có
     kiểm soát và analytics cơ bản.
@@ -147,8 +158,9 @@
   các route ML chỉ cho API nội bộ.
 - [ ] Tích hợp SAINT+ vào learner event pipeline hoặc ghi rõ đây chỉ là model
   serving PoC. DQN/DP hiện vẫn là research evidence, chưa phải production policy.
-- [ ] Nếu giữ gamification trong MVP, thiết kế event ledger cho XP/streak/badge/
-  quest, timezone, idempotency, API, DB, UI và test.
+- [ ] Nếu giữ gamification trong MVP:
+  - [x] Event ledger XP/coin/streak/quest, timezone, idempotency, API, DB, UI và test.
+  - [ ] Badge, reward tuning và acceptance test theo product rule.
 - [ ] Tạo CI chạy .NET, ML, Flutter analyze/test/build; thêm contract test,
   authorization test, 503/degradation test, main-tab API flow và full-stack E2E.
 - [x] Nâng dependency có advisory; thêm startup config validation, token
@@ -189,20 +201,20 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 72/72;
+1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 79/79;
    tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.
 2. Đồng bộ tài liệu hiện hành, sau đó xử lý Git bằng commit/PR riêng với danh
    sách file được kiểm tra rõ ràng.
-3. **Review/Progress integration đã đạt:** dùng `/reviews/*`, `/skills` và
-   `/mastery`, có API states, double-submit guard/test và producer ReviewCard.
-   Còn dashboard aggregate theo P0-08.
+3. **Learner loop mobile đã nối:** Review/Progress/Home/Lesson đều dùng API,
+   có API states, operation ID/retry guard và reward ledger; smoke MuMu đã đạt.
+   Phần còn lại là mastery passive decay và full-stack E2E từ account mới.
 4. **Profile/Onboarding đã đạt:** `GET/PATCH /auth/me`, refresh/logout,
    change-password và Profile Setup đã nối mobile; PostgreSQL migration đã apply.
 5. **Backend learner loop và content seed đã đạt:** 20 lesson/100 item/3 type;
-   start/resume/submit/complete/mastery/review idempotent. Tiếp theo nối mobile
-   `Path → Lesson → Exercise → Mastery → Review → Dashboard` và xác minh MuMu.
+   start/resume/submit/complete/mastery/review/reward idempotent. Mobile đã nối
+   toàn vòng và đã xác minh MuMu/offline/restart.
 6. Hoàn tất speaking validation/retention và test learner fixtures.
 7. Hoàn thiện Admin, CI/full-stack E2E, deployment và mobile release.
 

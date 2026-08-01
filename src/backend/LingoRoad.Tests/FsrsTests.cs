@@ -6,7 +6,7 @@ namespace LingoRoad.Tests;
 public class FsrsTests
 {
     private static ReviewCard NewCard() => new()
-        { UserId = Guid.NewGuid(), SkillId = 1, Front = "hi", Back = "chào" };
+    { UserId = Guid.NewGuid(), SkillId = 1, Front = "hi", Back = "chào" };
 
     private static ReviewCard Reviewed(Grade g, DateTime now)
     {
@@ -85,6 +85,7 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
     }
 
     private record CardDto(Guid Id, string Front, string Back, DateTime Due, string State, int Reps);
+    private record RewardsDto(int Xp, int Coins);
 
     [Fact]
     public async Task Create_grade_and_requeue_flow()
@@ -169,6 +170,9 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
 
         Assert.All(responses, response => response.EnsureSuccessStatusCode());
         Assert.Empty((await _client.GetFromJsonAsync<List<CardDto>>("/reviews/due"))!);
+        var rewards = await _client.GetFromJsonAsync<RewardsDto>("/gamification/me");
+        Assert.Equal(5, rewards!.Xp);
+        Assert.Equal(1, rewards.Coins);
     }
 
 }

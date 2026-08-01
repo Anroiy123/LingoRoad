@@ -101,22 +101,27 @@
   "home": {
     "welcome": "Chào {}!",
     "subtitle": "Sẵn sàng học tiếng Anh hôm nay chưa?",
+    "level_summary": "{} → {} · Thành thạo {}%",
     "metrics": {
       "daily_goal": "Mục tiêu hằng ngày",
       "weekly_goal": "Mục tiêu trong tuần"
     },
     "today_lesson": {
       "tag": "Bài học hôm nay",
-      "title": "Giao tiếp tại sân bay",
-      "description": "Học cách làm thủ tục, tìm cổng và hỏi đường bằng tiếng Anh.",
       "start": "Bắt đầu học",
-      "ready": "Đã sẵn sàng"
+      "empty": "Bạn đã hoàn thành các bài được đề xuất",
+      "details": "CEFR {} · {} câu · mục tiêu {} phút"
+    },
+    "error": "Không thể tải dữ liệu học hôm nay.",
+    "stats": {
+      "coins": "Xu",
+      "due": "Cần ôn"
     },
     "quests_title": "Nhiệm vụ hôm nay",
     "quests": {
-      "complete_lessons": "Hoàn thành {} bài học",
-      "listen_minutes": "Nghe {} phút",
-      "reach_xp": "Đạt {} XP"
+      "daily_lesson": "Hoàn thành một bài học",
+      "daily_review": "Ôn tập năm thẻ",
+      "daily_xp": "Đạt 50 XP"
     },
     "plan": {
       "title": "Kế hoạch hôm nay",
@@ -132,8 +137,7 @@
     },
     "recent": {
       "title": "Gần đây",
-      "order_food": "Gọi món ăn",
-      "completed_yesterday": "Hoàn thành • Hôm qua"
+      "empty": "Chưa có bài học nào hoàn thành."
     }
   },
   "learning_path": {
@@ -153,6 +157,33 @@
       "title": "Không thể tải lộ trình",
       "message": "Dữ liệu lộ trình chưa sẵn sàng. Vui lòng thử lại.",
       "network": "Hãy kiểm tra kết nối rồi thử lại."
+    },
+    "no_lesson": "Kỹ năng này chưa có bài học trong kế hoạch hôm nay.",
+    "open_error": "Không thể mở bài học. Vui lòng thử lại."
+  },
+  "lesson": {
+    "title": "Bài học",
+    "answer_hint": "Nhập câu trả lời",
+    "submit": "Gửi câu trả lời",
+    "submit_error": "Chưa thể gửi câu trả lời. Thử lại sẽ dùng cùng mã thao tác.",
+    "next": "Tiếp tục",
+    "feedback": {
+      "correct": "Chính xác!",
+      "wrong": "Chưa đúng, hãy xem đáp án và giải thích.",
+      "answer": "Đáp án đúng: {}"
+    },
+    "complete": {
+      "title": "Hoàn thành bài học!",
+      "message": "Bạn đúng {}/{} câu và tạo {} thẻ ôn tập.",
+      "home": "Về trang chủ"
+    },
+    "empty": {
+      "title": "Bài học chưa có nội dung",
+      "message": "Vui lòng quay lại sau."
+    },
+    "error": {
+      "title": "Không thể tiếp tục bài học",
+      "message": "Dữ liệu được giữ an toàn. Hãy thử lại."
     }
   },
   "review": {
@@ -203,8 +234,13 @@
     },
     "overview": {
       "current_level": "TRÌNH ĐỘ HIỆN TẠI",
+      "target_level": "MỤC TIÊU CEFR",
       "total_xp": "TỔNG XP",
+      "coins": "XU",
       "streak": "CHUỖI NGÀY",
+      "longest_streak": "CHUỖI DÀI NHẤT",
+      "completed_lessons": "BÀI ĐÃ HOÀN THÀNH",
+      "due_reviews": "THẺ CẦN ÔN",
       "quests": "NHIỆM VỤ",
       "badges": "HUY HIỆU",
       "cefr_journey": "Hành trình CEFR",
@@ -214,8 +250,8 @@
       "improvements": "Cần cải thiện"
     },
     "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
-    "summary_unavailable": "Các chỉ số tổng hợp như XP, chuỗi ngày, CEFR và huy hiệu hiện chưa có API.",
-    "achievements_unavailable": "Thành tích hiện chưa có API.",
+    "summary_error": "Không thể tải các chỉ số tổng hợp.",
+    "quests_empty": "Hiện chưa có nhiệm vụ nào.",
     "suggestion": {"start": "Hãy bắt đầu một hoạt động để cập nhật tiến độ.", "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."},
     "skills_analysis": {
       "title": "Phân tích kỹ năng",

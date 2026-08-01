@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <Content Update="Data\Seed\**" CopyToOutputDirectory="PreserveNewest" />
+        <InternalsVisibleTo Include="LingoRoad.Tests" />
     </ItemGroup>
 
 </Project>

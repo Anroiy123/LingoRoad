@@ -10,8 +10,11 @@ import 'package:lingoroad_mobile/core/network/api_client.dart';
 import 'package:lingoroad_mobile/core/session/secure_session_store.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/dashboard/data/dashboard_repository.dart';
+import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
 import 'package:lingoroad_mobile/features/learning_path/data/learning_path_repository.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
+import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
 import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
@@ -39,6 +42,8 @@ void main() async {
   final learningPathViewModel = LearningPathViewModel(learningPathRepository);
   final reviewRepository = ApiReviewRepository(apiClient);
   final progressRepository = ApiProgressRepository(apiClient);
+  final lessonRepository = ApiLessonRepository(apiClient);
+  final dashboardRepository = ApiDashboardRepository(apiClient);
 
   final viJson = await rootBundle.loadString('assets/translations/vi.json');
   final enJson = await rootBundle.loadString('assets/translations/en.json');
@@ -71,6 +76,8 @@ void main() async {
       learningPathViewModel: learningPathViewModel,
       reviewRepository: reviewRepository,
       progressRepository: progressRepository,
+      lessonRepository: lessonRepository,
+      dashboardRepository: dashboardRepository,
       languageProvider: languageProvider,
     ),
   );
@@ -89,6 +96,8 @@ class LingoRoadApp extends StatelessWidget {
     this.learningPathViewModel,
     this.reviewRepository,
     this.progressRepository,
+    this.lessonRepository,
+    this.dashboardRepository,
     super.key,
   });
 
@@ -101,6 +110,8 @@ class LingoRoadApp extends StatelessWidget {
   final LearningPathViewModel? learningPathViewModel;
   final ReviewRepository? reviewRepository;
   final ProgressRepository? progressRepository;
+  final LessonRepository? lessonRepository;
+  final DashboardRepository? dashboardRepository;
   final AppLanguageProvider languageProvider;
 
   @override
@@ -192,6 +203,32 @@ class LingoRoadApp extends StatelessWidget {
         ChangeNotifierProvider<ProgressViewModel>(
           create: (context) =>
               ProgressViewModel(context.read<ProgressRepository>()),
+        ),
+        if (lessonRepository != null)
+          Provider<LessonRepository>.value(value: lessonRepository!)
+        else
+          Provider<LessonRepository>(
+            create: (context) => ApiLessonRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (dashboardRepository != null)
+          Provider<DashboardRepository>.value(value: dashboardRepository!)
+        else
+          Provider<DashboardRepository>(
+            create: (context) => ApiDashboardRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        ChangeNotifierProvider<DashboardViewModel>(
+          create: (context) =>
+              DashboardViewModel(context.read<DashboardRepository>()),
         ),
       ],
       child: Builder(
