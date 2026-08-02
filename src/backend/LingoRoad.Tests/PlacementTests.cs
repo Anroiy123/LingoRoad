@@ -17,6 +17,7 @@ namespace LingoRoad.Tests;
 public class FakeMlClient : IMlClient
 {
     public bool Throw { get; set; }
+    public double SpeakingDurationSeconds { get; set; } = 3;
     public Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default)
     {
         if (Throw) throw new MlServiceUnavailableException(new HttpRequestException("down"));
@@ -30,10 +31,13 @@ public class FakeMlClient : IMlClient
         => Task.FromResult(new AdvisorResponse("Bạn nên học kỹ năng này vì nó là nền tảng."));
 
     public Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default)
-        => Task.FromResult(new ExerciseGenResponse([
+    {
+        if (Throw) throw new MlServiceUnavailableException(new HttpRequestException("down"));
+        return Task.FromResult(new ExerciseGenResponse([
             new GeneratedExercise("She ___ here since 2019.",
                 ["has lived", "lived", "lives", "living"], "has lived",
                 "Dùng thì hiện tại hoàn thành với 'since'.")]));
+    }
 
     public Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)
         => Task.FromResult(new AweResponse(new AweScores(6, 6, 5, 5),
@@ -42,8 +46,12 @@ public class FakeMlClient : IMlClient
 
     public Task<SpeakingScoreResponse> ScoreSpeakingAsync(Stream audio, string fileName,
         string promptText, CancellationToken ct = default)
-        => Task.FromResult(new SpeakingScoreResponse(promptText, 0.9, 1.0, 0.8, 0.88,
+    {
+        if (Throw) throw new MlServiceUnavailableException(new HttpRequestException("down"));
+        return Task.FromResult(new SpeakingScoreResponse(promptText, 0.9, 1.0, 0.8, 0.88,
+            SpeakingDurationSeconds, "whisper-small-test",
             "Phát âm tốt, chú ý âm cuối."));
+    }
 }
 
 public class PlacementFactory : TestAppFactory

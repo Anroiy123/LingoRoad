@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using LingoRoad.Data;
+using Microsoft.Extensions.Logging;
 
 namespace LingoRoad.Tests;
 
@@ -25,6 +26,11 @@ public class TestAppFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _keeper.Open();
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddDebug();
+        });
         builder.UseSetting("RateLimits:Anonymous", "10000");
         builder.UseSetting("RateLimits:Authenticated", "10000");
         builder.UseSetting("RateLimits:AuthWrite", "10000");

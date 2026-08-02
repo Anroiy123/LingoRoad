@@ -46,12 +46,12 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Lesson management | ✅ Admin CRUD, relation validation and draft/publish | ✅ Detail/player wired to learner API | ✅ CRUD/draft/publish UI |
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
 | Learning path (recommendation) | ✅ `/path` + `/path/today` | ✅ Path/today lesson/player wired | — |
-| Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ❌ No chat/advisor screen | — |
+| Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ✅ Advisor flow with API states/retry | — |
 | Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ⚠️ Aggregate by category in overview; no per-user drill-down |
 | Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
 | Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | — |
-| Writing evaluation (AWE) | ✅ `/writing/evaluate` | ❌ No writing screen | — |
-| Speaking assessment | ✅ `/speaking/attempts` (upload, score, history) | ❌ No recording UI (audio *playback* only) | — |
+| Writing evaluation (AWE) | ✅ `/writing/evaluate` | ✅ Writing flow with API states/retry | — |
+| Speaking assessment | ✅ Safe `/speaking/attempts` upload/history | ✅ Recording, score/history and retry flow | — |
 | User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
 | Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ✅ Overview consumes learner/reward aggregates |
 | Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ✅ Login and route guard; learner receives 403 from server |
@@ -74,6 +74,7 @@ code and reframe it against backend capability.
 | Lesson/Exercise | ✅ Fulfilled | `/path/today` opens a start/resume attempt; the player supports MCQ, cloze and reorder, retains operation UUIDs across retry and refreshes Path/Progress/Review/Dashboard after completion. |
 | Home/Dashboard | ✅ Fulfilled | `GET /dashboard` supplies learner name, current/target CEFR, mastery, weak/strong skills, goals, next lesson, due reviews, completion/recent activity and reward stats. `/quests` supplies daily quest state. |
 | Streak | ✅ Fulfilled | The details screen derives current/longest streak and active calendar dates from the reward ledger; the former October 2025 mock was removed. |
+| AI practice | ✅ Fulfilled, production-gated | Home opens Advisor, Writing and Speaking flows. Multipart upload carries MIME/auth, microphone denial and request retry are handled, and duplicate submission is blocked. Speaking artifacts/evaluation remain gated for production. |
 
 ### 3.2 Review and Progress integration update (2026-08-01)
 
@@ -100,7 +101,7 @@ API repositories, and `mock_repository.dart` has been deleted from production.
 | Review | `ReviewCardData(wordKey, meaningKey, exampleKey, categoryKey)` — 3 static flashcards with Forgot/Hard/Good/Easy controls | `GET /reviews/due`, `POST /reviews/cards`, `POST /reviews/{cardId}/grade` | ⚠️ Partial | The four grade controls are present, but the screen still loads `const MockRepository().reviews()`. It has no due-date/API loading/error/empty states, no double-submit guard, and neither fetches due cards nor posts a grade. Nothing currently calls `POST /reviews/cards` to create a card in the first place — that has to happen somewhere (e.g. after a wrong exercise answer) before there's anything to review. |
 | Home | `DailyQuest(key, current, target, icon)` — daily quests | none | ❌ Missing | No daily-quest/goal concept (or XP/streak/badge tracking) exists anywhere in the `.NET` domain model. Note: `progress_screen.dart` also hardcodes streak ('12'-day), XP ('1.240'), badge counts ('12/48'), and quest progress ('2/3') inline, with no backend equivalent — this is a net-new feature, not a wiring task. |
 
-### 3.4 Backend capability with no mobile UI at all yet
+### 3.4 Advanced learner capability update (2026-08-02)
 
 The remaining backend-only learner capabilities are:
 
@@ -108,12 +109,17 @@ The remaining backend-only learner capabilities are:
 |---|---|---|
 | `/path/today`, `/lessons/*`, `/lesson-attempts/*` | ✅ Fulfilled, used | Versioned content, resume, completion and review-card production are wired to the mobile player. |
 | `POST /exercises/generate`, `POST /exercises/{id}/submit` | ⚠️ Partial mobile use | Lesson-bound submit/feedback is wired; standalone AI-generated exercise creation still has no mobile entry point. |
-| `POST /writing/evaluate` | ✅ Fulfilled, unused | Automated writing evaluation (AWE); no writing-practice screen exists. |
-| `POST /speaking/attempts`, `GET /speaking/attempts` | ✅ Fulfilled, unused | Speech scoring (accuracy/completeness/fluency) from an uploaded audio recording; mobile only has audio *playback* (`placement_audio_player.dart`, listening items), no recording UI. |
-| `POST /path/advisor` | ✅ Fulfilled, unused | RAG-grounded Q&A advisor over the learner's path; no chat/advisor screen exists. |
+| `POST /writing/evaluate` | ✅ Fulfilled, used | Mobile Writing posts a task/essay and renders rubric feedback with loading/error/retry. |
+| `POST /speaking/attempts`, `GET /speaking/attempts` | ✅ Fulfilled, used | Mobile records WAV with permission handling; API validates declared MIME plus signature, caps 10 MiB/120 seconds, deletes raw audio and persists only score metadata/history. |
+| `POST /path/advisor` | ✅ Fulfilled, used | Mobile Advisor posts the question with loading/error/retry and blocks concurrent submits. |
 
-Advisor, Writing and Speaking still need frontend flows; Speaking also needs
-server-side upload safety and raw-audio deletion before it can be accepted.
+The frontend/API integration gap is closed. Production defaults these optional
+AI flows to a zero-percent cohort unless explicitly configured; development uses
+100 percent. Production remains gated on quota/cost UX, pinned ML/RAG artifacts
+and consent-based Whisper evaluation; the model manifest deliberately labels
+SAINT+ and Whisper as non-production. The .NET ML client uses bounded retry,
+per-flow timeout and a shared circuit breaker; standalone exercise generation
+falls back to the versioned item bank when ML is unavailable.
 
 ## 4. Admin (React) gap analysis
 
@@ -153,8 +159,8 @@ optional per-user analytics/role management.
 
 Concrete next steps, ordered by dependency:
 
-1. **Wire Advisor, Writing and Speaking mobile flows**; Speaking still requires
-   MIME/size/duration validation and guaranteed raw-audio deletion first.
+1. **Pin and distribute ML/RAG artifacts** and keep SAINT+/Whisper disabled until
+   their evaluation gates are met; add quota/cost UX for optional AI calls.
 2. **Add learning-event/privacy lifecycle APIs** now that lesson traffic and the reward
    ledger exist, so
    completion, correctness and item-difficulty reports have real inputs.

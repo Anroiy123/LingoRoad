@@ -21,3 +21,20 @@ def test_cat_select_empty_candidates_returns_null_item():
     r = client.post("/cat/select", json={"history": [], "candidates": []})
     assert r.status_code == 200
     assert r.json()["next_item_id"] is None
+
+def test_internal_token_is_required_when_configured(monkeypatch):
+    monkeypatch.setenv("LINGOROAD_ML_INTERNAL_TOKEN", "t" * 32)
+    body = {"history": [], "candidates": []}
+    assert client.post("/cat/select", json=body).status_code == 401
+    response = client.post(
+        "/cat/select", json=body, headers={"X-Internal-Token": "t" * 32}
+    )
+    assert response.status_code == 200
+
+def test_readiness_reports_each_component(monkeypatch):
+    monkeypatch.setenv("LINGOROAD_ML_REQUIRED_MODELS", "cat")
+    response = client.get("/ready")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ready"
+    assert {"cat", "llm", "rag", "speech", "kt"} <= data["components"].keys()

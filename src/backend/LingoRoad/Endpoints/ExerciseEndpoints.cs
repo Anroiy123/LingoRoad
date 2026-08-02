@@ -21,31 +21,56 @@ public static class ExerciseEndpoints
         {
             var skill = await db.Skills.SingleOrDefaultAsync(s => s.Code == req.SkillCode);
             if (skill is null) return Results.BadRequest(new { error = "unknown_skill" });
+            var exerciseType = string.IsNullOrWhiteSpace(req.Type) ? "mcq" : req.Type.Trim();
+            if (exerciseType is not ("mcq" or "cloze" or "reorder"))
+                return ApiResults.Error("unsupported_exercise_type");
+            List<Exercise> rows;
             try
             {
                 var res = await ml.GenerateExercisesAsync(new ExerciseGenRequest(
-                    skill.Code, skill.Name, skill.CefrLevel, req.Type ?? "mcq", 3));
-                var rows = res.Exercises.Select(e => new Exercise
+                    skill.Code, skill.Name, skill.CefrLevel, exerciseType, 3));
+                rows = res.Exercises.Select(e => new Exercise
                 {
                     UserId = user.UserId(),
                     SkillId = skill.Id,
                     CefrLevel = skill.CefrLevel,
-                    Type = req.Type ?? "mcq",
+                    Type = exerciseType,
                     Stem = e.Stem,
                     OptionsJson = JsonSerializer.Serialize(e.Options),
                     CorrectAnswer = e.CorrectAnswer,
                     ExplanationVi = e.ExplanationVi
                 }).ToList();
-                db.Exercises.AddRange(rows);
-                await db.SaveChangesAsync();
-                return Results.Ok(rows.Select(r => new
-                {
-                    r.Id,
-                    r.Stem,
-                    options = JsonSerializer.Deserialize<string[]>(r.OptionsJson)
-                }));
             }
-            catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
+            catch (MlInputRejectedException error) { return ApiResults.MlRejected(error); }
+            catch (MlServiceUnavailableException)
+            {
+                var fallbackItems = await db.Items
+                    .Where(item => item.SkillId == skill.Id && !item.IsDeleted &&
+                        item.Type == exerciseType)
+                    .OrderBy(item => item.StableId).Take(3).ToListAsync();
+                if (fallbackItems.Count == 0) return ApiResults.MlUnavailable();
+                rows = fallbackItems.Select((item, index) => new Exercise
+                {
+                    UserId = user.UserId(),
+                    SourceItemId = item.Id,
+                    Sequence = index,
+                    SkillId = item.SkillId,
+                    CefrLevel = item.CefrLevel,
+                    Type = item.Type,
+                    Stem = item.Stem,
+                    OptionsJson = item.OptionsJson,
+                    CorrectAnswer = item.CorrectAnswer,
+                    ExplanationVi = item.ExplanationVi
+                }).ToList();
+            }
+            db.Exercises.AddRange(rows);
+            await db.SaveChangesAsync();
+            return Results.Ok(rows.Select(r => new
+            {
+                r.Id,
+                r.Stem,
+                options = JsonSerializer.Deserialize<string[]>(r.OptionsJson)
+            }));
         }).RequireRateLimiting("ml-upload");
 
         g.MapPost("/{id:guid}/submit", async (Guid id, SubmitExerciseRequest req,
@@ -111,13 +136,22 @@ public static class ExerciseEndpoints
             return Results.Ok(AnswerSnapshot(operation));
         });
 
-        app.MapPost("/writing/evaluate", async (WritingEvalRequest req, IMlClient ml) =>
+        app.MapPost("/writing/evaluate", async (WritingEvalRequest req, IMlClient ml,
+            System.Security.Claims.ClaimsPrincipal user, IConfiguration configuration,
+            IWebHostEnvironment environment) =>
         {
+            if (string.IsNullOrWhiteSpace(req.TaskPrompt) ||
+                req.TaskPrompt.Trim().Length > 2000 ||
+                string.IsNullOrWhiteSpace(req.Essay) || req.Essay.Trim().Length > 10000)
+                return ApiResults.Error("invalid_writing_submission");
+            if (!MlFeatureRollout.IsEnabled(configuration, environment,
+                "Writing", user.UserId())) return ApiResults.FeatureDisabled();
             try
             {
                 return Results.Ok(await ml.EvaluateWritingAsync(
-                new AweRequest(req.TaskPrompt, req.Essay)));
+                    new AweRequest(req.TaskPrompt.Trim(), req.Essay.Trim())));
             }
+            catch (MlInputRejectedException error) { return ApiResults.MlRejected(error); }
             catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
         }).RequireAuthorization().RequireRateLimiting("ml-upload");
     }

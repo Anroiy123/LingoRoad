@@ -1,9 +1,26 @@
 import io
+import os
 from functools import lru_cache
-from fastapi import APIRouter, UploadFile, Form
+from fastapi import APIRouter, UploadFile, Form, HTTPException
 from lingoroad_ml.speech.scoring import word_scores, fluency_from_wpm
 
 router = APIRouter()
+MAX_AUDIO_BYTES = 10 * 1024 * 1024
+MAX_DURATION_SECONDS = 120
+MODEL_VERSION = os.environ.get("LINGOROAD_SPEECH_MODEL_VERSION", "faster-whisper-small")
+
+def _valid_signature(content_type: str | None, data: bytes) -> bool:
+    signatures = {
+        "audio/webm": data.startswith(b"\x1a\x45\xdf\xa3"),
+        "audio/ogg": data.startswith(b"OggS"),
+        "audio/wav": data.startswith(b"RIFF") and data[8:12] == b"WAVE",
+        "audio/x-wav": data.startswith(b"RIFF") and data[8:12] == b"WAVE",
+        "audio/mpeg": data.startswith(b"ID3") or (
+            len(data) >= 2 and data[0] == 0xFF and data[1] & 0xE0 == 0xE0),
+        "audio/mp4": len(data) >= 12 and data[4:8] == b"ftyp",
+        "audio/x-m4a": len(data) >= 12 and data[4:8] == b"ftyp",
+    }
+    return signatures.get((content_type or "").split(";", 1)[0].lower(), False)
 
 FEEDBACK_PROMPT = """Học viên đọc câu: "{expected}"
 Whisper nghe được: "{transcript}". Các từ bị thiếu/sai: {missing}.
@@ -22,10 +39,17 @@ def _whisper():
 @router.post("/speech/score")
 async def speech_score(file: UploadFile, prompt_text: str = Form(...)):
     from lingoroad_ml.serving.llm_routes import _client
-    audio = io.BytesIO(await file.read())
+    data = await file.read(MAX_AUDIO_BYTES + 1)
+    if len(data) > MAX_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail="audio_too_large")
+    if not _valid_signature(file.content_type, data):
+        raise HTTPException(status_code=415, detail="unsupported_audio_type")
+    audio = io.BytesIO(data)
     segments, info = _whisper().transcribe(audio, language="en")
-    transcript = " ".join(seg.text.strip() for seg in segments)
     duration = max(info.duration or 0.0, 0.1)
+    if duration > MAX_DURATION_SECONDS:
+        raise HTTPException(status_code=413, detail="audio_too_long")
+    transcript = " ".join(seg.text.strip() for seg in segments)
 
     s = word_scores(prompt_text, transcript)
     wpm = len(transcript.split()) / (duration / 60.0)
@@ -42,4 +66,5 @@ async def speech_score(file: UploadFile, prompt_text: str = Form(...)):
         feedback = "Phản hồi chi tiết tạm thời không khả dụng."
     return {"transcript": transcript, "accuracy": s["accuracy"],
             "completeness": s["completeness"], "fluency": fluency,
-            "total": total, "feedback_vi": feedback}
+            "total": total, "duration_seconds": duration,
+            "model_version": MODEL_VERSION, "feedback_vi": feedback}
