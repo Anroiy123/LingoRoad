@@ -45,6 +45,43 @@ void main() {
     expect(await client.get('/health', authenticated: false), 'ok');
   });
 
+  test('multipart gắn bearer, MIME và fields cho speaking', () async {
+    String? authorization;
+    String? contentType;
+    String? requestBody;
+    final client = ApiClient(
+      config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+      session: session,
+      httpClient: MockClient((request) async {
+        authorization = request.headers['Authorization'];
+        contentType = request.headers['content-type'];
+        requestBody = latin1.decode(request.bodyBytes);
+        return http.Response(
+          jsonEncode({'total': .9}),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+
+    expect(
+      await client.postMultipart(
+        '/speaking/attempts',
+        fields: {'promptText': 'Read this sentence'},
+        fileField: 'audio',
+        fileBytes: [1, 2, 3],
+        fileName: 'speaking.wav',
+        mimeType: 'audio/wav',
+      ),
+      {'total': .9},
+    );
+    expect(authorization, 'Bearer jwt-token');
+    expect(contentType, contains('multipart/form-data'));
+    expect(requestBody, contains('promptText'));
+    expect(requestBody, contains('Read this sentence'));
+    expect(requestBody, contains('content-type: audio/wav'));
+  });
+
   test('401 xóa session', () async {
     final client = ApiClient(
       config: AppConfig(apiBaseUrl: 'http://localhost:5000'),

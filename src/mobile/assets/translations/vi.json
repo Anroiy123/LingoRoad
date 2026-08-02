@@ -310,6 +310,34 @@
       "confirm": "Đồng ý"
     }
   },
+  "practice": {
+    "title": "Luyện tập AI",
+    "tabs": {"advisor": "Cố vấn", "writing": "Viết", "speaking": "Nói"},
+    "advisor": {
+      "title": "Hỏi về lộ trình của bạn",
+      "hint": "Tôi nên ưu tiên kỹ năng nào?",
+      "submit": "Nhận gợi ý"
+    },
+    "writing": {
+      "title": "Chấm bài viết CEFR",
+      "task": "Đề bài",
+      "essay": "Bài viết",
+      "submit": "Nhận phản hồi"
+    },
+    "speaking": {
+      "title": "Luyện phát âm",
+      "privacy": "Audio tối đa 120 giây/10 MB và bị xóa ngay sau khi chấm.",
+      "prompt": "Câu cần đọc",
+      "stop_score": "Dừng & chấm ({}s)",
+      "start": "Bắt đầu ghi âm",
+      "cancel": "Hủy bản ghi",
+      "history": "Lịch sử gần đây",
+      "empty": "Chưa có lượt luyện nói.",
+      "overall": "Tổng điểm",
+      "transcript": "Bản chép lời"
+    },
+    "error": {"request_failed": "Không thể hoàn tất"}
+  },
   "streak": {
     "title": "Chi tiết chuỗi",
     "days_count": "{} Ngày",

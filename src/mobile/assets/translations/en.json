@@ -310,6 +310,34 @@
       "confirm": "Confirm"
     }
   },
+  "practice": {
+    "title": "AI Practice",
+    "tabs": {"advisor": "Advisor", "writing": "Writing", "speaking": "Speaking"},
+    "advisor": {
+      "title": "Ask about your path",
+      "hint": "What should I focus on next?",
+      "submit": "Get advice"
+    },
+    "writing": {
+      "title": "CEFR writing feedback",
+      "task": "Task prompt",
+      "essay": "Essay",
+      "submit": "Evaluate"
+    },
+    "speaking": {
+      "title": "Pronunciation practice",
+      "privacy": "Audio is limited to 120 seconds/10 MB and deleted after scoring.",
+      "prompt": "Prompt to read",
+      "stop_score": "Stop & score ({}s)",
+      "start": "Start recording",
+      "cancel": "Discard recording",
+      "history": "Recent attempts",
+      "empty": "No speaking attempts yet.",
+      "overall": "Overall",
+      "transcript": "Transcript"
+    },
+    "error": {"request_failed": "Request failed"}
+  },
   "streak": {
     "title": "Streak Details",
     "days_count": "{} Days",

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:lingoroad_mobile/core/config/app_config.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
@@ -79,6 +80,32 @@ class ApiClient {
         ),
         timeout: timeout,
         allowRefresh: authenticated,
+      );
+
+  Future<Object?> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required String fileField,
+    required List<int> fileBytes,
+    required String fileName,
+    required String mimeType,
+    Duration? timeout,
+  }) =>
+      _send(
+        () async {
+          final request = http.MultipartRequest('POST', _config.resolve(path));
+          request.headers.addAll(_headers(authenticated: true));
+          request.fields.addAll(fields);
+          request.files.add(http.MultipartFile.fromBytes(
+            fileField,
+            fileBytes,
+            filename: fileName,
+            contentType: MediaType.parse(mimeType),
+          ));
+          return http.Response.fromStream(await _httpClient.send(request));
+        },
+        timeout: timeout ?? const Duration(seconds: 45),
+        allowRefresh: true,
       );
 
   Map<String, String> _headers({

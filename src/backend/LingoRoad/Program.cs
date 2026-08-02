@@ -34,12 +34,13 @@ builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddSingleton<MlCircuitBreaker>();
 builder.Services.AddScoped<MasteryService>();
 builder.Services.AddScoped<GamificationService>();
 builder.Services.AddHttpClient<IMlClient, MlClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["MlService:BaseUrl"] ?? "http://localhost:8001");
-    c.Timeout = TimeSpan.FromSeconds(30);
+    c.Timeout = Timeout.InfiniteTimeSpan;
     var internalToken = builder.Configuration["MlService:InternalToken"];
     if (!string.IsNullOrWhiteSpace(internalToken))
         c.DefaultRequestHeaders.Add("X-Internal-Token", internalToken);
@@ -113,7 +114,7 @@ using (var scope = app.Services.CreateScope())
     await AdminBootstrapper.BootstrapAsync(db, app.Configuration);
 }
 
-app.UseStaticFiles(); // serves wwwroot/ (listening audio under /audio)
+app.UseStaticFiles(); // public content assets only; raw speaking audio is never stored here
 app.UseCors();
 app.UseAuthentication();
 app.UseRateLimiter();

@@ -26,21 +26,33 @@ public static class PathEndpoints
         g.MapGet("", async (int? limit,
             System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
             (await BuildForUserAsync(db, user.UserId(), limit ?? 10))
-            .Select(p => new { code = p.Skill.Code, name = p.Skill.Name,
-                nameVi = p.Skill.NameVi, cefr = p.Skill.CefrLevel,
-                mastery = p.Mastery, reason = p.Reason }));
+            .Select(p => new
+            {
+                code = p.Skill.Code,
+                name = p.Skill.Name,
+                nameVi = p.Skill.NameVi,
+                cefr = p.Skill.CefrLevel,
+                mastery = p.Mastery,
+                reason = p.Reason
+            }));
 
         g.MapPost("/advisor", async (AdvisorQuestion req,
-            System.Security.Claims.ClaimsPrincipal user, AppDbContext db, IMlClient ml) =>
+            System.Security.Claims.ClaimsPrincipal user, AppDbContext db, IMlClient ml,
+            IConfiguration configuration, IWebHostEnvironment environment) =>
         {
+            if (string.IsNullOrWhiteSpace(req.Question) || req.Question.Trim().Length > 1000)
+                return ApiResults.Error("invalid_question");
+            if (!MlFeatureRollout.IsEnabled(configuration, environment,
+                "Advisor", user.UserId())) return ApiResults.FeatureDisabled();
             var path = await BuildForUserAsync(db, user.UserId(), 10);
             try
             {
-                var res = await ml.AdvisorAsync(new AdvisorRequest(req.Question,
+                var res = await ml.AdvisorAsync(new AdvisorRequest(req.Question.Trim(),
                     path.Select(p => new AdvisorSkillContext(
                         p.Skill.Code, p.Skill.Name, p.Mastery, p.Reason)).ToList(), "vi"));
                 return Results.Ok(new { answer = res.Answer });
             }
+            catch (MlInputRejectedException error) { return ApiResults.MlRejected(error); }
             catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
         }).RequireRateLimiting("ml-upload");
     }

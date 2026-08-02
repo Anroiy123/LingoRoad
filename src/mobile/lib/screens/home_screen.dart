@@ -152,6 +152,30 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+          AppCard(
+            child: Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                key: const Key('home_ai_practice'),
+                contentPadding: EdgeInsets.zero,
+                leading: const CircleAvatar(
+                  backgroundColor: AppColors.primaryFixed,
+                  child: Icon(
+                    Icons.auto_awesome_rounded,
+                    color: AppColors.primary,
+                  ),
+                ),
+                title: Text(l10n.currentLanguage == AppLanguage.vi
+                    ? 'Luyện tập AI'
+                    : 'AI Practice'),
+                subtitle: Text(l10n.currentLanguage == AppLanguage.vi
+                    ? 'Cố vấn lộ trình · Viết · Phát âm'
+                    : 'Path advisor · Writing · Speaking'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => context.push('/practice'),
+              ),
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

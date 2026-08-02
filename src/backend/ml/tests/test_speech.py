@@ -1,4 +1,5 @@
 from lingoroad_ml.speech.scoring import word_scores, fluency_from_wpm
+from lingoroad_ml.serving.speech_routes import _valid_signature
 
 def test_perfect_match_scores_one():
     s = word_scores("I have lived here for two years", "I have lived here for two years")
@@ -35,3 +36,9 @@ def test_empty_transcript_scores_zero():
 def test_repeated_words_count_each_occurrence():
     s = word_scores("I really really like it", "I really like it")
     assert s["missing_words"] == ["really"]
+
+def test_audio_signature_must_match_declared_mime():
+    webm = b"\x1a\x45\xdf\xa3payload"
+    assert _valid_signature("audio/webm", webm)
+    assert not _valid_signature("audio/wav", webm)
+    assert not _valid_signature("application/octet-stream", webm)
