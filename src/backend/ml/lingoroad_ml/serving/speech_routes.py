@@ -1,3 +1,4 @@
+import asyncio
 import io
 import os
 from functools import lru_cache
@@ -8,6 +9,8 @@ router = APIRouter()
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_DURATION_SECONDS = 120
 MODEL_VERSION = os.environ.get("LINGOROAD_SPEECH_MODEL_VERSION", "faster-whisper-small")
+_speech_slots = asyncio.Semaphore(max(
+    1, int(os.environ.get("LINGOROAD_SPEECH_CONCURRENCY", "1"))))
 
 def _valid_signature(content_type: str | None, data: bytes) -> bool:
     signatures = {
@@ -38,12 +41,17 @@ def _whisper():
 
 @router.post("/speech/score")
 async def speech_score(file: UploadFile, prompt_text: str = Form(...)):
-    from lingoroad_ml.serving.llm_routes import _client
     data = await file.read(MAX_AUDIO_BYTES + 1)
     if len(data) > MAX_AUDIO_BYTES:
         raise HTTPException(status_code=413, detail="audio_too_large")
     if not _valid_signature(file.content_type, data):
         raise HTTPException(status_code=415, detail="unsupported_audio_type")
+    async with _speech_slots:
+        return await asyncio.to_thread(_score_sync, data, prompt_text)
+
+
+def _score_sync(data: bytes, prompt_text: str):
+    from lingoroad_ml.serving.llm_routes import _client
     audio = io.BytesIO(data)
     segments, info = _whisper().transcribe(audio, language="en")
     duration = max(info.duration or 0.0, 0.1)
