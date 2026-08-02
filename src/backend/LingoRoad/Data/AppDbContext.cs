@@ -28,6 +28,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<ContentBundleImport> ContentBundleImports => Set<ContentBundleImport>();
     public DbSet<RewardLedgerEntry> RewardLedgerEntries => Set<RewardLedgerEntry>();
     public DbSet<AdminAuditEvent> AdminAuditEvents => Set<AdminAuditEvent>();
+    public DbSet<LearningEvent> LearningEvents => Set<LearningEvent>();
+    public DbSet<ConsentRecord> ConsentRecords => Set<ConsentRecord>();
+    public DbSet<AccountDeletionRequest> AccountDeletionRequests => Set<AccountDeletionRequest>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -108,5 +111,62 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<AdminAuditEvent>().HasIndex(e => new { e.AdminUserId, e.CreatedAt });
         mb.Entity<AdminAuditEvent>().HasOne<User>().WithMany().HasForeignKey(e => e.AdminUserId)
             .OnDelete(DeleteBehavior.Restrict);
+        mb.Entity<LearningEvent>().HasIndex(e =>
+            new { e.UserId, e.OperationId, e.EventType }).IsUnique();
+        mb.Entity<LearningEvent>().HasOne<User>().WithMany().HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<ConsentRecord>().HasOne<User>().WithMany().HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        mb.Entity<LearningEvent>().HasIndex(e => e.EventId).IsUnique();
+        mb.Entity<LearningEvent>().HasIndex(e => new { e.UserId, e.OccurredAt });
+        mb.Entity<LearningEvent>().HasIndex(e => new { e.SkillId, e.OccurredAt });
+        mb.Entity<LearningEvent>().Property(e => e.EventType).HasMaxLength(50);
+        mb.Entity<LearningEvent>().Property(e => e.CefrLevel).HasMaxLength(10);
+        mb.Entity<LearningEvent>().Property(e => e.ModelVersion).HasMaxLength(200);
+        mb.Entity<LearningEvent>().Property(e => e.ContentVersion).HasMaxLength(100);
+        mb.Entity<ConsentRecord>().HasIndex(e => new
+            { e.UserId, e.ConsentType, e.RecordedAt });
+        mb.Entity<ConsentRecord>().Property(e => e.ConsentType).HasMaxLength(50);
+        mb.Entity<ConsentRecord>().Property(e => e.PolicyVersion).HasMaxLength(100);
+        mb.Entity<ConsentRecord>().Property(e => e.Source).HasMaxLength(50);
+        mb.Entity<AccountDeletionRequest>().HasIndex(e => e.UserId).IsUnique();
+        mb.Entity<AccountDeletionRequest>().HasIndex(e => new { e.Status, e.ScheduledFor });
+        mb.Entity<AccountDeletionRequest>().Property(e => e.UserEmailHash).HasMaxLength(64);
+        mb.Entity<AccountDeletionRequest>().Property(e => e.Status).HasMaxLength(20);
+        mb.Entity<AccountDeletionRequest>().Property(e => e.FailureCode).HasMaxLength(100);
+    }
+
+    private void ProtectAppendOnlyRecords()
+    {
+        if (ChangeTracker.Entries<LearningEvent>().Any(e =>
+                e.State is EntityState.Modified or EntityState.Deleted) ||
+            ChangeTracker.Entries<ConsentRecord>().Any(e =>
+                e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Learning events and consent records are append-only.");
+    }
+
+    public override int SaveChanges()
+    {
+        ProtectAppendOnlyRecords();
+        return base.SaveChanges();
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        ProtectAppendOnlyRecords();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ProtectAppendOnlyRecords();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        ProtectAppendOnlyRecords();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 }

@@ -40,7 +40,12 @@ class ExerciseReq(BaseModel):
 def llm_exercises(req: ExerciseReq):
     items = ex_mod.generate(_client(), req.skill_code, req.skill_name,
                             req.cefr, req.type, req.count)
-    return {"exercises": items}
+    return {
+        "exercises": items,
+        "model_version": os.environ.get(
+            "LINGOROAD_LLM_MODEL_VERSION", "gemini-2.5-flash"
+        ),
+    }
 
 class AweReq(BaseModel):
     task_prompt: str; essay: str

@@ -20,11 +20,11 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 50 routes across 13 feature groups: Health, Auth,
+The `.NET` API exposes 55 routes across 14 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
 Lessons, Exercises (incl. writing evaluation), Dashboard/Gamification,
-Speaking, and Admin. This summary does not duplicate every route's verb, auth requirement
+Speaking, Privacy, and Admin. This summary does not duplicate every route's verb, auth requirement
 and request/response shape.
 
 As of this report, browsing `http://localhost:5000/scalar/v1` (dev only)
@@ -56,6 +56,7 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ✅ Overview consumes learner/reward aggregates |
 | Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ✅ Login and route guard; learner receives 403 from server |
 | Analytics (user/skill/question) | ✅ `/admin/analytics/overview` | — | ✅ Activity, completion, correctness, review, mastery, item/content usage |
+| Privacy/data lifecycle | ✅ Consent history, ZIP export, scheduled deletion and retention worker | ⚠️ API available; dedicated consent/export/delete UI remains optional | ✅ Learning-quality report is Admin-only and sample-gated |
 | Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ✅ Configurable API base URL; production origin is supplied at deployment |
 
 ## 3. Mobile (Flutter) gap analysis
@@ -161,9 +162,9 @@ Concrete next steps, ordered by dependency:
 
 1. **Pin and distribute ML/RAG artifacts** and keep SAINT+/Whisper disabled until
    their evaluation gates are met; add quota/cost UX for optional AI calls.
-2. **Add learning-event/privacy lifecycle APIs** now that lesson traffic and the reward
-   ledger exist, so
-   completion, correctness and item-difficulty reports have real inputs.
+2. **Operationalize the learning-event/privacy lifecycle now implemented** by
+   exercising export/deletion and the 90-day retention job in production-like
+   backup/restore drills.
 3. **Add a clean-account full-stack E2E** for registration, placement, profile
    setup and the already smoke-tested learner loop.
 4. **Run the committed Admin Playwright specs in CI** and add pagination/search

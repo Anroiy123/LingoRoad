@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LingoRoad.Data;
@@ -57,6 +58,7 @@ public static class SpeakingEndpoints
         IConfiguration configuration, ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
+        var started = Stopwatch.StartNew();
         if (string.IsNullOrWhiteSpace(promptText) || promptText.Trim().Length > 1000)
             return ApiResults.Error("invalid_prompt");
         if (!MlFeatureRollout.IsEnabled(configuration, env,
@@ -110,6 +112,15 @@ public static class SpeakingEndpoints
                 ScoresJson = JsonSerializer.Serialize(score)
             };
             db.SpeakingAttempts.Add(attempt);
+            db.LearningEvents.Add(new LearningEvent
+            {
+                UserId = user.UserId(),
+                OperationId = attempt.Id,
+                EventType = LearningEventTypes.SpeakingScored,
+                Score = score.Total,
+                LatencyMs = checked((int)Math.Min(started.ElapsedMilliseconds, int.MaxValue)),
+                ModelVersion = score.ModelVersion,
+            });
             await db.SaveChangesAsync(cancellationToken);
             return Results.Ok(new
             {

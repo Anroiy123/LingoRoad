@@ -37,6 +37,11 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddSingleton<MlCircuitBreaker>();
 builder.Services.AddScoped<MasteryService>();
 builder.Services.AddScoped<GamificationService>();
+builder.Services.AddScoped<LearningQualityService>();
+builder.Services.AddScoped<PrivacyDeletionService>();
+builder.Services.AddScoped<DataRetentionService>();
+if (!builder.Environment.IsEnvironment("Testing"))
+    builder.Services.AddHostedService<PrivacyMaintenanceWorker>();
 builder.Services.AddHttpClient<IMlClient, MlClient>(c =>
 {
     c.BaseAddress = new Uri(builder.Configuration["MlService:BaseUrl"] ?? "http://localhost:8001");
@@ -46,16 +51,49 @@ builder.Services.AddHttpClient<IMlClient, MlClient>(c =>
         c.DefaultRequestHeaders.Add("X-Internal-Token", internalToken);
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o => o.TokenValidationParameters = new TokenValidationParameters
+    .AddJwtBearer(o =>
     {
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ClockSkew = TimeSpan.FromSeconds(30),
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+        };
+        o.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var value = context.Principal?.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(value, out var userId))
+                {
+                    context.Fail("invalid_user");
+                    return;
+                }
+                var db = context.HttpContext.RequestServices
+                    .GetRequiredService<AppDbContext>();
+                var state = await db.Users.Where(user => user.Id == userId)
+                    .Select(_ => new
+                    {
+                        DeletionPending = db.AccountDeletionRequests.Any(request =>
+                            request.UserId == userId &&
+                            request.Status ==
+                                LingoRoad.Domain.AccountDeletionStatuses.Pending)
+                    })
+                    .SingleOrDefaultAsync(context.HttpContext.RequestAborted);
+                if (state is null)
+                    context.Fail("user_not_found");
+                else if (state.DeletionPending &&
+                    !(HttpMethods.IsDelete(context.Request.Method) &&
+                      context.Request.Path.Equals("/auth/me")))
+                    context.Fail("account_deletion_pending");
+            }
+        };
     });
 builder.Services.AddAuthorization(options =>
     options.AddPolicy("Admin", policy => policy.RequireRole("Admin")));
@@ -133,6 +171,7 @@ app.MapLessons();
 app.MapDashboard();
 app.MapSpeaking();
 app.MapAdmin();
+app.MapPrivacy();
 
 app.Run();
 

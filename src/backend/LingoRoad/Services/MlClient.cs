@@ -72,7 +72,8 @@ public record AdvisorResponse(string Answer);
 
 public record ExerciseGenRequest(string SkillCode, string SkillName, string Cefr, string Type, int Count);
 public record GeneratedExercise(string Stem, string[] Options, string CorrectAnswer, string? ExplanationVi);
-public record ExerciseGenResponse(List<GeneratedExercise> Exercises);
+public record ExerciseGenResponse(List<GeneratedExercise> Exercises,
+    [property: JsonPropertyName("model_version")] string? ModelVersion = null);
 
 public record AweRequest(string TaskPrompt, string Essay);
 public record AweScores(double TaskAchievement, double CoherenceCohesion, double LexicalResource, double GrammaticalAccuracy);

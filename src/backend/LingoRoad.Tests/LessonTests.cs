@@ -192,6 +192,8 @@ public class LessonEndpointTests : IClassFixture<ContentFactory>
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.Equal(1, await verifyDb.ExerciseAnswerOperations
             .CountAsync(o => o.ExerciseId == exercise.Id));
+        Assert.Equal(1, await verifyDb.LearningEvents.CountAsync(e =>
+            e.ExerciseId == exercise.Id && e.EventType == "answer_submitted"));
         var row = await verifyDb.Exercises.FindAsync(exercise.Id);
         Assert.Equal(answer, row!.SubmittedAnswer);
         Assert.Single(await verifyDb.Masteries
@@ -254,6 +256,8 @@ public class LessonEndpointTests : IClassFixture<ContentFactory>
             .CountAsync(o => o.AttemptId == attempt.Id));
         Assert.Equal(1, await verifyDb.RewardLedgerEntries
             .CountAsync(o => o.SourceEntityId == attempt.Id));
+        Assert.Equal(1, await verifyDb.LearningEvents.CountAsync(e =>
+            e.LessonAttemptId == attempt.Id && e.EventType == "lesson_completed"));
         var userId = (await verifyDb.LessonAttempts.FindAsync(attempt.Id))!.UserId;
         var progress = await verifyDb.UserLessonProgresses
             .SingleAsync(p => p.UserId == userId && p.LessonId == lesson.Id);

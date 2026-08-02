@@ -205,6 +205,20 @@ public static class LessonEndpoints
                 CompletedAt = completedAt,
             };
             db.LessonCompletionOperations.Add(operation);
+            var lesson = await db.Lessons.FindAsync(attempt.LessonId);
+            db.LearningEvents.Add(new LearningEvent
+            {
+                UserId = userId,
+                OperationId = req.OperationId,
+                EventType = LearningEventTypes.LessonCompleted,
+                LessonId = attempt.LessonId,
+                LessonAttemptId = attempt.Id,
+                SkillId = lesson?.SkillId,
+                Score = exercises.Count == 0 ? 0 : (double)correctAnswers / exercises.Count,
+                CefrLevel = lesson?.CefrLevel,
+                ContentVersion = lesson?.ContentVersion,
+                OccurredAt = completedAt,
+            });
             db.RewardLedgerEntries.Add(new RewardLedgerEntry
             {
                 UserId = userId,
