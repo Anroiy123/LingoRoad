@@ -11,7 +11,7 @@ import 'package:lingoroad_mobile/core/session/secure_session_store.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/dashboard/data/dashboard_repository.dart';
-import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
+import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_session_provider.dart';
 import 'package:lingoroad_mobile/features/learning_path/data/learning_path_repository.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
 import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
@@ -231,10 +231,7 @@ class LingoRoadApp extends StatelessWidget {
               ),
             ),
           ),
-        ChangeNotifierProvider<DashboardViewModel>(
-          create: (context) =>
-              DashboardViewModel(context.read<DashboardRepository>()),
-        ),
+        dashboardViewModelProvider(),
         if (aiPracticeRepository != null)
           Provider<AiPracticeRepository>.value(value: aiPracticeRepository!)
         else

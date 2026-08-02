@@ -49,6 +49,26 @@ class PlacementStatusErrorScreen extends StatelessWidget {
                     icon: const Icon(Icons.refresh_rounded),
                     label: Text(l10n.translate('placement.error.retry')),
                   ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextButton.icon(
+                    key: const Key('placement_status_logout'),
+                    onPressed: () async {
+                      try {
+                        await sessionController.logout();
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              l10n.translate('placement.error.logout_failed'),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.logout_rounded),
+                    label: Text(l10n.translate('placement.error.logout')),
+                  ),
                 ],
               ),
             ),
@@ -58,4 +78,3 @@ class PlacementStatusErrorScreen extends StatelessWidget {
     );
   }
 }
-

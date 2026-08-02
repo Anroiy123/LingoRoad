@@ -103,6 +103,89 @@ void main() {
     expect(session.token, isNull);
   });
 
+  test('401 từ request phiên cũ không thể logout phiên mới', () async {
+    session = SessionController(MemorySessionStore('old-token', 'old-refresh'));
+    await session.restore();
+    final response = Completer<http.Response>();
+    final requestStarted = Completer<void>();
+    final client = ApiClient(
+      config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+      session: session,
+      httpClient: MockClient((request) {
+        expect(request.headers['Authorization'], 'Bearer old-token');
+        requestStarted.complete();
+        return response.future;
+      }),
+    );
+
+    final pending = client.get('/protected');
+    await requestStarted.future;
+    await session.authenticate(
+      'new-token',
+      refreshToken: 'new-refresh',
+      checkPlacement: false,
+    );
+    response.complete(http.Response('', 401));
+
+    await expectLater(
+      pending,
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.statusCode,
+          'statusCode',
+          401,
+        ),
+      ),
+    );
+    expect(session.status, SessionStatus.authenticated);
+    expect(session.token, 'new-token');
+    expect(session.refreshToken, 'new-refresh');
+  });
+
+  test('refresh lỗi từ phiên cũ không thể logout phiên mới', () async {
+    session = SessionController(MemorySessionStore('old-token', 'old-refresh'));
+    await session.restore();
+    final refreshResponse = Completer<http.Response>();
+    final refreshStarted = Completer<void>();
+    final client = ApiClient(
+      config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+      session: session,
+      httpClient: MockClient((request) {
+        if (request.url.path == '/protected') {
+          return Future.value(http.Response('', 401));
+        }
+        if (request.url.path == '/auth/refresh') {
+          refreshStarted.complete();
+          return refreshResponse.future;
+        }
+        throw StateError('Unexpected request: ${request.url}');
+      }),
+    );
+
+    final pending = client.get('/protected');
+    await refreshStarted.future;
+    await session.authenticate(
+      'new-token',
+      refreshToken: 'new-refresh',
+      checkPlacement: false,
+    );
+    refreshResponse.complete(http.Response('', 401));
+
+    await expectLater(
+      pending,
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.statusCode,
+          'statusCode',
+          401,
+        ),
+      ),
+    );
+    expect(session.status, SessionStatus.authenticated);
+    expect(session.token, 'new-token');
+    expect(session.refreshToken, 'new-refresh');
+  });
+
   test('parse error code từ JSON', () async {
     final client = ApiClient(
       config: AppConfig(apiBaseUrl: 'http://localhost:5000'),

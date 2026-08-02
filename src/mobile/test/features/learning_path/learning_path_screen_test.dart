@@ -3,11 +3,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/learning_path/data/learning_path_repository.dart';
 import 'package:lingoroad_mobile/features/learning_path/domain/learning_path_models.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
+import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
+import 'package:lingoroad_mobile/features/lesson/domain/lesson_models.dart';
+import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
+import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
 import 'package:lingoroad_mobile/screens/learning_path_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +28,35 @@ const widgetStep = LearningPathStep(
   reason: 'below_threshold',
 );
 
+const routeExercise = LessonExercise(
+  id: 'exercise-a1-articles',
+  sequence: 1,
+  type: 'mcq',
+  stem: 'Choose the correct article: ___ apple.',
+  options: ['a', 'an'],
+  answered: false,
+);
+
+const routeAttempt = LessonAttempt(
+  id: 'attempt-a1-articles',
+  lessonId: 'lesson-a1-articles',
+  slug: 'a1-articles',
+  title: 'Articles',
+  titleVi: 'Mạo từ',
+  status: 'in_progress',
+  exercises: [routeExercise],
+);
+
+const routeLesson = TodayLesson(
+  id: 'lesson-a1-articles',
+  slug: 'a1-articles',
+  title: 'Articles',
+  titleVi: 'Mạo từ',
+  skillCode: 'grammar.present-simple',
+  cefr: 'A2',
+  itemCount: 1,
+);
+
 class ScreenLearningPathRepository implements LearningPathRepository {
   List<LearningPathStep> result = const [widgetStep];
   Object? error;
@@ -34,6 +68,48 @@ class ScreenLearningPathRepository implements LearningPathRepository {
     }
     return result;
   }
+}
+
+class RoutedLessonRepository implements LessonRepository {
+  RoutedLessonRepository({required this.todayLessons});
+
+  final List<TodayLesson> todayLessons;
+  final startedLessonIds = <String>[];
+  int todayCalls = 0;
+
+  @override
+  Future<List<TodayLesson>> today() async {
+    todayCalls++;
+    return todayLessons;
+  }
+
+  @override
+  Future<LessonAttempt> start(String lessonId, String operationId) async {
+    startedLessonIds.add(lessonId);
+    return routeAttempt;
+  }
+
+  @override
+  Future<LessonAttempt> getAttempt(String attemptId) async => routeAttempt;
+
+  @override
+  Future<ExerciseFeedback> submit({
+    required String exerciseId,
+    required String answer,
+    required String operationId,
+  }) async =>
+      const ExerciseFeedback(correct: true, correctAnswer: 'an');
+
+  @override
+  Future<LessonCompletion> complete(
+    String attemptId,
+    String operationId,
+  ) async =>
+      const LessonCompletion(
+        correctAnswers: 1,
+        totalAnswers: 1,
+        reviewCardsCreated: 0,
+      );
 }
 
 AppLanguageProvider loadLanguageProvider() {
@@ -65,6 +141,43 @@ Widget buildScreen(ScreenLearningPathRepository repository) {
       theme: AppTheme.light,
       home: const Scaffold(body: LearningPathScreen()),
     ),
+  );
+}
+
+GoRouter learningPathRouter() => GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) =>
+              const Scaffold(body: LearningPathScreen()),
+        ),
+        GoRoute(
+          path: '/lesson/:id',
+          builder: (context, state) => ChangeNotifierProvider(
+            create: (_) => LessonViewModel(context.read<LessonRepository>()),
+            child: LessonScreen(lessonId: state.pathParameters['id']!),
+          ),
+        ),
+      ],
+    );
+
+Widget buildRoutedScreen({
+  required GoRouter router,
+  required ScreenLearningPathRepository learningPathRepository,
+  required RoutedLessonRepository lessonRepository,
+}) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AppLanguageProvider>.value(
+        value: loadLanguageProvider(),
+      ),
+      ChangeNotifierProvider<LearningPathViewModel>(
+        create: (_) => LearningPathViewModel(learningPathRepository),
+      ),
+      Provider<LessonRepository>.value(value: lessonRepository),
+    ],
+    child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
   );
 }
 
@@ -110,5 +223,66 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Thì hiện tại đơn'), findsOneWidget);
+  });
+
+  testWidgets('chọn kỹ năng mở lesson player tại route lesson khớp',
+      (tester) async {
+    final lessonRepository = RoutedLessonRepository(
+      todayLessons: const [routeLesson],
+    );
+    final router = learningPathRouter();
+    addTearDown(router.dispose);
+
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      buildRoutedScreen(
+        router: router,
+        learningPathRepository: ScreenLearningPathRepository(),
+        lessonRepository: lessonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const Key('learning_path_step_grammar.present-simple')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(lessonRepository.todayCalls, 1);
+    expect(lessonRepository.startedLessonIds, ['lesson-a1-articles']);
+    expect(find.byType(LessonScreen), findsOneWidget);
+    expect(
+      find.text('Choose the correct article: ___ apple.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('kỹ năng chưa có lesson báo lỗi và không điều hướng',
+      (tester) async {
+    final lessonRepository = RoutedLessonRepository(todayLessons: const []);
+    final router = learningPathRouter();
+    addTearDown(router.dispose);
+
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      buildRoutedScreen(
+        router: router,
+        learningPathRepository: ScreenLearningPathRepository(),
+        lessonRepository: lessonRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.byKey(const Key('learning_path_step_grammar.present-simple')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Kỹ năng này chưa có bài học trong kế hoạch hôm nay.'),
+      findsOneWidget,
+    );
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/');
+    expect(lessonRepository.startedLessonIds, isEmpty);
   });
 }

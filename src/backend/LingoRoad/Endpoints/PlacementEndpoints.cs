@@ -14,6 +14,10 @@ public static class PlacementEndpoints
     private const int MinItems = 8, MaxItems = 30;
     private const double SeThreshold = 0.35;
 
+    // Placement uses the choice-only client. Cloze and reorder items stay in
+    // lessons, whose player supports their distinct interaction models.
+    private static readonly string[] PlacementItemTypes = ["mcq", "listening_mcq"];
+
     private static PlacementItemDto ToDto(Item i) => new(
         i.Id, i.Type, i.Stem, JsonSerializer.Deserialize<string[]>(i.OptionsJson)!, i.AudioUrl);
 
@@ -36,7 +40,10 @@ public static class PlacementEndpoints
             history.Add(new CatHistory(
                 pendingItem.A, pendingItem.B, pendingItem.C, pendingCorrect.Value));
         }
-        var candidates = await db.Items.Where(i => !answeredIds.Contains(i.Id)).ToListAsync();
+        var candidates = await db.Items
+            .Where(i => !answeredIds.Contains(i.Id) && !i.IsDeleted &&
+                PlacementItemTypes.Contains(i.Type))
+            .ToListAsync();
 
         var res = await ml.CatSelectAsync(new CatSelectRequest(
             history,

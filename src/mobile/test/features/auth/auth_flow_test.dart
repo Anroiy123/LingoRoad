@@ -33,6 +33,20 @@ AppLanguageProvider loadTestLanguageProvider() {
   );
 }
 
+class RecoveringHangingClearSessionStore extends MemorySessionStore {
+  RecoveringHangingClearSessionStore(super.token);
+
+  bool hangClear = true;
+
+  @override
+  Future<void> clearToken() {
+    if (hangClear) {
+      return Completer<void>().future;
+    }
+    return super.clearToken();
+  }
+}
+
 class FlowAuthRepository implements AuthRepository {
   @override
   Future<AuthTokens> login({
@@ -234,6 +248,48 @@ void main() {
     await tester.tap(find.byKey(const Key('placement_status_retry')));
     await tester.pumpAndSettle();
     expect(find.text('Kiểm tra trình độ đầu vào'), findsOneWidget);
+    fixture.dispose();
+  });
+
+  testWidgets('lookup lỗi chỉ đăng xuất sau khi secure storage được xóa',
+      (tester) async {
+    final repository = AuthFlowPlacementRepository()
+      ..statusError = StateError('offline');
+    final store = RecoveringHangingClearSessionStore('saved-token');
+    final session = SessionController(
+      store,
+      storeOperationTimeout: const Duration(milliseconds: 1),
+    );
+    final fixture = TestAppFixture(
+      session: session,
+      authRepo: FlowAuthRepository(),
+      placementRepo: repository,
+    );
+
+    configureLingoRoadTestViewport(tester);
+    await tester.pumpWidget(fixture.app);
+    await session.restore();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('placement_status_error')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('placement_status_logout')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('placement_status_error')), findsOneWidget);
+    expect(
+      find.text('Không thể đăng xuất an toàn. Vui lòng thử lại.'),
+      findsOneWidget,
+    );
+    expect(session.status, SessionStatus.authenticated);
+    expect(await store.readToken(), 'saved-token');
+
+    store.hangClear = false;
+    await tester.tap(find.byKey(const Key('placement_status_logout')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Chào mừng trở lại'), findsOneWidget);
+    expect(session.status, SessionStatus.unauthenticated);
+    expect(await store.readToken(), isNull);
     fixture.dispose();
   });
 

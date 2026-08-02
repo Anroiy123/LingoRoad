@@ -16,9 +16,22 @@ enum PlacementOnboardingStatus {
 typedef PlacementStatusLoader = Future<bool> Function();
 
 class SessionController extends ChangeNotifier {
-  SessionController(this._store);
+  SessionController(
+    this._store, {
+    Duration storeReadTimeout = const Duration(seconds: 5),
+    Duration storeOperationTimeout = const Duration(seconds: 5),
+    Duration placementStatusTimeout = const Duration(seconds: 8),
+  })  : assert(storeReadTimeout > Duration.zero),
+        assert(storeOperationTimeout > Duration.zero),
+        assert(placementStatusTimeout > Duration.zero),
+        _storeReadTimeout = storeReadTimeout,
+        _storeOperationTimeout = storeOperationTimeout,
+        _placementStatusTimeout = placementStatusTimeout;
 
   final SessionStore _store;
+  final Duration _storeReadTimeout;
+  final Duration _storeOperationTimeout;
+  final Duration _placementStatusTimeout;
   SessionStatus _status = SessionStatus.checking;
   PlacementOnboardingStatus _placementStatus =
       PlacementOnboardingStatus.unknown;
@@ -33,6 +46,7 @@ class SessionController extends ChangeNotifier {
   PlacementOnboardingStatus get placementStatus => _placementStatus;
   String? get token => _token;
   String? get refreshToken => _refreshToken;
+  int get sessionGeneration => _sessionEpoch;
 
   void configurePlacementStatusLoader(PlacementStatusLoader loader) {
     _placementStatusLoader = loader;
@@ -44,11 +58,18 @@ class SessionController extends ChangeNotifier {
     String? stored;
     String? storedRefresh;
     try {
-      final value = (await _enqueueStore(_store.readToken))?.trim();
+      final storedToken = await _enqueueStore(
+        _store.readToken,
+        timeout: _storeReadTimeout,
+      );
+      final value = storedToken?.trim();
       stored = value == null || value.isEmpty ? null : value;
       if (_store case final RefreshSessionStore refreshStore) {
-        final value =
-            (await _enqueueStore(refreshStore.readRefreshToken))?.trim();
+        final storedRefreshToken = await _enqueueStore(
+          refreshStore.readRefreshToken,
+          timeout: _storeReadTimeout,
+        );
+        final value = storedRefreshToken?.trim();
         storedRefresh = value == null || value.isEmpty ? null : value;
       }
     } catch (_) {
@@ -124,7 +145,7 @@ class SessionController extends ChangeNotifier {
     _setPlacementStatus(PlacementOnboardingStatus.checking);
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        final completed = await loader();
+        final completed = await loader().timeout(_placementStatusTimeout);
         if (!_isCurrentPlacementLookup(token, epoch, generation)) {
           return;
         }
@@ -153,18 +174,27 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    _sessionEpoch++;
+    final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
+    await _enqueueStore(
+      _store.clearToken,
+      timeout: _storeOperationTimeout,
+    );
+    if (_store case final RefreshSessionStore refreshStore) {
+      await _enqueueStore(
+        refreshStore.clearRefreshToken,
+        timeout: _storeOperationTimeout,
+      );
+    }
+    if (epoch != _sessionEpoch) {
+      return;
+    }
     _token = null;
     _refreshToken = null;
     _setSession(
       status: SessionStatus.unauthenticated,
       placementStatus: PlacementOnboardingStatus.unknown,
     );
-    await _enqueueStore(_store.clearToken);
-    if (_store case final RefreshSessionStore refreshStore) {
-      await _enqueueStore(refreshStore.clearRefreshToken);
-    }
   }
 
   Future<bool> updateTokens(
@@ -206,11 +236,16 @@ class SessionController extends ChangeNotifier {
       _sessionEpoch == epoch &&
       _placementLookupGeneration == generation;
 
-  Future<T> _enqueueStore<T>(Future<T> Function() operation) {
+  Future<T> _enqueueStore<T>(
+    Future<T> Function() operation, {
+    Duration? timeout,
+  }) {
     final completer = Completer<T>();
     _storeQueue = _storeQueue.then((_) async {
       try {
-        completer.complete(await operation());
+        final pending = operation();
+        completer.complete(
+            await (timeout == null ? pending : pending.timeout(timeout)));
       } catch (error, stackTrace) {
         completer.completeError(error, stackTrace);
       }

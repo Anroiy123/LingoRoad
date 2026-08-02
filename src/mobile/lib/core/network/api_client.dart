@@ -21,7 +21,7 @@ class ApiClient {
   final SessionController _session;
   final http.Client _httpClient;
   final Duration defaultTimeout;
-  Future<bool>? _refreshInFlight;
+  _RefreshFlight? _refreshInFlight;
 
   Uri resolveUrl(String value) {
     final uri = Uri.tryParse(value.trim());
@@ -37,50 +37,67 @@ class ApiClient {
     String path, {
     bool authenticated = true,
     Duration? timeout,
-  }) =>
-      _send(
-        () => _httpClient.get(
-          _config.resolve(path),
-          headers: _headers(authenticated: authenticated),
+  }) {
+    final requestSession = _RequestSession.capture(_session, authenticated);
+    return _send(
+      (accessToken) => _httpClient.get(
+        _config.resolve(path),
+        headers: _headers(
+          authenticated: authenticated,
+          accessToken: accessToken,
         ),
-        timeout: timeout,
-        allowRefresh: authenticated,
-      );
+      ),
+      timeout: timeout,
+      allowRefresh: authenticated,
+      requestSession: requestSession,
+    );
+  }
 
   Future<Object?> postJson(
     String path, {
     Object? body,
     bool authenticated = true,
     Duration? timeout,
-  }) =>
-      _send(
-        () => _httpClient.post(
-          _config.resolve(path),
-          headers: _headers(
-            authenticated: authenticated,
-            hasJsonBody: true,
-          ),
-          body: jsonEncode(body),
+  }) {
+    final requestSession = _RequestSession.capture(_session, authenticated);
+    return _send(
+      (accessToken) => _httpClient.post(
+        _config.resolve(path),
+        headers: _headers(
+          authenticated: authenticated,
+          hasJsonBody: true,
+          accessToken: accessToken,
         ),
-        timeout: timeout,
-        allowRefresh: authenticated,
-      );
+        body: jsonEncode(body),
+      ),
+      timeout: timeout,
+      allowRefresh: authenticated,
+      requestSession: requestSession,
+    );
+  }
 
   Future<Object?> patchJson(
     String path, {
     Object? body,
     bool authenticated = true,
     Duration? timeout,
-  }) =>
-      _send(
-        () => _httpClient.patch(
-          _config.resolve(path),
-          headers: _headers(authenticated: authenticated, hasJsonBody: true),
-          body: jsonEncode(body),
+  }) {
+    final requestSession = _RequestSession.capture(_session, authenticated);
+    return _send(
+      (accessToken) => _httpClient.patch(
+        _config.resolve(path),
+        headers: _headers(
+          authenticated: authenticated,
+          hasJsonBody: true,
+          accessToken: accessToken,
         ),
-        timeout: timeout,
-        allowRefresh: authenticated,
-      );
+        body: jsonEncode(body),
+      ),
+      timeout: timeout,
+      allowRefresh: authenticated,
+      requestSession: requestSession,
+    );
+  }
 
   Future<Object?> postMultipart(
     String path, {
@@ -90,59 +107,78 @@ class ApiClient {
     required String fileName,
     required String mimeType,
     Duration? timeout,
-  }) =>
-      _send(
-        () async {
-          final request = http.MultipartRequest('POST', _config.resolve(path));
-          request.headers.addAll(_headers(authenticated: true));
-          request.fields.addAll(fields);
-          request.files.add(http.MultipartFile.fromBytes(
-            fileField,
-            fileBytes,
-            filename: fileName,
-            contentType: MediaType.parse(mimeType),
-          ));
-          return http.Response.fromStream(await _httpClient.send(request));
-        },
-        timeout: timeout ?? const Duration(seconds: 45),
-        allowRefresh: true,
-      );
+  }) {
+    final requestSession = _RequestSession.capture(_session, true);
+    return _send(
+      (accessToken) async {
+        final request = http.MultipartRequest('POST', _config.resolve(path));
+        request.headers.addAll(
+          _headers(authenticated: true, accessToken: accessToken),
+        );
+        request.fields.addAll(fields);
+        request.files.add(http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: fileName,
+          contentType: MediaType.parse(mimeType),
+        ));
+        return http.Response.fromStream(await _httpClient.send(request));
+      },
+      timeout: timeout ?? const Duration(seconds: 45),
+      allowRefresh: true,
+      requestSession: requestSession,
+    );
+  }
 
   Map<String, String> _headers({
     required bool authenticated,
     bool hasJsonBody = false,
+    String? accessToken,
   }) {
     final headers = <String, String>{'Accept': 'application/json'};
     if (hasJsonBody) {
       headers['Content-Type'] = 'application/json; charset=utf-8';
     }
-    final token = _session.token;
-    if (authenticated && token != null) {
-      headers['Authorization'] = 'Bearer $token';
+    if (authenticated && accessToken != null) {
+      headers['Authorization'] = 'Bearer $accessToken';
     }
     return headers;
   }
 
   Future<Object?> _send(
-    Future<http.Response> Function() request, {
+    Future<http.Response> Function(String? accessToken) request, {
     Duration? timeout,
     bool allowRefresh = false,
+    _RequestSession? requestSession,
   }) async {
     try {
-      var response = await request().timeout(timeout ?? defaultTimeout);
+      var activeSession = requestSession;
+      var response = await request(activeSession?.accessToken)
+          .timeout(timeout ?? defaultTimeout);
       var body = _decode(response);
+      final sessionForRefresh = activeSession;
       if (response.statusCode == 401 &&
           allowRefresh &&
-          _session.refreshToken != null &&
-          await _refreshTokens()) {
-        response = await request().timeout(timeout ?? defaultTimeout);
-        body = _decode(response);
+          sessionForRefresh != null &&
+          sessionForRefresh.matchesCurrent(_session) &&
+          await _refreshTokens(sessionForRefresh) &&
+          sessionForRefresh.hasSameGeneration(_session)) {
+        final refreshedSession = _RequestSession.capture(_session, true);
+        if (refreshedSession != null &&
+            refreshedSession.matchesCurrent(_session)) {
+          activeSession = refreshedSession;
+          response = await request(refreshedSession.accessToken)
+              .timeout(timeout ?? defaultTimeout);
+          body = _decode(response);
+        }
       }
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return body;
       }
 
-      if (response.statusCode == 401) {
+      if (response.statusCode == 401 &&
+          activeSession != null &&
+          activeSession.matchesCurrent(_session)) {
         await _session.invalidate();
       }
 
@@ -176,20 +212,25 @@ class ApiClient {
     }
   }
 
-  Future<bool> _refreshTokens() {
+  Future<bool> _refreshTokens(_RequestSession requestSession) {
     final active = _refreshInFlight;
-    if (active != null) return active;
-    final future = _performRefresh();
-    _refreshInFlight = future;
+    if (active != null && active.matches(requestSession)) {
+      return active.future;
+    }
+    final future = _performRefresh(requestSession);
+    final flight = _RefreshFlight(requestSession, future);
+    _refreshInFlight = flight;
     future.whenComplete(() {
-      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+      if (identical(_refreshInFlight, flight)) _refreshInFlight = null;
     });
     return future;
   }
 
-  Future<bool> _performRefresh() async {
-    final refreshToken = _session.refreshToken;
-    if (refreshToken == null) return false;
+  Future<bool> _performRefresh(_RequestSession requestSession) async {
+    final refreshToken = requestSession.refreshToken;
+    if (refreshToken == null || !requestSession.matchesCurrent(_session)) {
+      return false;
+    }
     try {
       final response = await _httpClient
           .post(
@@ -199,6 +240,9 @@ class ApiClient {
           )
           .timeout(defaultTimeout);
       final body = _decode(response);
+      if (!requestSession.matchesCurrent(_session)) {
+        return false;
+      }
       if (response.statusCode < 200 ||
           response.statusCode >= 300 ||
           body is! Map<String, dynamic>) {
@@ -214,13 +258,15 @@ class ApiClient {
         await _session.invalidate();
         return false;
       }
-      return _session.updateTokens(
+      return await _session.updateTokens(
         access,
         refresh,
         expectedRefreshToken: refreshToken,
       );
     } catch (_) {
-      await _session.invalidate();
+      if (requestSession.matchesCurrent(_session)) {
+        await _session.invalidate();
+      }
       return false;
     }
   }
@@ -247,4 +293,49 @@ class ApiClient {
   }
 
   void close() => _httpClient.close();
+}
+
+class _RequestSession {
+  const _RequestSession({
+    required this.generation,
+    required this.accessToken,
+    required this.refreshToken,
+  });
+
+  static _RequestSession? capture(
+    SessionController session,
+    bool authenticated,
+  ) {
+    if (!authenticated) return null;
+    return _RequestSession(
+      generation: session.sessionGeneration,
+      accessToken: session.token,
+      refreshToken: session.refreshToken,
+    );
+  }
+
+  final int generation;
+  final String? accessToken;
+  final String? refreshToken;
+
+  bool matchesCurrent(SessionController session) =>
+      session.status == SessionStatus.authenticated &&
+      session.sessionGeneration == generation &&
+      session.token == accessToken &&
+      session.refreshToken == refreshToken;
+
+  bool hasSameGeneration(SessionController session) =>
+      session.status == SessionStatus.authenticated &&
+      session.sessionGeneration == generation;
+}
+
+class _RefreshFlight {
+  const _RefreshFlight(this.session, this.future);
+
+  final _RequestSession session;
+  final Future<bool> future;
+
+  bool matches(_RequestSession other) =>
+      session.generation == other.generation &&
+      session.refreshToken == other.refreshToken;
 }

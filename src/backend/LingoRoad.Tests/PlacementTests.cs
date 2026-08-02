@@ -17,13 +17,15 @@ namespace LingoRoad.Tests;
 public class FakeMlClient : IMlClient
 {
     public bool Throw { get; set; }
+    public Func<CatSelectRequest, Guid?>? SelectNextItem { get; set; }
     public double SpeakingDurationSeconds { get; set; } = 3;
     public Task<CatSelectResponse> CatSelectAsync(CatSelectRequest req, CancellationToken ct = default)
     {
         if (Throw) throw new MlServiceUnavailableException(new HttpRequestException("down"));
         var n = req.History.Count;
         var se = 1.0 / Math.Sqrt(n + 1);
-        var next = req.Candidates.Count > 0 ? req.Candidates[0].ItemId : (Guid?)null;
+        var next = SelectNextItem?.Invoke(req) ??
+            (req.Candidates.Count > 0 ? req.Candidates[0].ItemId : (Guid?)null);
         return Task.FromResult(new CatSelectResponse(0.1 * n, se, next));
     }
 
@@ -152,6 +154,56 @@ public class PlacementTests : IClassFixture<PlacementFactory>
         var status = await _client.GetFromJsonAsync<StatusDto>("/placement/status");
         Assert.NotNull(status);
         Assert.True(status.Completed);
+    }
+
+    [Fact]
+    public async Task Placement_issues_only_choice_items_supported_by_placement_client()
+    {
+        await AuthenticateAsync();
+        var clozeId = Guid.NewGuid();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var skillId = await db.Skills.Where(x => x.Code == "grammar.tenses.present_simple")
+                .Select(x => x.Id).SingleAsync();
+            db.Items.AddRange(
+                new Item
+                {
+                    SkillId = skillId, CefrLevel = "A1", Type = "mcq",
+                    Stem = "First supported question", OptionsJson = "[\"yes\",\"no\"]",
+                    CorrectAnswer = "yes", Source = "test", A = 1, B = -0.4, C = 0.25
+                },
+                new Item
+                {
+                    Id = clozeId, SkillId = skillId, CefrLevel = "A1", Type = "cloze",
+                    Stem = "An incompatible ___ question", OptionsJson = "[]",
+                    CorrectAnswer = "answer", Source = "test", A = 1, B = -0.4, C = 0
+                },
+                new Item
+                {
+                    SkillId = skillId, CefrLevel = "A1", Type = "mcq",
+                    Stem = "Second supported question", OptionsJson = "[\"true\",\"false\"]",
+                    CorrectAnswer = "true", Source = "test", A = 1, B = -0.4, C = 0.25
+                });
+            await db.SaveChangesAsync();
+        }
+
+        _factory.Fake.SelectNextItem = request => request.Candidates
+            .Any(candidate => candidate.ItemId == clozeId)
+                ? clozeId
+                : request.Candidates.FirstOrDefault()?.ItemId;
+        try
+        {
+            var start = await (await _client.PostAsync("/placement/start", null))
+                .Content.ReadFromJsonAsync<StartDto>();
+
+            Assert.Equal("mcq", start!.Item.Type);
+            Assert.NotEmpty(start.Item.Options);
+        }
+        finally
+        {
+            _factory.Fake.SelectNextItem = null;
+        }
     }
 
     [Fact]

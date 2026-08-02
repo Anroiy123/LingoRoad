@@ -133,8 +133,7 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
 
   Future<void> _openLesson(String code) async {
     setState(() => _selectedCode = code);
-    final repository = context.read<LessonRepository?>();
-    if (repository == null) return;
+    final repository = context.read<LessonRepository>();
     try {
       final lessons = await repository.today();
       final matches = lessons.where((lesson) => lesson.skillCode == code);

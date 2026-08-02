@@ -95,7 +95,9 @@
     "error": {
       "title": "Không thể kiểm tra tiến độ",
       "subtitle": "Vui lòng kiểm tra kết nối rồi thử lại để tiếp tục đúng lộ trình của bạn.",
-      "retry": "Thử lại"
+      "retry": "Thử lại",
+      "logout": "Đăng xuất",
+      "logout_failed": "Không thể đăng xuất an toàn. Vui lòng thử lại."
     }
   },
   "home": {
@@ -174,6 +176,7 @@
     },
     "complete": {
       "title": "Hoàn thành bài học!",
+      "subtitle": "Bạn đã hoàn thành bài học hôm nay.",
       "message": "Bạn đúng {}/{} câu và tạo {} thẻ ôn tập.",
       "home": "Về trang chủ",
       "header": "Kết thúc bài học",

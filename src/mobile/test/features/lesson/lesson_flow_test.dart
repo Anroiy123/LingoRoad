@@ -147,6 +147,8 @@ void main() {
     await tester.tap(find.byKey(const Key('lesson_next')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('lesson_completed')), findsOneWidget);
+    expect(find.text('Bạn đã hoàn thành bài học hôm nay.'), findsOneWidget);
+    expect(find.text('lesson.complete.subtitle'), findsNothing);
     expect(repository.completeCalls, 1);
   });
 

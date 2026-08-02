@@ -115,7 +115,7 @@ class PlacementResultScreen extends StatelessWidget {
                     key: const Key('placement_result_continue'),
                     onPressed: () {
                       sessionController.markPlacementCompleted();
-                      context.go('/profile-setup');
+                      context.go('/home');
                     },
                     child:
                         Text(l10n.translate('placement.result.continue_btn')),

@@ -219,15 +219,8 @@ void main() {
     await tester.ensureVisible(continueButton);
     await tester.tap(continueButton);
     await tester.pumpAndSettle();
-    expect(find.text('Mục tiêu học tập'), findsOneWidget);
-    await tester.drag(find.byType(ListView).last, const Offset(0, -1200));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('profile_setup_complete')), findsOneWidget);
-    final completeSetup = find.byKey(const Key('profile_setup_complete'));
-    await tester.ensureVisible(completeSetup);
-    await tester.tap(completeSetup);
-    await tester.pumpAndSettle();
     expect(find.text('Học'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
     fixture.dispose();
   });
 

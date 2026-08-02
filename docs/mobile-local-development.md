@@ -30,6 +30,70 @@ khi placement đã hoàn thành. Tuy nhiên, `POST /placement/start` và
 `POST /placement/{sessionId}/answer` gọi ML nên dịch vụ này phải hoạt động khi
 bắt đầu hoặc tiếp tục làm placement.
 
+## Chạy nhanh toàn bộ stack trên máy này
+
+Mỗi lần phát triển hoặc smoke-test mobile trên MuMu, mở năm cửa sổ PowerShell
+và giữ các tiến trình foreground mở. Các lệnh dưới đây áp dụng cho môi trường
+Development hiện tại; không dùng token hay địa chỉ HTTP này cho production.
+
+### Terminal 1 - PostgreSQL
+
+```powershell
+Set-Location "C:\Users\hunga\OneDrive\Desktop\project\E_AI"
+docker compose -f src/backend/docker-compose.yml up -d db
+```
+
+### Terminal 2 - Backend API
+
+```powershell
+Set-Location "C:\Users\hunga\OneDrive\Desktop\project\E_AI"
+dotnet run --project src/backend/LingoRoad --launch-profile http -- --urls "http://0.0.0.0:5000"
+```
+
+### Terminal 3 - ML/CAT cho Placement
+
+```powershell
+Set-Location "C:\Users\hunga\OneDrive\Desktop\project\E_AI\src\backend\ml"
+$mlDevSettings = Get-Content "..\LingoRoad\appsettings.Development.json" | ConvertFrom-Json
+$env:LINGOROAD_ML_INTERNAL_TOKEN = $mlDevSettings.MlService.InternalToken
+.\.venv\Scripts\python.exe -m uvicorn lingoroad_ml.serving.app:app --host 127.0.0.1 --port 8001
+```
+
+### Terminal 4 - Admin React
+
+```powershell
+Set-Location "C:\Users\hunga\OneDrive\Desktop\project\E_AI\src\admin"
+$env:VITE_API_BASE_URL = "http://localhost:5000"
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+Admin dùng tại `http://localhost:5173`. Có thể bỏ Terminal 4 nếu chỉ kiểm tra
+mobile; các terminal Database, API và ML vẫn bắt buộc cho luồng Placement.
+
+### Terminal 5 - Flutter trên MuMu
+
+```powershell
+& "D:\Program Files\Netease\MuMuPlayer\nx_main\mumu-cli.exe" adb --vmindex 0 --cmd connect
+
+Set-Location "C:\Users\hunga\OneDrive\Desktop\project\E_AI\src\mobile"
+flutter run -d 192.168.2.13:5555 --flavor dev --dart-define=APP_ENV=dev --dart-define=API_BASE_URL=http://192.168.2.10:5000
+```
+
+`192.168.2.10` là IP LAN của máy host tại thời điểm viết. Nếu đổi Wi-Fi hoặc
+IP DHCP thay đổi, lấy IP mới theo phần [Thiết bị Android qua LAN](#thiết-bị-android-qua-lan)
+và build/chạy lại Flutter với URL mới.
+
+### Kiểm tra trước khi mở app
+
+Chạy ở một terminal khác. Kết quả mong đợi là API trả `ok`, ML trả
+`"status":"ready"`, và thiết bị Android cũng nhận `ok`:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5000/health
+Invoke-RestMethod http://127.0.0.1:8001/ready
+& "C:\platform-tools\adb.exe" -s 192.168.2.13:5555 shell "curl -s --max-time 5 http://192.168.2.10:5000/health"
+```
+
 ## 1. Khởi động PostgreSQL
 
 ### Dùng Docker Compose
@@ -241,7 +305,9 @@ Chạy ML từ đúng thư mục `src/backend/ml` để các đường dẫn d�
 
 ```powershell
 Set-Location src/backend/ml
-.\.venv\Scripts\uvicorn.exe lingoroad_ml.serving.app:app --host 127.0.0.1 --port 8001
+$mlDevSettings = Get-Content "..\LingoRoad\appsettings.Development.json" | ConvertFrom-Json
+$env:LINGOROAD_ML_INTERNAL_TOKEN = $mlDevSettings.MlService.InternalToken
+.\.venv\Scripts\python.exe -m uvicorn lingoroad_ml.serving.app:app --host 127.0.0.1 --port 8001
 ```
 
 Giữ terminal ML mở vì Uvicorn chạy foreground. Dùng terminal khác để kiểm tra:

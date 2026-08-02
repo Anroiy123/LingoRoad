@@ -1,6 +1,6 @@
 # Tổng quan tiến độ
 
-> Cập nhật tích hợp 2026-08-01: mobile đã nối `Path → Lesson → Exercise →
+> Cập nhật tích hợp 2026-08-02: mobile đã nối `Path → Lesson → Exercise →
 > Feedback → Mastery → Review`, Home dùng dashboard aggregate thật và
 > gamification có ledger append-only cho XP/coin/streak/quest. Widget/API test
 > đã bao phủ retry và double-submit; smoke learner loop trên MuMu đã đạt cả
@@ -11,7 +11,8 @@
 > giây và xóa audio gốc ngay sau chấm. Learning events/consent đã append-only,
 > có ZIP export, xóa tài khoản theo receipt trong tối đa 30 ngày, retention job
 > và learning-quality analytics với sample gate.
-> Lịch sử bên dưới giữ nguyên.
+> Lịch sử bên dưới giữ nguyên. Bằng chứng runtime trong lượt cập nhật này là
+> kiểm chứng local-device; nó không đồng nghĩa đã phát hành production.
 
 > Cập nhật lần cuối: **2026-08-02**
 > Phạm vi: toàn bộ LingoRoad gồm backend .NET, ML service, Flutter mobile,
@@ -22,15 +23,26 @@
 - Mốc **16/16 task hoàn thành** trong ledger backend là kết quả của kế hoạch
   nghiên cứu backend/AI, không phải trạng thái hoàn thành của toàn bộ MVP.
 - Luồng đã được triển khai và kiểm thử ở API/widget:
-  `Register/Login → Placement → Profile Setup → Home/Path → Lesson → Exercise →
+  `Register/Login → Placement → Home/Path → Lesson → Exercise →
   Feedback → Mastery → Review → Dashboard`; phần learner loop sau placement đã
-  được smoke trên MuMu bằng API/PostgreSQL thật.
+  được chạy clean-account full-stack trên MuMu bằng API/PostgreSQL/ML thật.
+  Production-like staging với HTTPS, release signing và topology triển khai
+  thật vẫn chưa được nghiệm thu.
 - Backend và mobile cùng hỗ trợ start/resume lesson, ba loại exercise, feedback,
   completion, refresh Path/Progress/Review/Home và chống double-submit. Home,
   Profile/onboarding, Review và Progress đều dùng API thật; không còn
   `MockRepository` trong `lib/` production.
   Các màn hình đã bổ sung trên Figma mới là design coverage, chưa được tính là
   Flutter implementation.
+- Regression placement đã được phát hiện khi chạy runtime thật: endpoint từng có
+  thể cấp cloze (lesson-only) với `options=[]` cho client chỉ hiển thị câu hỏi
+  lựa chọn. Backend local hiện chỉ chọn candidate `mcq`/`listening_mcq` và đã có
+  regression test tương thích.
+- Regression UX placement cũng đã được sửa local: nút tiếp tục ở kết quả từng đi
+  tới Profile Setup độc lập, không có bottom navigation, trong khi cold restart
+  lại vào Home. Nay nút này điều hướng `/home` (`MainShell`); widget test xác
+  nhận có `NavigationBar`, APK dev đã build/cài lên MuMu và hiển thị Home với
+  thanh điều hướng.
 - Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency, chuẩn hóa
   email, rate limit, refresh rotation/reuse, role policy, startup config và
   Speaking MIME/size/duration/raw-audio retention đã được xử lý.
@@ -38,10 +50,9 @@
   soft-delete, import transactional/idempotent, analytics và audit log; learner
   bị từ chối ở toàn bộ `/admin/*`. Gamification đã có XP/coin/streak/quest nhưng
   chưa có badge/reward tuning; mastery passive decay vẫn thiếu.
-- Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile và có test tự động**,
-  đồng thời đã có device smoke sau placement, nhưng chưa đạt MVP nghiệm thu do
-  thiếu full-stack E2E từ account mới, ML artifact/evaluation gate và production
-  readiness.
+- Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile, có test tự động và
+  clean-account device E2E local**, nhưng chưa đạt MVP nghiệm thu cuối do còn
+  thiếu ML artifact/evaluation gate và production readiness.
 
 ## Snapshot bằng chứng ngày 2026-08-02
 
@@ -50,8 +61,9 @@
 - .NET hiện có **55 route/14 feature group**: Health, Auth, Skills, Items,
   Placement, Mastery, Reviews, Path, Lessons, Exercises/Writing,
   Dashboard/Gamification, Speaking, Privacy và Admin.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **88/88 test**.
-- .NET Release test đạt **87/87**; migration identity/profile, Lesson/content,
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **98/98 test**.
+- .NET Release test đạt **88/88**, gồm regression test tương thích Placement;
+  migration identity/profile, Lesson/content,
   gamification, Admin content management và privacy lifecycle đã apply thành công trên PostgreSQL
   local. Concurrent start/answer/completion, reward replay, role enforcement,
   CRUD relation guard, import rollback/idempotency, privacy export/deletion và
@@ -91,14 +103,24 @@
   nối lại retry thành công với cùng operation ID. ML không chạy trong lượt này;
   fixture chỉ seed placement-completed cho tài khoản test nên không được tính là
   E2E placement mới.
+- Dev stack local đã được kiểm tra healthy riêng cho PostgreSQL, API, ML service
+  và Admin; MuMu truy cập API qua `192.168.2.10`. `lib/` production không còn
+  biểu tượng `MockRepository`/fake; composition root hiện wire các repository
+  `ApiAuth`, `Placement`, `LearningPath`, `Review`, `Progress`, `Lesson`,
+  `Dashboard` và `AiPractice`. Đây là kiểm chứng local, không khẳng định E2E
+  production hoặc artifact ML/release đã sẵn sàng.
+- Clean-account device E2E trên MuMu đã chạy từ Register qua Placement 30 câu,
+  Home đúng identity không pull-refresh, Path mở Lesson, hoàn thành hai lesson,
+  tạo/grade một ReviewCard và cập nhật Dashboard lên 90 XP, 5 xu, streak 1.
+  Force-stop/relaunch APK mới giữ đúng session; API và ML health đều trả 200.
 
 ## Ma trận trạng thái sản phẩm
 
 | Hạng mục | Trạng thái | Phần còn thiếu |
 |---|---|---|
 | Auth và session | API thật | Access token 15 phút, refresh token hash/rotation/reuse detection, logout/revoke, đổi mật khẩu, role claim/policy và mobile single-flight refresh đã có; forgot-password là phần mở rộng sau MVP |
-| Onboarding và profile | API thật | Sau placement có Profile Setup; target chỉ được xác nhận khi user chọn A1–B2. Daily goal, purpose, focus, reminder/timezone, email/app preferences và change-password đều lưu qua API; toggle rollback khi save lỗi |
-| Placement | Partial, E2E thật | Answer đã session-bound/idempotent và email đã normalize/validate; vẫn chỉ trả CEFR tổng và mới có 12 smoke items |
+| Onboarding và profile | API thật, local verified | Sau placement, nút tiếp tục hiện vào `/home` (`MainShell`) có bottom navigation; không còn mở Profile Setup standalone. Target chỉ được xác nhận khi user chọn A1–B2. Daily goal, purpose, focus, reminder/timezone, email/app preferences và change-password đều lưu qua API. |
+| Placement | Partial, local runtime verified | Answer đã session-bound/idempotent và email đã normalize/validate; endpoint local đã lọc candidate sang `mcq`/`listening_mcq` để không trả cloze `options=[]` cho choice-only client. Vẫn chỉ trả CEFR tổng; content bundle có 100 item và clean-account CAT đã đi tối đa 30 câu, nhưng item bank chưa được hiệu chuẩn production. |
 | Home/Today Plan | API thật trên mobile | `GET /dashboard` + `/path/today` cấp name, CEFR/target, mastery, goal, next lesson, due review, recent activity và reward stats |
 | Learning Path | API thật, MuMu smoke đạt | `/path` mở lesson từ `/path/today`; complete refresh Path/Progress/Review/Home; offline retry và app restart đã được xác minh |
 | Lesson | API thật trên mobile | Detail/player start-resume-progress-submit-feedback-complete có loading/error/retry và giữ operation ID khi retry |
@@ -207,8 +229,11 @@
     đã xanh 7/7: backend, ML, Flutter, Admin, containers, security và
     contract-full-stack. Một timeout Docker Hub khi pull service PostgreSQL ở
     run trước đã được rerun và xác nhận là lỗi registry, không phải regression.
-  - [ ] Chưa có clean-account browser/device full-stack E2E ở môi trường
-    production-like; contract process smoke không thay thế gate này.
+  - [x] Clean-account device full-stack E2E đã đạt trên stack local thật với
+    API/PostgreSQL/ML và APK dev; contract process smoke không được dùng thay
+    cho bằng chứng runtime này.
+  - [ ] Chạy lại cùng kịch bản trên staging production-like dùng HTTPS,
+    release-signed artifact và topology triển khai thật.
 - [x] Nâng dependency có advisory; thêm startup config validation, token
   refresh/revoke, exception handling, CORS, role policy và security audit log.
 - [ ] Hoàn thiện security headers và HTTPS trong production topology.
@@ -264,7 +289,7 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 86/86;
+1. **Flutter quality gate đã đạt local:** Flutter analyze sạch và test đạt 98/98;
    tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.

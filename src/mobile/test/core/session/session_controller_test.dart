@@ -26,6 +26,30 @@ class DelayedWriteSessionStore implements SessionStore {
   }
 }
 
+class HangingReadSessionStore implements SessionStore {
+  String? writtenToken;
+
+  @override
+  Future<void> clearToken() async {
+    writtenToken = null;
+  }
+
+  @override
+  Future<String?> readToken() => Completer<String?>().future;
+
+  @override
+  Future<void> writeToken(String token) async {
+    writtenToken = token;
+  }
+}
+
+class HangingClearSessionStore extends MemorySessionStore {
+  HangingClearSessionStore(super.token);
+
+  @override
+  Future<void> clearToken() => Completer<void>().future;
+}
+
 void main() {
   test('restore session đã lưu', () async {
     final controller = SessionController(MemorySessionStore('stored-token'));
@@ -67,6 +91,21 @@ void main() {
 
     expect(controller.status, SessionStatus.unauthenticated);
     expect(controller.token, isNull);
+  });
+
+  test('logout storage bị treo timeout và không đăng xuất giả', () async {
+    final store = HangingClearSessionStore('stored-token');
+    final controller = SessionController(
+      store,
+      storeOperationTimeout: const Duration(milliseconds: 1),
+    );
+    await controller.restore();
+
+    await expectLater(controller.logout(), throwsA(isA<TimeoutException>()));
+
+    expect(controller.status, SessionStatus.authenticated);
+    expect(controller.token, 'stored-token');
+    expect(await store.readToken(), 'stored-token');
   });
 
   test('logout chờ writeToken cũ rồi xóa token khỏi store', () async {
@@ -119,6 +158,24 @@ void main() {
     );
   });
 
+  test('lookup placement bị treo cũng chuyển sang error hữu hạn', () async {
+    final controller = SessionController(
+      MemorySessionStore('stored-token'),
+      placementStatusTimeout: const Duration(milliseconds: 1),
+    );
+    controller.configurePlacementStatusLoader(
+      () => Completer<bool>().future,
+    );
+
+    await controller.restore();
+
+    expect(controller.status, SessionStatus.authenticated);
+    expect(
+      controller.placementStatus,
+      PlacementOnboardingStatus.error,
+    );
+  });
+
   test('logout không bị kết quả placement cũ ghi đè', () async {
     final pending = Completer<bool>();
     final controller = SessionController(MemorySessionStore('stored-token'));
@@ -156,5 +213,22 @@ void main() {
 
     expect(controller.token, 'new-token');
     expect(controller.placementStatus, PlacementOnboardingStatus.required);
+  });
+
+  test('restore không giữ Splash vô hạn khi secure storage bị treo', () async {
+    final store = HangingReadSessionStore();
+    final controller = SessionController(
+      store,
+      storeReadTimeout: const Duration(milliseconds: 1),
+    );
+
+    await controller.restore();
+
+    expect(controller.status, SessionStatus.unauthenticated);
+    expect(controller.placementStatus, PlacementOnboardingStatus.unknown);
+
+    await controller.authenticate('new-token', checkPlacement: false);
+    expect(controller.status, SessionStatus.authenticated);
+    expect(store.writtenToken, 'new-token');
   });
 }

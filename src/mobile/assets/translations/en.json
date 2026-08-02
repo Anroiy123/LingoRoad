@@ -95,7 +95,9 @@
     "error": {
       "title": "Cannot check progress",
       "subtitle": "Please check your connection and try again to continue your path.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "logout": "Log out",
+      "logout_failed": "Could not log out safely. Please try again."
     }
   },
   "home": {
@@ -174,6 +176,7 @@
     },
     "complete": {
       "title": "Lesson complete!",
+      "subtitle": "You've completed today's lesson.",
       "message": "You answered {}/{} correctly and created {} review cards.",
       "home": "Back to home",
       "header": "Lesson Complete",
