@@ -50,8 +50,8 @@
 - .NET hiện có **55 route/14 feature group**: Health, Auth, Skills, Items,
   Placement, Mastery, Reviews, Path, Lessons, Exercises/Writing,
   Dashboard/Gamification, Speaking, Privacy và Admin.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **86/86 test**.
-- .NET Release test đạt **85/85**; migration identity/profile, Lesson/content,
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **88/88 test**.
+- .NET Release test đạt **87/87**; migration identity/profile, Lesson/content,
   gamification, Admin content management và privacy lifecycle đã apply thành công trên PostgreSQL
   local. Concurrent start/answer/completion, reward replay, role enforcement,
   CRUD relation guard, import rollback/idempotency, privacy export/deletion và
@@ -77,6 +77,12 @@
   DNS/domain, GitHub Environment/secrets, GHCR login và keystore vẫn chưa được
   cung cấp. Vì vậy HTTPS/monitoring live, restore drill thật và APK/AAB ký +
   device/store smoke chưa được tính là hoàn thành.
+- [PR #19](https://github.com/Anroiy123/LingoRoad/pull/19) (merge `6f8e131`) đã
+  chạy xanh **7/7 Quality Gate**: backend, ML,
+  Flutter, Admin, containers, security và contract-full-stack. CI xác minh
+  build/test/migration, Flutter analyze/test/dev APK, Admin browser E2E, image
+  build, dependency/secret scan và public contract smoke. Đây là evidence CI,
+  không thay thế smoke live trên VPS.
 - `dotnet list package --vulnerable --include-transitive` hiện không báo package
   vulnerable cho cả API và test project.
 - MuMu Android 12 đã hoàn thành lesson 5 câu (MCQ/cloze/reorder), nhận feedback,
@@ -112,11 +118,12 @@
 
 ### P0 — Khép kín MVP và sửa rủi ro dữ liệu/bảo mật
 
-- [ ] **P0-01 — Chốt contract MVP.**
+- [x] **P0-01 — Chốt contract MVP.**
   - [x] Phạm vi CEFR A1–B2.
   - [x] Placement trả overall level.
   - [x] Advisor, Writing và Speaking thuộc phạm vi roadmap P0–P2.
-  - [ ] Đồng bộ `MVP_architecture.md`, API contract, mobile model và kịch bản demo.
+  - [x] Đồng bộ `MVP_architecture.md`, API contract, mobile model và kịch bản demo
+    trong phụ lục contract 2026-08-02; lịch sử thiết kế vẫn được giữ nguyên.
 - [x] **P0-02 — Sửa security/integrity.**
   - [x] Không trả `CorrectAnswer` từ public `GET /items`.
   - [x] Placement answer idempotent, chỉ chấp nhận item đã cấp cho session và

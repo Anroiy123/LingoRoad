@@ -1,5 +1,80 @@
 # Thiết kế MVP hệ thống: lingoRoad
 
+> **Phụ lục trạng thái triển khai — 2026-08-02.** Phần thiết kế lịch sử bên
+> dưới được giữ để phục vụ báo cáo môn học. Khi khác nhau, phụ lục này là
+> contract vận hành hiện tại, được đối chiếu với mã nguồn và
+> [API ↔ Frontend Gap Analysis](docs/api-frontend-gap-analysis.md). Không suy
+> diễn rằng các gate production trong phụ lục đã được nghiệm thu live.
+
+## 0. Contract MVP hiện hành và kịch bản nghiệm thu
+
+### 0.1. Phạm vi đã chốt
+
+- CEFR learner-facing giới hạn ở **A1, A2, B1, B2**; placement trả một overall
+  level, không trả chứng chỉ hay level theo từng kỹ năng.
+- Luồng cốt lõi là `Register/Login → Placement → Profile Setup → Path → Lesson
+  → Exercise → Feedback → Mastery → Review → Dashboard`.
+- Advisor, Writing và Speaking là learner flow có API/mobile thật, nhưng feature
+  ML production mặc định fail-closed theo cohort. Learner loop cốt lõi vẫn dùng
+  item bank khi ML không sẵn sàng.
+- Admin React là CMS tối thiểu có auth/role server-enforced, CRUD Skills/Items/
+  Lessons, import validate/preview/apply, analytics và audit. Không có quyền
+  Admin nào chỉ dựa vào route guard phía client.
+
+### 0.2. API public canonical
+
+Trong production, Caddy nhận `https://DOMAIN/api/*` và bỏ tiền tố `/api` trước
+khi chuyển vào ASP.NET Core. Flutter native phải dùng
+`API_BASE_URL=https://DOMAIN/api`, rồi gọi các path dưới đây. OpenAPI/Scalar được bật cho development
+ở `/scalar/v1`; nguồn contract là các endpoint trong
+`src/backend/LingoRoad/Endpoints/`.
+
+| Nhóm | Endpoint chính | Quy tắc contract |
+|---|---|---|
+| Identity/profile | `POST /auth/register`, `/login`, `/refresh`, `/logout`, `/change-password`; `GET/PATCH /auth/me` | Access/refresh session được quản lý qua `SessionController`; refresh xoay vòng, đổi mật khẩu thu hồi session. |
+| Placement | `GET /placement/status`, `POST /placement/start`, `POST /placement/{id}/answer`, `GET /placement/{id}/result` | Câu trả lời chỉ hợp lệ cho session đã cấp; retry không ghi nhận mastery hai lần. |
+| Path/lesson | `GET /path`, `/path/today`, `GET /lessons/{id}`, `POST /lessons/{id}/attempts`, `GET /lesson-attempts/{id}`, `POST /lesson-attempts/{id}/complete` | Start/complete mang UUID `operationId`; cùng request replay trả kết quả đã ghi. |
+| Exercise/review | `POST /exercises/{id}/submit`, `GET /reviews/due`, `POST /reviews/{id}/grade` | Không lộ đáp án đúng trước submit; submit/grade có `operationId`, UI khóa double tap. |
+| Learner state | `GET /mastery`, `/skills`, `/dashboard`, `/gamification/me`, `/quests` | Home/Progress/Review lấy dữ liệu thật; không có `MockRepository` trong production mobile. |
+| AI practice/privacy | `POST /path/advisor`, `/writing/evaluate`, `/speaking/attempts`; `GET/POST /privacy/consents`, `GET /privacy/export`, `DELETE /auth/me` | Speaking kiểm MIME/chữ ký, giới hạn 10 MiB/120 giây và xóa audio gốc sau chấm. |
+| Admin | `/admin/skills`, `/admin/items`, `/admin/lessons`, `/admin/imports/validate`, `/admin/imports`, `/admin/analytics/*`, `/admin/audit` | Mọi route yêu cầu policy `Admin`; import transactional, versioned và idempotent. |
+
+### 0.3. Mô hình mobile đã triển khai
+
+`LingoRoadApp` tạo một đồ thị Provider duy nhất: `SessionController` +
+`ApiClient` + các repository theo feature. ViewModel/Screen không gọi HTTP
+trực tiếp. `ApiClient` gắn Bearer token, refresh single-flight khi gặp 401 và
+chuyển lỗi thành trạng thái loading/empty/error/retry. Lesson/Review giữ UUID
+operation qua retry; Dashboard, Path, Progress và Review được refresh sau khi
+hoàn thành lesson. `ScreenUtilInit(390×844)` là harness layout dùng chung cho
+runtime và widget test.
+
+### 0.4. Kịch bản demo nghiệm thu hiện hành
+
+**Learner (clean account):**
+
+1. Đăng ký/đăng nhập, chọn target CEFR và daily goal; mở lại Profile để xác
+   nhận dữ liệu đã persist.
+2. Bắt đầu placement, trả lời các item được session cấp và xem one overall
+   CEFR result; mở Home/Today Plan.
+3. Mở lesson hôm nay, start/resume attempt, làm đủ MCQ/cloze/reorder và cố ý
+   sai ít nhất một câu để nhận feedback chỉ sau submit.
+4. Complete lesson; kiểm tra mastery, Path, Dashboard và Review refresh. Grade
+   một ReviewCard, retry request trong tình huống mạng không chắc chắn và xác
+   nhận không tăng repetition/reward hai lần.
+5. Khi feature cohort cho phép, thử Advisor/Writing/Speaking; nếu ML down, xác
+   nhận learner loop cốt lõi vẫn chạy và không lưu raw speaking audio.
+
+**Admin:** đăng nhập bằng admin bootstrap, tạo draft Skill/Item/Lesson, publish
+lesson hợp lệ, chạy import `validate → preview → apply` hai lần với cùng bundle
+và kiểm tra analytics/audit. Tài khoản Learner phải nhận 403 ở mọi `/admin/*`.
+
+**Bằng chứng hiện có:** [PR #19](https://github.com/Anroiy123/LingoRoad/pull/19)
+(merge `6f8e131`) có 7 Quality Gate xanh:
+backend, ML, Flutter, Admin, containers, security và contract-full-stack.
+HTTPS live, restore drill trên VPS và APK/AAB ký vẫn là gate bên ngoài được
+liệt kê trong `docs/production-deployment.md`.
+
 ## 1. Thông tin chung
 
 ### Tên đề tài
