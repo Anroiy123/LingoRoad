@@ -1,0 +1,105 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: Green main commit SHA already published to GHCR
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate selected image SHA
+        shell: bash
+        env:
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          [[ "$IMAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::image_sha must be a full lowercase 40-character commit SHA"
+            exit 1
+          }
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.image_sha }}
+          fetch-depth: 0
+      - name: Verify green main commit and immutable images
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$IMAGE_SHA" origin/main || {
+            echo "::error::image_sha is not contained in origin/main"
+            exit 1
+          }
+          success_count="$(gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$IMAGE_SHA&status=completed&per_page=100" \
+            --jq '[.workflow_runs[] | select(.conclusion == "success")] | length' |
+            awk '{ total += $1 } END { print total + 0 }')"
+          test "$success_count" -gt 0 || {
+            echo "::error::No successful Quality Gate run found for image_sha"
+            exit 1
+          }
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          for image in api ml admin; do
+            docker manifest inspect "ghcr.io/$owner/lingoroad-$image:$IMAGE_SHA" >/dev/null || {
+              echo "::error::Missing published image: lingoroad-$image:$IMAGE_SHA"
+              exit 1
+            }
+          done
+      - name: Validate required deployment inputs
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+          PRODUCTION_ENV_FILE: ${{ secrets.PRODUCTION_ENV_FILE }}
+        run: |
+          for name in VPS_HOST VPS_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS PRODUCTION_ENV_FILE; do
+            test -n "${!name:-}" || { echo "::error::$name is not configured"; exit 1; }
+          done
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 0700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 0600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload deployment definition and production environment
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          PRODUCTION_ENV_FILE: ${{ secrets.PRODUCTION_ENV_FILE }}
+        run: |
+          test -n "$PRODUCTION_ENV_FILE"
+          printf '%s\n' "$PRODUCTION_ENV_FILE" > /tmp/lingoroad.env
+          ssh "$VPS_USER@$VPS_HOST" 'mkdir -p /opt/lingoroad'
+          scp -r deploy "$VPS_USER@$VPS_HOST:/opt/lingoroad/"
+          scp /tmp/lingoroad.env "$VPS_USER@$VPS_HOST:/opt/lingoroad/deploy/.env.production"
+          ssh "$VPS_USER@$VPS_HOST" 'chmod 0600 /opt/lingoroad/deploy/.env.production && chmod 0700 /opt/lingoroad/deploy/scripts/*.sh'
+          rm -f /tmp/lingoroad.env
+      - name: Deploy and rollback on failed health check
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          image_prefix="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          printf -v remote_command 'IMAGE_PREFIX=%q sh /opt/lingoroad/deploy/scripts/deploy.sh %q' "$image_prefix" "$IMAGE_SHA"
+          ssh "$VPS_USER@$VPS_HOST" "$remote_command"

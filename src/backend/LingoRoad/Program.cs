@@ -8,8 +8,20 @@ using Scalar.AspNetCore;
 using LingoRoad.Data;
 using LingoRoad.Endpoints;
 using LingoRoad.Services;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var migrateOnly = args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase);
+var seedOnly = args.Contains("--seed-only", StringComparer.OrdinalIgnoreCase);
+
+if (builder.Environment.IsProduction())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddJsonConsole(options => options.IncludeScopes = true);
+}
 
 if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
 {
@@ -30,6 +42,16 @@ if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("lingoroad-api"))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter())
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddOtlpExporter());
 builder.Services.AddDbContext<AppDbContext>(o =>
     o.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
@@ -146,6 +168,18 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (migrateOnly)
+    {
+        await db.Database.MigrateAsync();
+        app.Logger.LogInformation("Database migration one-shot completed successfully");
+        return;
+    }
+    if (seedOnly)
+    {
+        await DbSeeder.SeedAsync(db);
+        app.Logger.LogInformation("Content seed one-shot completed successfully");
+        return;
+    }
     if (app.Environment.IsDevelopment() &&
         (app.Configuration.GetValue<bool?>("ContentSeed:Enabled") ?? true))
         await DbSeeder.SeedAsync(db);
@@ -159,6 +193,23 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Text("ok"));
+app.MapGet("/ready", async (AppDbContext db, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "ready", database = "ready" })
+            : Results.Json(
+                new { status = "not_ready", database = "unavailable" },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch
+    {
+        return Results.Json(
+            new { status = "not_ready", database = "unavailable" },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 app.MapAuth();
 app.MapSkills();
 app.MapItems();

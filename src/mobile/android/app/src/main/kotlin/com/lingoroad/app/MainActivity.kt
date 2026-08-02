@@ -1,4 +1,4 @@
-package com.lingoroad.lingoroad_mobile
+package com.lingoroad.app
 
 import io.flutter.embedding.android.FlutterActivity
 
