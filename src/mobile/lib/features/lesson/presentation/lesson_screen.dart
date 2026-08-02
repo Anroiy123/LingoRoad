@@ -53,7 +53,10 @@ class _LessonScreenState extends State<LessonScreen> {
     }
     if (viewModel.state == LessonState.completed) {
       _scheduleRefresh();
-      return LessonCompleteView(completion: viewModel.completion!);
+      return LessonCompleteView(
+        key: const Key('lesson_completed'),
+        completion: viewModel.completion!,
+      );
     }
 
     return Scaffold(

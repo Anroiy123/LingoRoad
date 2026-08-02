@@ -185,40 +185,44 @@ class _StatsGrid extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(AppSpacing.sm.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.errorSoft,
-                      borderRadius: BorderRadius.circular(AppRadius.md.r),
-                    ),
-                    child: const Icon(
-                      Icons.style_rounded,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  SizedBox(width: AppSpacing.md.w),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.translate('lesson.complete.excellent'),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Colors.white70,
-                              letterSpacing: 1.2,
-                            ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(AppSpacing.sm.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorSoft,
+                        borderRadius: BorderRadius.circular(AppRadius.md.r),
                       ),
-                      Text(
-                        l10n.translate('lesson.complete.results'),
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      child: const Icon(
+                        Icons.style_rounded,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(width: AppSpacing.md.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.translate('lesson.complete.excellent'),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Colors.white70,
+                                  letterSpacing: 1.2,
+                                ),
+                          ),
+                          Text(
+                            l10n.translate('lesson.complete.results'),
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const Icon(
                 Icons.chevron_right_rounded,
@@ -322,6 +326,7 @@ class _BottomActionBar extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
+              key: const Key('lesson_back_home'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primaryContainer,
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.lg.h),
