@@ -177,3 +177,16 @@ ApiException _malformed() => const ApiException(
       code: 'malformed_response',
       message: 'Phản hồi bài học không hợp lệ',
     );
+
+class MistakeRecord {
+  const MistakeRecord({
+    required this.exercise,
+    required this.userAnswer,
+    required this.feedback,
+  });
+
+  final LessonExercise exercise;
+  final String userAnswer;
+  final ExerciseFeedback feedback;
+}
+

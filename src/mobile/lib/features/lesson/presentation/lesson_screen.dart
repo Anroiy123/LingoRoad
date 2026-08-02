@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
 import 'package:lingoroad_mobile/features/learning_path/presentation/learning_path_view_model.dart';
@@ -8,6 +7,7 @@ import 'package:lingoroad_mobile/features/lesson/domain/lesson_models.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
 import 'package:lingoroad_mobile/features/progress/presentation/progress_view_model.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/lesson/presentation/lesson_complete_view.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
@@ -51,7 +51,13 @@ class _LessonScreenState extends State<LessonScreen> {
       _answerController.clear();
       _selectedWords.clear();
     }
-    if (viewModel.state == LessonState.completed) _scheduleRefresh();
+    if (viewModel.state == LessonState.completed) {
+      _scheduleRefresh();
+      return LessonCompleteView(
+        key: const Key('lesson_completed'),
+        completion: viewModel.completion!,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -95,24 +101,7 @@ class _LessonScreenState extends State<LessonScreen> {
         ),
       );
     }
-    if (viewModel.state == LessonState.completed) {
-      final completion = viewModel.completion!;
-      return _StateCard(
-        key: const Key('lesson_completed'),
-        icon: Icons.celebration_rounded,
-        title: l10n.translate('lesson.complete.title'),
-        message: l10n.translate('lesson.complete.message', [
-          completion.correctAnswers,
-          completion.totalAnswers,
-          completion.reviewCardsCreated,
-        ]),
-        action: FilledButton(
-          key: const Key('lesson_back_home'),
-          onPressed: () => context.go('/home'),
-          child: Text(l10n.translate('lesson.complete.home')),
-        ),
-      );
-    }
+
 
     final exercise = viewModel.current;
     if (exercise == null) {
