@@ -166,13 +166,11 @@ class _MistakeCardLayout extends StatelessWidget {
     required this.hasAudio,
     required this.title,
     required this.children,
-    this.imagePlaceholder = false,
   });
 
   final String tag;
   final bool hasAudio;
   final String title;
-  final bool imagePlaceholder;
   final List<Widget> children;
 
   @override
@@ -219,43 +217,14 @@ class _MistakeCardLayout extends StatelessWidget {
             ],
           ),
           SizedBox(height: AppSpacing.sm.h),
-          if (imagePlaceholder) ...[
-            Row(
-              children: [
-                Container(
-                  width: 80.w,
-                  height: 80.w,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHigh,
-                    borderRadius: BorderRadius.circular(AppRadius.md.r),
-                    image: const DecorationImage(
-                      image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuA387M_70gv3CRGZxCR8-m-5mOVCk76kX75S7sRamYhMu2Rukkf_g0r9TPsglpxi_3mBAKzT98__v3dzxaIGZIOH3C9ys9gd48a_jVTAMQjKoSU65dLsD15Pyuct7LIxm4XfVevHQ_osRF-bpiww9zcWuuvkzhIdQGIS6Ii4TeH4WMn7sRnq2wkl8jkucaeNOzSwUgWm9rixtIp4zEPynEGo91DuUr2PphVIJ085UGIJ3UMpPhCC0eT'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w600,
                 ),
-                SizedBox(width: AppSpacing.md.w),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColors.text,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.md.h),
-          ] else ...[
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
-            SizedBox(height: AppSpacing.md.h),
-          ],
+          ),
+          SizedBox(height: AppSpacing.md.h),
           ...children,
         ],
       ),
@@ -264,10 +233,9 @@ class _MistakeCardLayout extends StatelessWidget {
 }
 
 class _IncorrectAnswer extends StatelessWidget {
-  const _IncorrectAnswer({required this.label, required this.text, this.isBold = false});
+  const _IncorrectAnswer({required this.label, required this.text});
   final String label;
   final String text;
-  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +264,7 @@ class _IncorrectAnswer extends StatelessWidget {
                   text,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.text,
-                        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: FontWeight.normal,
                       ),
                 ),
               ],
@@ -309,10 +277,9 @@ class _IncorrectAnswer extends StatelessWidget {
 }
 
 class _CorrectAnswer extends StatelessWidget {
-  const _CorrectAnswer({required this.label, required this.text, this.isBold = false});
+  const _CorrectAnswer({required this.label, required this.text});
   final String label;
   final String text;
-  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +308,7 @@ class _CorrectAnswer extends StatelessWidget {
                   text,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.text,
-                        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: FontWeight.normal,
                       ),
                 ),
               ],
