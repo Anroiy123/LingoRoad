@@ -1,0 +1,9 @@
+title = "LingoRoad secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documented bootstrap placeholder from the initial Phase 7 commit"
+regexTarget = "line"
+regexes = ['''BootstrapAdmin__Password=replace-with-at-least-12-characters''']
