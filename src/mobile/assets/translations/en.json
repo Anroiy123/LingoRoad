@@ -175,7 +175,27 @@
     "complete": {
       "title": "Lesson complete!",
       "message": "You answered {}/{} correctly and created {} review cards.",
-      "home": "Back to home"
+      "home": "Back to home",
+      "header": "Lesson Complete",
+      "excellent": "EXCELLENT!",
+      "results": "Your Lesson Results",
+      "accuracy": "Accuracy\nRate",
+      "review_cards_label": "Review\nCards",
+      "review_mistakes": "REVIEW MISTAKES",
+      "back_home": "BACK TO HOME"
+    },
+    "mistakes": {
+      "title": "Review Mistakes",
+      "completed": "LESSON COMPLETED",
+      "summary": "You have {} mistakes to review",
+      "empty": "Great, you made no mistakes!",
+      "tag_mcq": "Multiple Choice",
+      "tag_reorder": "Reorder",
+      "tag_text": "Fill in",
+      "your_answer": "Your Answer",
+      "correct_answer": "Correct Answer",
+      "explanation": "Explanation:",
+      "back_home": "Back to Home"
     },
     "empty": {
       "title": "This lesson has no content",

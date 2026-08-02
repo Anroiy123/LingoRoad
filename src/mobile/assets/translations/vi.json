@@ -175,7 +175,27 @@
     "complete": {
       "title": "Hoàn thành bài học!",
       "message": "Bạn đúng {}/{} câu và tạo {} thẻ ôn tập.",
-      "home": "Về trang chủ"
+      "home": "Về trang chủ",
+      "header": "Kết thúc bài học",
+      "excellent": "TUYỆT VỜI!",
+      "results": "Kết quả bài làm của bạn",
+      "accuracy": "Tỉ lệ\nchính xác",
+      "review_cards_label": "Số lượng\nThẻ ôn",
+      "review_mistakes": "XEM LẠI LỖI",
+      "back_home": "VỀ TRANG CHỦ"
+    },
+    "mistakes": {
+      "title": "Xem lại lỗi",
+      "completed": "HOÀN THÀNH BÀI TẬP",
+      "summary": "Bạn có {} lỗi cần xem lại",
+      "empty": "Tuyệt vời, bạn không có lỗi nào!",
+      "tag_mcq": "Trắc nghiệm",
+      "tag_reorder": "Sắp xếp",
+      "tag_text": "Điền từ",
+      "your_answer": "Câu trả lời của bạn",
+      "correct_answer": "Câu trả lời đúng",
+      "explanation": "Giải thích:",
+      "back_home": "Về trang chủ"
     },
     "empty": {
       "title": "Bài học chưa có nội dung",

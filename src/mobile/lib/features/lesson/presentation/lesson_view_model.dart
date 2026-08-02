@@ -25,6 +25,7 @@ class LessonViewModel extends ChangeNotifier {
   LessonAttempt? _attempt;
   LessonCompletion? _completion;
   ExerciseFeedback? _feedback;
+  final List<MistakeRecord> _mistakes = [];
   int _index = 0;
   String? _errorCode;
   String? _startOperationId;
@@ -41,6 +42,7 @@ class LessonViewModel extends ChangeNotifier {
           : null;
   LessonCompletion? get completion => _completion;
   ExerciseFeedback? get feedback => _feedback;
+  List<MistakeRecord> get mistakes => List.unmodifiable(_mistakes);
   String? get errorCode => _errorCode;
   int get currentNumber => _index + 1;
   int get total => _attempt?.exercises.length ?? 0;
@@ -60,6 +62,7 @@ class LessonViewModel extends ChangeNotifier {
     try {
       _attempt = await _repository.start(lessonId, _startOperationId!);
       _startOperationId = null;
+      _mistakes.clear();
       _index = _attempt!.exercises.indexWhere((exercise) => !exercise.answered);
       if (_index < 0) {
         _index = _attempt!.exercises.length;
@@ -99,6 +102,13 @@ class LessonViewModel extends ChangeNotifier {
         answer: _pendingAnswer!,
         operationId: _answerOperationId!,
       );
+      if (!_feedback!.correct) {
+        _mistakes.add(MistakeRecord(
+          exercise: exercise,
+          userAnswer: _pendingAnswer!,
+          feedback: _feedback!,
+        ));
+      }
       _answerOperationId = null;
       _pendingAnswer = null;
       _state = LessonState.feedback;
