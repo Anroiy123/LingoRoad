@@ -16,10 +16,11 @@ WORKDIR /app
 RUN groupadd --system --gid 10001 lingoroad \
     && useradd --system --uid 10001 --gid lingoroad --home-dir /app lingoroad
 COPY --from=wheels /wheels /wheels
-RUN python -m pip install --no-index --find-links=/wheels torch==2.13.0 \
-    && python -m pip install --no-index --find-links=/wheels /wheels/*.whl \
+COPY --from=wheels /build/requirements.txt /tmp/requirements.txt
+RUN python -m pip install --no-index --find-links=/wheels \
+        torch==2.13.0 -r /tmp/requirements.txt \
     && python -m nltk.downloader -d /opt/nltk_data wordnet \
-    && rm -rf /wheels \
+    && rm -rf /wheels /tmp/requirements.txt \
     && chown -R lingoroad:lingoroad /opt/nltk_data
 COPY --chown=lingoroad:lingoroad lingoroad_ml ./lingoroad_ml
 COPY --chown=lingoroad:lingoroad models ./models

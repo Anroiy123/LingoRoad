@@ -50,18 +50,29 @@ public static class ReviewEndpoints
                 o => o.UserId == userId && o.OperationId == req.OperationId);
             if (replay is not null)
             {
-                if (replay.CardId != cardId || replay.Rating != req.Rating || replay.ExpectedReps != req.ExpectedReps)
+                if (!Matches(replay, cardId, req))
                     return Results.Conflict(new { error = "idempotency_conflict" });
                 return Results.Ok(Snapshot(replay));
             }
             var card = await db.ReviewCards.SingleOrDefaultAsync(
                 c => c.Id == cardId && c.UserId == userId);
             if (card is null) return Results.NotFound();
-            if (card.Due > DateTime.UtcNow)
-                return Results.Conflict(new { error = "review_not_due" });
-            if (card.Reps != req.ExpectedReps)
+            var now = DateTime.UtcNow;
+            if (card.Due > now || card.Reps != req.ExpectedReps)
+            {
+                // A matching concurrent request may have committed after the first
+                // operation lookup but before this card snapshot was read.
+                replay = await db.ReviewGradeOperations.AsNoTracking().SingleOrDefaultAsync(
+                    o => o.UserId == userId && o.OperationId == req.OperationId);
+                if (replay is not null)
+                    return Matches(replay, cardId, req)
+                        ? Results.Ok(Snapshot(replay))
+                        : Results.Conflict(new { error = "idempotency_conflict" });
+                if (card.Due > now)
+                    return Results.Conflict(new { error = "review_not_due" });
                 return Results.Conflict(new { error = "review_already_graded" });
-            Fsrs.Review(card, (Grade)req.Rating, DateTime.UtcNow);
+            }
+            Fsrs.Review(card, (Grade)req.Rating, now);
             var operation = new ReviewGradeOperation
             {
                 UserId = userId,
@@ -105,7 +116,7 @@ public static class ReviewEndpoints
                 db.ChangeTracker.Clear();
                 replay = await db.ReviewGradeOperations.SingleOrDefaultAsync(
                     o => o.UserId == userId && o.OperationId == req.OperationId);
-                if (replay is not null && replay.CardId == cardId && replay.Rating == req.Rating && replay.ExpectedReps == req.ExpectedReps)
+                if (replay is not null && Matches(replay, cardId, req))
                     return Results.Ok(Snapshot(replay));
                 return Results.Conflict(new { error = "review_already_graded" });
             }
@@ -114,13 +125,17 @@ public static class ReviewEndpoints
                 db.ChangeTracker.Clear();
                 replay = await db.ReviewGradeOperations.SingleOrDefaultAsync(
                     o => o.UserId == userId && o.OperationId == req.OperationId);
-                if (replay is not null && replay.CardId == cardId && replay.Rating == req.Rating && replay.ExpectedReps == req.ExpectedReps)
+                if (replay is not null && Matches(replay, cardId, req))
                     return Results.Ok(Snapshot(replay));
                 return Results.Conflict(new { error = "idempotency_conflict" });
             }
             return Results.Ok(Snapshot(operation));
         });
     }
+
+    private static bool Matches(ReviewGradeOperation operation, Guid cardId, GradeRequest request) =>
+        operation.CardId == cardId && operation.Rating == request.Rating &&
+        operation.ExpectedReps == request.ExpectedReps;
 
     private static object Snapshot(ReviewGradeOperation operation) => new
     {
