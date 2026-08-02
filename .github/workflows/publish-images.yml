@@ -1,0 +1,40 @@
+name: Publish Production Images
+
+on:
+  workflow_run:
+    workflows: ["Quality Gate"]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build and push immutable images
+        shell: bash
+        env:
+          IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          api="ghcr.io/$owner/lingoroad-api:$IMAGE_SHA"
+          ml="ghcr.io/$owner/lingoroad-ml:$IMAGE_SHA"
+          admin="ghcr.io/$owner/lingoroad-admin:$IMAGE_SHA"
+          docker build -f src/backend/LingoRoad/Dockerfile -t "$api" src/backend
+          docker build -f src/backend/ml/Dockerfile -t "$ml" src/backend/ml
+          docker build --build-arg VITE_API_BASE_URL=/api -f src/admin/Dockerfile -t "$admin" src/admin
+          docker push "$api"
+          docker push "$ml"
+          docker push "$admin"

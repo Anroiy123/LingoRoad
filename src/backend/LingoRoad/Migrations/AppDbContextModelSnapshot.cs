@@ -22,6 +22,48 @@ namespace LingoRoad.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LingoRoad.Domain.AccountDeletionRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ScheduledFor")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UserEmailHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "ScheduledFor");
+
+                    b.ToTable("AccountDeletionRequests");
+                });
+
             modelBuilder.Entity("LingoRoad.Domain.AdminAuditEvent", b =>
                 {
                     b.Property<long>("Id")
@@ -56,6 +98,45 @@ namespace LingoRoad.Migrations
                     b.HasIndex("AdminUserId", "CreatedAt");
 
                     b.ToTable("AdminAuditEvents");
+                });
+
+            modelBuilder.Entity("LingoRoad.Domain.ConsentRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ConsentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("Granted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PolicyVersion")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ConsentType", "RecordedAt");
+
+                    b.ToTable("ConsentRecords");
                 });
 
             modelBuilder.Entity("LingoRoad.Domain.ContentBundleImport", b =>
@@ -114,6 +195,9 @@ namespace LingoRoad.Migrations
 
                     b.Property<Guid?>("LessonAttemptId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ModelVersion")
+                        .HasColumnType("text");
 
                     b.Property<string>("OptionsJson")
                         .IsRequired()
@@ -271,6 +355,88 @@ namespace LingoRoad.Migrations
                     b.HasIndex("SkillId", "CefrLevel");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("LingoRoad.Domain.LearningEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CefrLevel")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ContentVersion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool?>("Correct")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid?>("ExerciseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("LatencyMs")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("LessonAttemptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModelVersion")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double?>("PredictedCorrectness")
+                        .HasColumnType("double precision");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<double?>("Score")
+                        .HasColumnType("double precision");
+
+                    b.Property<int?>("SkillId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.HasIndex("SkillId", "OccurredAt");
+
+                    b.HasIndex("UserId", "OccurredAt");
+
+                    b.HasIndex("UserId", "OperationId", "EventType")
+                        .IsUnique();
+
+                    b.ToTable("LearningEvents");
                 });
 
             modelBuilder.Entity("LingoRoad.Domain.Lesson", b =>
@@ -786,12 +952,18 @@ namespace LingoRoad.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AudioPath")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("DurationSeconds")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("FeedbackVi")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("PromptText")
                         .IsRequired()
@@ -969,6 +1141,15 @@ namespace LingoRoad.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("LingoRoad.Domain.ConsentRecord", b =>
+                {
+                    b.HasOne("LingoRoad.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("LingoRoad.Domain.Exercise", b =>
                 {
                     b.HasOne("LingoRoad.Domain.LessonAttempt", null)
@@ -980,6 +1161,15 @@ namespace LingoRoad.Migrations
                         .WithMany()
                         .HasForeignKey("SourceItemId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("LingoRoad.Domain.LearningEvent", b =>
+                {
+                    b.HasOne("LingoRoad.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("LingoRoad.Domain.Lesson", b =>

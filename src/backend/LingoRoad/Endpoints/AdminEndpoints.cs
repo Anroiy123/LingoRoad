@@ -140,6 +140,9 @@ public static partial class AdminEndpoints
         admin.MapPost("/imports/validate", ValidateImportAsync);
         admin.MapPost("/imports", ApplyImportAsync);
         admin.MapGet("/analytics/overview", AnalyticsAsync);
+        admin.MapGet("/analytics/learning-quality", async (LearningQualityService service,
+            CancellationToken cancellationToken) =>
+            Results.Ok(await service.BuildAsync(cancellationToken)));
         admin.MapGet("/audit", async (int? limit, AppDbContext db) =>
             await db.AdminAuditEvents.OrderByDescending(x => x.CreatedAt)
                 .Take(Math.Clamp(limit ?? 50, 1, 200)).ToListAsync());

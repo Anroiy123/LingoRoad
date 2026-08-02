@@ -6,10 +6,14 @@
 > đã bao phủ retry và double-submit; smoke learner loop trên MuMu đã đạt cả
 > grade Review, refresh Progress/Home, mất mạng/retry, app restart và ML tạm
 > ngừng. Admin React hiện đã dùng auth/role thật, có CRUD Skills/Items/Lessons,
-> import validate/preview/apply, analytics và audit log.
+> import validate/preview/apply, analytics và audit log. Advisor, Writing và
+> Speaking đã có mobile flow dùng API thật; Speaking giới hạn MIME/10 MiB/120
+> giây và xóa audio gốc ngay sau chấm. Learning events/consent đã append-only,
+> có ZIP export, xóa tài khoản theo receipt trong tối đa 30 ngày, retention job
+> và learning-quality analytics với sample gate.
 > Lịch sử bên dưới giữ nguyên.
 
-> Cập nhật lần cuối: **2026-08-01**
+> Cập nhật lần cuối: **2026-08-02**
 > Phạm vi: toàn bộ LingoRoad gồm backend .NET, ML service, Flutter mobile,
 > PostgreSQL, dữ liệu nội dung, Admin Web, kiểm thử và phát hành.
 
@@ -28,41 +32,57 @@
   Các màn hình đã bổ sung trên Figma mới là design coverage, chưa được tính là
   Flutter implementation.
 - Các lỗ hổng `CorrectAnswer`, placement session binding/idempotency, chuẩn hóa
-  email, rate limit, refresh rotation/reuse, role policy và startup config
-  validation đã được xử lý; validation/retention Speaking vẫn còn thiếu.
+  email, rate limit, refresh rotation/reuse, role policy, startup config và
+  Speaking MIME/size/duration/raw-audio retention đã được xử lý.
 - Admin Web đã có login/route guard theo role, CRUD nội dung, draft/publish,
   soft-delete, import transactional/idempotent, analytics và audit log; learner
   bị từ chối ở toàn bộ `/admin/*`. Gamification đã có XP/coin/streak/quest nhưng
   chưa có badge/reward tuning; mastery passive decay vẫn thiếu.
 - Vì vậy, dự án hiện là **learner loop đã nối ở API/mobile và có test tự động**,
   đồng thời đã có device smoke sau placement, nhưng chưa đạt MVP nghiệm thu do
-  thiếu full-stack E2E từ account mới, Speaking safety và production
+  thiếu full-stack E2E từ account mới, ML artifact/evaluation gate và production
   readiness.
 
-## Snapshot bằng chứng ngày 2026-08-01
+## Snapshot bằng chứng ngày 2026-08-02
 
 - Phase Admin được triển khai trên branch riêng từ `main@2cb2cca`; các file thay
   đổi được review/stage tường minh trước khi đưa lên Git.
-- .NET hiện có **50 route/13 feature group**: Health, Auth, Skills, Items,
+- .NET hiện có **55 route/14 feature group**: Health, Auth, Skills, Items,
   Placement, Mastery, Reviews, Path, Lessons, Exercises/Writing,
-  Dashboard/Gamification, Speaking và Admin.
-- Flutter: `flutter analyze` sạch; `flutter test` đạt **79/79 test**.
-- .NET Release test đạt **69/69**; migration identity/profile, Lesson/content,
-  gamification và Admin content management đã apply thành công trên PostgreSQL
+  Dashboard/Gamification, Speaking, Privacy và Admin.
+- Flutter: `flutter analyze` sạch; `flutter test` đạt **88/88 test**.
+- .NET Release test đạt **87/87**; migration identity/profile, Lesson/content,
+  gamification, Admin content management và privacy lifecycle đã apply thành công trên PostgreSQL
   local. Concurrent start/answer/completion, reward replay, role enforcement,
-  CRUD relation guard và import rollback/idempotency test đều xanh.
+  CRUD relation guard, import rollback/idempotency, privacy export/deletion và
+  learning-event append-only test đều xanh. EF model không còn thay đổi chưa có
+  migration; còn chờ restore/deletion drill trên production topology.
 - Admin đạt lint, **6/6 Vitest**, **2/2 Playwright E2E** và production build.
   Browser smoke với API/
   PostgreSQL thật đã xác minh login, analytics, tạo skill, import
   validate/apply, refresh danh sách và không có console error.
-- ML chưa tái kiểm chứng được trong lần rà soát này: `.venv` có FastAPI nhưng
-  thiếu `pytest`; Python hệ thống có pytest nhưng thiếu `fastapi` và `nltk`.
-  Con số 47 test đạt trong tài liệu cũ chỉ được coi là bằng chứng lịch sử.
+- ML đạt **53/53 test** trong virtualenv dự án; manifest checksum có validator,
+  môi trường có dependency lock, internal token/readiness/pre-warm được test. CAT
+  là baseline; SAINT+ vẫn `shadow-blocked` vì uplift 0,0021 chưa đạt gate 0,02,
+  Whisper vẫn `evaluation-only` do chưa pin weights và chưa có consent dataset.
 - Từ database test sạch, content bundle `2026.08.01-v1` tái tạo đúng **20
   lesson/100 item/3 exercise type**, seed lại không nhân bản và có checksum,
   nguồn, license, reviewer cùng validation tham chiếu/trùng lặp.
-- `docker` chưa có trong `PATH`. Compose hiện chỉ khai báo PostgreSQL, chưa đóng
-  gói API, ML, model/RAG artifacts hoặc reverse proxy.
+- `docker` chưa có trong `PATH`, nên image/Compose production chưa được chạy
+  smoke tại máy này; model/RAG artifact production vẫn cần secret/storage thật.
+- Phase 7 đã bổ sung artifact CI/CD, image API/ML/Admin non-root, Compose
+  production với Caddy/PostgreSQL/MinIO/migration/seed/observability, backup và
+  restore drill script, cùng Android dev/staging/prod và signing fail-closed.
+  Chưa có Docker local nên image/Compose chưa được chạy tại máy này; VPS,
+  DNS/domain, GitHub Environment/secrets, GHCR login và keystore vẫn chưa được
+  cung cấp. Vì vậy HTTPS/monitoring live, restore drill thật và APK/AAB ký +
+  device/store smoke chưa được tính là hoàn thành.
+- [PR #19](https://github.com/Anroiy123/LingoRoad/pull/19) (merge `6f8e131`) đã
+  chạy xanh **7/7 Quality Gate**: backend, ML,
+  Flutter, Admin, containers, security và contract-full-stack. CI xác minh
+  build/test/migration, Flutter analyze/test/dev APK, Admin browser E2E, image
+  build, dependency/secret scan và public contract smoke. Đây là evidence CI,
+  không thay thế smoke live trên VPS.
 - `dotnet list package --vulnerable --include-transitive` hiện không báo package
   vulnerable cho cả API và test project.
 - MuMu Android 12 đã hoàn thành lesson 5 câu (MCQ/cloze/reorder), nhận feedback,
@@ -86,30 +106,32 @@
 | Mastery/KT | Partial, read API thật | Progress tổng hợp snapshot `/mastery` với catalog `/skills`; chưa áp dụng passive decay và SAINT+ `/kt/predict` chưa được .NET production flow sử dụng |
 | SRS Review | API thật, producer backend và MuMu smoke đạt | Dùng `/reviews/due`, grade idempotent, tự tạo card từ câu lesson sai và cập nhật reward/due đúng một lần |
 | Dashboard/Progress | API thật, MuMu smoke đạt, còn thiếu decay | Progress dùng `/skills` + `/mastery` và dashboard/gamification aggregate; category chỉ tính skill đã thực hành; Home dùng `/dashboard` |
-| Advisor/Writing/Speaking | Backend/ML-only | Chưa có learner UI; thiếu quota, privacy, fallback và quyết định có thuộc MVP hay không |
+| Advisor/Writing/Speaking | API/mobile thật, production-gated | Có Home entry, Advisor, Writing, Speaking record/history, loading/error/retry/double-submit; audio gốc xóa sau chấm. Còn thiếu quota/cost UX, model artifact pin và consent evaluation trước production rollout |
 | Gamification | Partial, API/UI thật | Ledger append-only cho XP/coin/streak/quest, timezone, API, Home/Streak UI và replay test đã có; badge và reward tuning còn thiếu |
-| Admin CMS/analytics | API/UI thật, browser smoke đạt | Login/role guard, CRUD Skills/Items/Lessons, draft/publish, soft-delete, import hai bước, analytics và audit đã có; chưa có user-role management, pagination/search và browser E2E tự động trong CI |
+| Admin CMS/analytics | API/UI thật, browser smoke đạt | Login/role guard, CRUD Skills/Items/Lessons, draft/publish, soft-delete, import hai bước, analytics, audit và browser E2E trong CI đã có; còn thiếu user-role management và pagination/search |
+| Privacy/data lifecycle | API và worker thật | Consent/event append-only, export allowlist ZIP, scheduled deletion ≤30 ngày, audit de-link và retention job đã có test; còn cần production backup/restore/deletion drill |
 | Dữ liệu nội dung | Versioned bundle | Có 174 skills, bundle 20 lesson/100 item/3 type với stable ID/checksum/source/license/reviewer và transactional idempotent seed; còn thiếu 5–10 test learner fixture |
-| Deployment/operations | Missing/partial | Thiếu full-stack Docker, CI/CD, secrets, HTTPS, migration job, backup và monitoring |
-| Mobile release | Debug-only | Application ID mặc định, release dùng debug signing, thiếu flavor/env production và AAB smoke test |
+| Deployment/operations | Artifact/config đã triển khai, chưa live | Có CI/CD, image/Compose, Caddy, migration + seed one-shot, backup/restore và observability config; còn thiếu VPS/DNS/secrets, Docker runtime validation, HTTPS/monitoring live và restore drill thật |
+| Mobile release | Release config đã triển khai, chưa nghiệm thu | Có `com.lingoroad.app`, dev/staging/prod, production HTTPS-only và signing không fallback debug; còn thiếu keystore, signed APK/AAB CI artifact và device/Play Internal smoke |
 
 ## Backlog bắt buộc
 
 ### P0 — Khép kín MVP và sửa rủi ro dữ liệu/bảo mật
 
-- [ ] **P0-01 — Chốt contract MVP.**
+- [x] **P0-01 — Chốt contract MVP.**
   - [x] Phạm vi CEFR A1–B2.
   - [x] Placement trả overall level.
   - [x] Advisor, Writing và Speaking thuộc phạm vi roadmap P0–P2.
-  - [ ] Đồng bộ `MVP_architecture.md`, API contract, mobile model và kịch bản demo.
-- [ ] **P0-02 — Sửa security/integrity.**
+  - [x] Đồng bộ `MVP_architecture.md`, API contract, mobile model và kịch bản demo
+    trong phụ lục contract 2026-08-02; lịch sử thiết kế vẫn được giữ nguyên.
+- [x] **P0-02 — Sửa security/integrity.**
   - [x] Không trả `CorrectAnswer` từ public `GET /items`.
   - [x] Placement answer idempotent, chỉ chấp nhận item đã cấp cho session và
     không tăng mastery hai lần khi client retry.
   - [x] Normalize và validate email ở backend.
   - [x] Bổ sung rate limit, token lifecycle và startup validation cho
     secrets/config nhạy cảm.
-  - [ ] Speaking phải từ chối MIME sai, giới hạn dung lượng/thời lượng và có
+  - [x] Speaking phải từ chối MIME sai, giới hạn dung lượng/thời lượng và có
     chính sách retention/lưu/xóa audio.
 - [x] **P0-03 — User profile và onboarding thật.**
   - [x] `GET /auth/me` và Flutter profile read đã có loading/error/retry; UI
@@ -165,36 +187,56 @@
 
 ### P1 — Production readiness
 
-- [ ] Chuẩn hóa ML environment và biến `LINGOROAD_*`; đóng gói checkpoint, RAG
-  index/corpus; thêm readiness, pre-warm, timeout, retry/circuit breaker và bảo vệ
-  các route ML chỉ cho API nội bộ.
-- [ ] Tích hợp SAINT+ vào learner event pipeline hoặc ghi rõ đây chỉ là model
+- [ ] Chuẩn hóa ML environment và artifacts.
+  - [x] Internal token fail-closed, readiness theo component, startup pre-warm,
+    timeout riêng, retry hữu hạn, circuit breaker và lỗi degradation ổn định.
+  - [x] Có dependency lock, model cards, manifest version/checksum và
+    validator; CAT là production baseline, SAINT+ được ghi rõ `shadow-blocked`.
+  - [ ] Pin và phân phối checkpoint SAINT+, RAG index/corpus cùng Whisper weights;
+    chỉ thêm chúng vào required readiness sau khi artifact/evaluation gate đạt.
+- [x] Tích hợp SAINT+ vào learner event pipeline hoặc ghi rõ đây chỉ là model
   serving PoC. DQN/DP hiện vẫn là research evidence, chưa phải production policy.
 - [ ] Nếu giữ gamification trong MVP:
   - [x] Event ledger XP/coin/streak/quest, timezone, idempotency, API, DB, UI và test.
   - [ ] Badge, reward tuning và acceptance test theo product rule.
 - [ ] Tạo CI chạy .NET, ML, Flutter analyze/test/build; thêm contract test,
   authorization test, 503/degradation test, main-tab API flow và full-stack E2E.
+  - [x] Workflow PR/main đã khai báo các job song song, dependency/secret scan,
+    container validation và contract/full-stack process smoke.
+  - [ ] Chưa có run GitHub Actions đầu tiên để xác nhận toàn bộ job xanh.
 - [x] Nâng dependency có advisory; thêm startup config validation, token
   refresh/revoke, exception handling, CORS, role policy và security audit log.
 - [ ] Hoàn thiện security headers và HTTPS trong production topology.
-- [ ] Tạo Dockerfile .NET/ML và production topology gồm API, ML, PostgreSQL,
-  migration/seed, persistent uploads/object storage, backup, logs và metrics.
+  - [x] Caddy/TLS và security-header config đã có.
+  - [ ] Chưa có domain/DNS/VPS để xác minh HTTPS live.
+- [x] Tạo artifact Dockerfile .NET/ML/Admin và production topology gồm API, ML,
+  PostgreSQL, migration/seed, MinIO, backup, logs và metrics.
+  - [ ] Docker chưa có trong `PATH`, chưa chạy Compose/image smoke trên Linux VPS.
+  - [ ] Monitoring live, notification contact point và restore drill thật chưa có.
 - [ ] Hoàn thiện mobile release: application ID/name, keystore, dev/staging/prod
   flavors, HTTPS URL, icon/splash, versioning, accessibility và APK/AAB test.
+  - [x] Flavor/application ID/name, HTTPS production guard, version inputs và
+    signing từ CI secret đã cấu hình; prod không fallback debug signing.
+  - [ ] Chưa có keystore để tạo/smoke signed APK/AAB trên device/Play Internal.
 - [ ] Nếu Advisor/Writing/Speaking thuộc MVP, bổ sung màn hình Flutter, audio
   permission/lifecycle, cost/quota UX, privacy/retention và fallback.
+  - [x] Mobile flow, microphone lifecycle, API state/retry và raw-audio deletion.
+  - [x] Production mặc định fail-closed và mở theo cohort cấu hình; learner loop
+    lõi vẫn chạy khi ML ngừng, exercise generation fallback sang item bank.
+  - [ ] Cost/quota UX, consent evaluation và artifact pin trước production rollout.
 
 ### P2 — Học thuật, vận hành và tài liệu
 
 - [ ] Đánh giá/fine-tune Whisper cho giọng Việt và phoneme alignment sau khi core
   MVP ổn định.
-- [ ] Bổ sung item/lesson analytics, CAT/KT calibration, fairness và drift
-  monitoring.
+- [x] Bổ sung item/lesson analytics, CAT/KT calibration, fairness và drift
+  monitoring; báo cáo Admin gắn `insufficient_sample` khi chưa đủ 30 mẫu hoặc
+  chưa có thuộc tính demographic đã consent.
 - [ ] Đồng bộ README, `docs/bao-cao-tien-do.md`, API docs và test counts; phân biệt
   rõ backend-only, PoC, mock, design và product E2E.
-- [ ] Chốt consent, retention, export/delete và incident handling cho dữ liệu
-  người học và audio.
+- [x] Chốt consent, retention, export/delete và incident handling cho dữ liệu
+  người học và audio trong `docs/privacy-retention.md`; production vẫn phải chạy
+  restore/deletion drill trước nghiệm thu release.
 
 ## Cổng nghiệm thu hoàn thành dự án
 
@@ -213,7 +255,7 @@
 
 ## Thứ tự triển khai đề xuất
 
-1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 79/79;
+1. **Flutter quality gate đã đạt:** Flutter analyze sạch và test đạt 86/86;
    tiếp tục duy trì gate sau mỗi lát
    cắt. Full project quality gate (.NET/ML/contract/full-stack E2E trong CI)
    chưa đạt và chưa được chạy lại đầy đủ trong lượt này.
@@ -227,10 +269,12 @@
 5. **Backend learner loop và content seed đã đạt:** 20 lesson/100 item/3 type;
    start/resume/submit/complete/mastery/review/reward idempotent. Mobile đã nối
    toàn vòng và đã xác minh MuMu/offline/restart.
-6. Hoàn tất Advisor/Writing/Speaking mobile, speaking validation/retention và
-   ML productionization; bổ sung test learner fixtures.
-7. Hoàn thiện analytics/privacy lifecycle, CI/full-stack E2E, deployment và
-   mobile release.
+6. **Advisor/Writing/Speaking mobile và Speaking safety đã đạt.** Resilience,
+   internal-token, component readiness, manifest và cohort rollout đã có; tiếp
+   theo pin ML/RAG artifacts, chạy consent evaluation/quota và bổ sung test
+   learner fixtures.
+7. **Analytics/privacy lifecycle đã triển khai và có test.** Tiếp theo là
+   CI/full-stack E2E, production backup/restore drill, deployment và mobile release.
 
 ---
 

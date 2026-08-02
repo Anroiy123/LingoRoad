@@ -1,11 +1,21 @@
 using System.Net.Http.Json;
+using System.Text.Json;
+using LingoRoad.Data;
+using LingoRoad.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LingoRoad.Tests;
 
 public class ExerciseTests : IClassFixture<PlacementFactory>
 {
+    private readonly PlacementFactory _factory;
     private readonly HttpClient _client;
-    public ExerciseTests(PlacementFactory f) => _client = f.CreateClient();
+    public ExerciseTests(PlacementFactory f)
+    {
+        _factory = f;
+        _client = f.CreateClient();
+    }
 
     private record ExDto(Guid Id, string Stem, string[] Options);
     private record SubmitDto(bool Correct, string CorrectAnswer, string? ExplanationVi);
@@ -75,5 +85,59 @@ public class ExerciseTests : IClassFixture<PlacementFactory>
         var body = await res.Content.ReadAsStringAsync();
         Assert.Contains("taskAchievement", body);
         Assert.Contains("overallVi", body);
+    }
+
+    [Fact]
+    public async Task Generate_falls_back_to_item_bank_when_ml_is_unavailable()
+    {
+        await AuthAsync();
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var skill = await db.Skills.SingleAsync(s =>
+                s.Code == "grammar.tenses.present_perfect");
+            db.Items.Add(new Item
+            {
+                StableId = $"fallback-{Guid.NewGuid():N}",
+                SkillId = skill.Id,
+                CefrLevel = skill.CefrLevel,
+                Type = "mcq",
+                Stem = "They ___ the task already.",
+                OptionsJson = JsonSerializer.Serialize(
+                    new[] { "have finished", "finish", "finished", "finishing" }),
+                CorrectAnswer = "have finished",
+                ExplanationVi = "Dùng hiện tại hoàn thành với already.",
+                Source = "test"
+            });
+            await db.SaveChangesAsync();
+        }
+
+        try
+        {
+            _factory.Fake.Throw = true;
+            var response = await _client.PostAsJsonAsync("/exercises/generate",
+                new { skillCode = "grammar.tenses.present_perfect", type = "mcq" });
+
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("They ___ the task already.", body);
+            Assert.DoesNotContain("correctAnswer", body, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            _factory.Fake.Throw = false;
+        }
+    }
+
+    [Fact]
+    public async Task Generate_rejects_unknown_exercise_type_before_calling_ml()
+    {
+        await AuthAsync();
+        var response = await _client.PostAsJsonAsync("/exercises/generate",
+            new { skillCode = "grammar.tenses.present_perfect", type = "script" });
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("unsupported_exercise_type",
+            await response.Content.ReadAsStringAsync());
     }
 }

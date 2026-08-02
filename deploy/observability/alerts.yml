@@ -1,0 +1,46 @@
+groups:
+  - name: lingoroad
+    rules:
+      - alert: ServiceUnhealthy
+        expr: probe_success == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "{{ $labels.instance }} is unhealthy"
+      - alert: ServiceLatencyHigh
+        expr: probe_duration_seconds > 2
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.instance }} health latency exceeds 2 seconds"
+      - alert: ApiErrorRateHigh
+        expr: >-
+          sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(http_server_request_duration_seconds_count[5m])), 1)
+          > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: API 5xx error rate exceeds 5%
+      - alert: PostgreSQLExporterDown
+        expr: pg_up == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: PostgreSQL is unavailable
+      - alert: DiskSpaceLow
+        expr: node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes < 0.15
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Disk free space below 15% on {{ $labels.mountpoint }}"
+      - alert: BackupFailedOrStale
+        expr: >-
+          absent(lingoroad_backup_last_success_timestamp_seconds)
+          or lingoroad_backup_last_failure == 1
+          or time() - lingoroad_backup_last_success_timestamp_seconds > 129600
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: PostgreSQL backup failed or is older than 36 hours

@@ -18,6 +18,8 @@ path — with explanations in Vietnamese.
 | Exercise generation, AWE, speaking | LLM + Whisper ASR | Done |
 
 Details and evidence: [docs/ai-theory-and-algorithms.md](docs/ai-theory-and-algorithms.md).
+Privacy, retention, export and deletion operations:
+[docs/privacy-retention.md](docs/privacy-retention.md).
 
 ## Repository layout
 
@@ -51,9 +53,10 @@ Architecture, schema, and data flows: [docs/system-architecture.md](docs/system-
 
 ## Flutter mobile
 
-Ứng dụng Flutter lingoRoad nằm tại `src/mobile`, gồm 5 tab chính: Học, Lộ trình,
-Ôn tập, Tiến độ và Hồ sơ. Theme được xây dựng theo `DESIGN.md`; các tab học tập
-hiện dùng mock repository có type, còn đăng ký/đăng nhập kết nối API thật.
+Ứng dụng Flutter LingoRoad nằm tại `src/mobile`, gồm 5 tab chính: Học, Lộ trình,
+Ôn tập, Tiến độ và Hồ sơ. Theme được xây dựng theo `DESIGN.md`; Auth, onboarding,
+Profile, Home, Path, Lesson/Exercise, Review, Progress, Advisor, Writing và
+Speaking đều dùng API thật. Không còn `MockRepository` trong mã production.
 
 ```powershell
 cd src/mobile

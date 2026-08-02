@@ -11,7 +11,7 @@ Four parts:
 
 | Tier | Technology | Status |
 |---|---|---|
-| Frontend | React SPA | Proposed (§6) — no code yet |
+| Frontend | Flutter learner app + React Admin SPA | Built |
 | Application backend | ASP.NET Core minimal API (.NET 10), `src/backend/LingoRoad/` | Built |
 | AI backend | Python FastAPI + PyTorch/Gemini, `src/backend/ml/` | Built |
 | Data | PostgreSQL 16 (EF Core migrations) | Built |
@@ -35,8 +35,10 @@ state) is ASP.NET Core; Python/FastAPI owns everything AI. Rationale:
 2. Putting the seam at an HTTP boundary (`Services/MlClient.cs` → FastAPI) isolates the
    GPU-heavy, dependency-heavy Python process: it can crash, restart, or be redeployed
    without taking down login or review scheduling.
-3. The seam enforces a **fail-soft rule**: if the ML service is down, AI endpoints
-   return `503 {"error":"ml_service_unavailable"}` while core features keep working.
+3. The seam enforces a **fail-soft rule**: bounded retry, per-flow timeout and a
+   shared circuit breaker isolate failures. Optional AI endpoints return
+   `503 {"error":"ml_service_unavailable"}` while the core learner loop keeps
+   working; exercise generation can fall back to the versioned item bank.
 
 Cost: two runtimes to operate. Accepted for the MVP; a pure-FastAPI application backend
 remains a valid alternative reading of the requirement.
@@ -45,13 +47,14 @@ remains a valid alternative reading of the requirement.
 
 ```mermaid
 flowchart LR
-    FE["React SPA (planned)"] -->|"JSON / HTTPS"| API["ASP.NET Core API :5000"]
+    FE["Flutter learner app"] -->|"JSON / HTTPS"| API["ASP.NET Core API :5000"]
+    ADMIN["React Admin SPA"] -->|"JSON / HTTPS"| API
     API --> DB[("PostgreSQL 16 :5432")]
     API -->|"MlClient (fail-soft 503)"| ML["FastAPI ML service :8001"]
     ML --> IRT["IRT 3PL + CAT<br/>irt.py, cat.py"]
     ML --> KT["SAINT+ checkpoint<br/>kt_routes.py"]
     ML --> RAG["RAG + Gemini advisor<br/>llm_routes.py"]
-    ML -.->|planned| ASR["faster-whisper ASR"]
+    ML --> ASR["faster-whisper ASR<br/>evaluation-only"]
 ```
 
 The ML service is **stateless**: the .NET side owns all persistence and assembles any
@@ -120,23 +123,27 @@ theory and this architecture regardless.
 | 1.1 Placement test | `/placement/*`, ML `/cat/select` | `irt.py`, `cat.py`, `PlacementEndpoints.cs` | TBD |
 | 1.2 Knowledge tracing & learner model | `/mastery`, ML `/kt/predict` | `ml/lingoroad_ml/kt/`, `MasteryCalc.cs` | TBD |
 | 1.3 Learning path | `/path`, `/path/advisor`, `/reviews/*` | `PathBuilder.cs`, `Fsrs.cs`, `ml/lingoroad_ml/llm/` | Mảng 3 (optimization); advisor TBD |
-| 1.4 Exercise generation & AWE | planned (task 13) | planned | TBD |
-| 1.5 Pronunciation & speaking | planned (task 14) | planned | TBD |
+| 1.4 Exercise generation & AWE | `/exercises/generate`, `/writing/evaluate` | Gemini + item-bank fallback, mobile Writing | TBD |
+| 1.5 Pronunciation & speaking | `/speaking/attempts`, ML `/speech/score` | faster-whisper + safe ephemeral upload, mobile recorder | TBD |
 
-## 6. Frontend architecture (proposal)
+## 6. Frontend architecture
 
-No React code exists yet; this is the proposed structure.
+The learner app is Flutter with Provider/GoRouter and repository/ViewModel
+boundaries. The React/TypeScript/Vite application is an Admin-only CMS with a
+server-enforced role policy, route guard, CRUD/import/analytics and Playwright
+coverage. Both clients call only the .NET API; neither can call ML directly.
 
-- **Stack:** React 18 + TypeScript + Vite; React Router.
-- **Server state:** TanStack Query, keyed by endpoint; answering an exercise or grading
-  a review invalidates the `path`, `mastery`, and `reviews/due` queries so the UI tracks
-  the model state without manual wiring. Client state (auth token, in-progress test) in
-  a small context store.
-- **API client:** generated from the .NET OpenAPI document, so endpoint changes surface
-  as type errors.
-- **Screens** (scope from `MVP_architecture.md`): auth, onboarding (goal + daily
-  minutes), placement test player, dashboard (progress/streak/strong-weak skills),
-  path view, exercise player, review queue, admin CMS.
+- **Admin stack:** React + TypeScript + Vite. `App.tsx` applies the role guard and
+  `AdminShell` owns the CMS sections; no client router dependency is used.
+- **State:** Flutter repositories feed route-scoped and composition-root
+  ViewModels. Admin uses component-local state plus explicit refresh after
+  mutations. Session refresh is single-flight in each hand-written API client.
+- **API clients:** both clients use typed, hand-written repository/API boundaries;
+  OpenAPI code generation is a possible future hardening step, not current code.
+- **Learner screens:** auth, onboarding/profile, placement, dashboard/streak,
+  path, lesson/exercise/feedback, review, progress and AI practice
+  (Advisor/Writing/Speaking). Admin separately provides content CRUD/import,
+  analytics and audit views.
 
 ## 7. Deployment & development environment
 
@@ -146,8 +153,12 @@ No React code exists yet; this is the proposed structure.
 - **ML service:** from `src/backend/ml/`:
   `.venv/Scripts/uvicorn lingoroad_ml.serving.app:app --port 8001`. The .NET side finds
   it via `MlService:BaseUrl` (default `http://localhost:8001`).
-- **Environment variables:** `QG_KT_CHECKPOINT` (SAINT+ .pt), `QG_RAG_INDEX` (RAG .npz),
-  `GEMINI_API_KEY` (advisor/embeddings).
+- **Environment variables:** `LINGOROAD_ML_INTERNAL_TOKEN`,
+  `LINGOROAD_ML_REQUIRED_MODELS`, `LINGOROAD_ML_PREWARM`,
+  `QG_KT_CHECKPOINT` (SAINT+ .pt), `QG_RAG_INDEX` (RAG .npz), and
+  `GEMINI_API_KEY` (advisor/embeddings). Production AI cohorts are configured
+  by `MlFeatures:{Advisor,Writing,Speaking}RolloutPercent`; omitted values are
+  fail-closed at zero percent.
 - **GPU:** local RTX 4060 used for KT training and planned Whisper ASR; not required to
   run the core API.
 

@@ -13,6 +13,7 @@ public class Exercise
     public required string Stem { get; set; }
     public required string OptionsJson { get; set; }
     public required string CorrectAnswer { get; set; }
+    public string? ModelVersion { get; set; }
     public string? ExplanationVi { get; set; }
     public string? SubmittedAnswer { get; set; }
     public bool? IsCorrect { get; set; }

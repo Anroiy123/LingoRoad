@@ -9,6 +9,10 @@ import 'package:lingoroad_mobile/features/placement/presentation/placement_quest
 import 'package:lingoroad_mobile/features/placement/presentation/placement_result_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_status_error_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_view_model.dart';
+import 'package:lingoroad_mobile/features/practice/data/practice_repository.dart';
+import 'package:lingoroad_mobile/features/practice/data/speaking_recorder.dart';
+import 'package:lingoroad_mobile/features/practice/presentation/practice_screen.dart';
+import 'package:lingoroad_mobile/features/practice/presentation/practice_view_model.dart';
 import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
@@ -117,6 +121,16 @@ GoRouter createAppRouter({
         builder: (context, state) => ChangeNotifierProvider(
           create: (_) => LessonViewModel(context.read<LessonRepository>()),
           child: LessonScreen(lessonId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/practice',
+        builder: (context, state) => ChangeNotifierProvider(
+          create: (_) => AiPracticeViewModel(
+            context.read<AiPracticeRepository>(),
+            DeviceSpeakingRecorder(),
+          ),
+          child: const AiPracticeScreen(),
         ),
       ),
     ],
