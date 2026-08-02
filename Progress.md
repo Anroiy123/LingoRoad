@@ -203,7 +203,12 @@
   authorization test, 503/degradation test, main-tab API flow và full-stack E2E.
   - [x] Workflow PR/main đã khai báo các job song song, dependency/secret scan,
     container validation và contract/full-stack process smoke.
-  - [ ] Chưa có run GitHub Actions đầu tiên để xác nhận toàn bộ job xanh.
+  - [x] [Quality Gate main@5e8d9bf](https://github.com/Anroiy123/LingoRoad/actions/runs/30731494715)
+    đã xanh 7/7: backend, ML, Flutter, Admin, containers, security và
+    contract-full-stack. Một timeout Docker Hub khi pull service PostgreSQL ở
+    run trước đã được rerun và xác nhận là lỗi registry, không phải regression.
+  - [ ] Chưa có clean-account browser/device full-stack E2E ở môi trường
+    production-like; contract process smoke không thay thế gate này.
 - [x] Nâng dependency có advisory; thêm startup config validation, token
   refresh/revoke, exception handling, CORS, role policy và security audit log.
 - [ ] Hoàn thiện security headers và HTTPS trong production topology.
@@ -234,6 +239,10 @@
   chưa có thuộc tính demographic đã consent.
 - [ ] Đồng bộ README, `docs/bao-cao-tien-do.md`, API docs và test counts; phân biệt
   rõ backend-only, PoC, mock, design và product E2E.
+  - [x] `MVP_architecture.md` và `Progress.md` đã có phụ lục contract/acceptance
+    2026-08-02, link evidence CI và trạng thái production gate trung thực.
+  - [ ] README, `docs/bao-cao-tien-do.md` và API docs vẫn cần được rà soát/cập
+    nhật như một deliverable tài liệu riêng.
 - [x] Chốt consent, retention, export/delete và incident handling cho dữ liệu
   người học và audio trong `docs/privacy-retention.md`; production vẫn phải chạy
   restore/deletion drill trước nghiệm thu release.
