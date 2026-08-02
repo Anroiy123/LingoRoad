@@ -36,6 +36,7 @@ public class TestAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimits:AuthWrite", "10000");
         builder.UseSetting("RateLimits:Refresh", "10000");
         builder.UseSetting("RateLimits:MlUpload", "10000");
+        builder.UseSetting("Privacy:DeletionGraceDays", "0");
         builder.UseSetting("ContentSeed:Enabled", SeedContent.ToString());
         builder.ConfigureServices(services =>
         {

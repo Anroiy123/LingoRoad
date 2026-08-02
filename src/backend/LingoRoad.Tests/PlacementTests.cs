@@ -36,7 +36,7 @@ public class FakeMlClient : IMlClient
         return Task.FromResult(new ExerciseGenResponse([
             new GeneratedExercise("She ___ here since 2019.",
                 ["has lived", "lived", "lives", "living"], "has lived",
-                "Dùng thì hiện tại hoàn thành với 'since'.")]));
+                "Dùng thì hiện tại hoàn thành với 'since'.")], "fake-llm-v1"));
     }
 
     public Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)

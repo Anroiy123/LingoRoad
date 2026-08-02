@@ -33,6 +33,9 @@ public class SpeakingTests : IClassFixture<PlacementFactory>
             Assert.Equal("whisper-small-test", attempt.ModelVersion);
             Assert.Equal(3, attempt.DurationSeconds);
             Assert.DoesNotContain("AudioPath", attempt.ScoresJson ?? "", StringComparison.OrdinalIgnoreCase);
+            var learningEvent = await db.LearningEvents.SingleAsync(e =>
+                e.OperationId == attempt.Id && e.EventType == "speaking_scored");
+            Assert.Equal("whisper-small-test", learningEvent.ModelVersion);
         }
 
         var history = await _client.GetFromJsonAsync<List<Dictionary<string, object>>>(

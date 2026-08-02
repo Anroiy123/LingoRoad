@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using LingoRoad.Data;
 using LingoRoad.Domain;
@@ -38,6 +39,7 @@ public static class ExerciseEndpoints
                     Stem = e.Stem,
                     OptionsJson = JsonSerializer.Serialize(e.Options),
                     CorrectAnswer = e.CorrectAnswer,
+                    ModelVersion = res.ModelVersion,
                     ExplanationVi = e.ExplanationVi
                 }).ToList();
             }
@@ -77,6 +79,7 @@ public static class ExerciseEndpoints
             System.Security.Claims.ClaimsPrincipal user, AppDbContext db,
             MasteryService masteries) =>
         {
+            var started = Stopwatch.StartNew();
             if (req.OperationId == Guid.Empty || string.IsNullOrWhiteSpace(req.Answer))
                 return ApiResults.Error("answer_and_operation_id_required");
             var userId = user.UserId();
@@ -99,6 +102,9 @@ public static class ExerciseEndpoints
             ex.AnsweredAt = DateTime.UtcNow;
             ex.SubmittedAnswer = answer;
             ex.IsCorrect = correct;
+            var predictedCorrectness = await db.Masteries
+                .Where(m => m.UserId == userId && m.SkillId == ex.SkillId)
+                .Select(m => (double?)m.PCorrect).SingleOrDefaultAsync() ?? 0.5;
             await masteries.RecordAnswerAsync(userId, ex.SkillId, correct, saveChanges: false);
             var operation = new ExerciseAnswerOperation
             {
@@ -111,6 +117,32 @@ public static class ExerciseEndpoints
                 ExplanationVi = ex.ExplanationVi,
             };
             db.ExerciseAnswerOperations.Add(operation);
+            var learningContext = ex.LessonAttemptId is null
+                ? await db.Items.Where(item => item.Id == ex.SourceItemId)
+                    .Select(item => new { LessonId = (Guid?)null,
+                        ContentVersion = item.ContentVersion }).SingleOrDefaultAsync()
+                : await (from attempt in db.LessonAttempts
+                         join lesson in db.Lessons on attempt.LessonId equals lesson.Id
+                         where attempt.Id == ex.LessonAttemptId
+                         select new { LessonId = (Guid?)lesson.Id, lesson.ContentVersion })
+                    .SingleOrDefaultAsync();
+            db.LearningEvents.Add(new LearningEvent
+            {
+                UserId = userId,
+                OperationId = req.OperationId,
+                EventType = LearningEventTypes.AnswerSubmitted,
+                LessonId = learningContext?.LessonId,
+                LessonAttemptId = ex.LessonAttemptId,
+                ExerciseId = ex.Id,
+                ItemId = ex.SourceItemId,
+                SkillId = ex.SkillId,
+                Correct = correct,
+                PredictedCorrectness = predictedCorrectness,
+                LatencyMs = checked((int)Math.Min(started.ElapsedMilliseconds, int.MaxValue)),
+                CefrLevel = ex.CefrLevel,
+                ModelVersion = ex.ModelVersion,
+                ContentVersion = learningContext?.ContentVersion,
+            });
             try
             {
                 await db.SaveChangesAsync();

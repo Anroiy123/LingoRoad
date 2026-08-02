@@ -76,6 +76,15 @@ public static class ReviewEndpoints
                 Reps = card.Reps,
             };
             db.ReviewGradeOperations.Add(operation);
+            db.LearningEvents.Add(new LearningEvent
+            {
+                UserId = userId,
+                OperationId = req.OperationId,
+                EventType = LearningEventTypes.ReviewGraded,
+                ExerciseId = card.SourceExerciseId,
+                SkillId = card.SkillId,
+                Rating = req.Rating,
+            });
             db.RewardLedgerEntries.Add(new RewardLedgerEntry
             {
                 UserId = userId,

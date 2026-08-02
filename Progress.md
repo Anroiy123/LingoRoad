@@ -8,7 +8,9 @@
 > ngừng. Admin React hiện đã dùng auth/role thật, có CRUD Skills/Items/Lessons,
 > import validate/preview/apply, analytics và audit log. Advisor, Writing và
 > Speaking đã có mobile flow dùng API thật; Speaking giới hạn MIME/10 MiB/120
-> giây và xóa audio gốc ngay sau chấm.
+> giây và xóa audio gốc ngay sau chấm. Learning events/consent đã append-only,
+> có ZIP export, xóa tài khoản theo receipt trong tối đa 30 ngày, retention job
+> và learning-quality analytics với sample gate.
 > Lịch sử bên dưới giữ nguyên.
 
 > Cập nhật lần cuối: **2026-08-02**
@@ -45,19 +47,21 @@
 
 - Phase Admin được triển khai trên branch riêng từ `main@2cb2cca`; các file thay
   đổi được review/stage tường minh trước khi đưa lên Git.
-- .NET hiện có **50 route/13 feature group**: Health, Auth, Skills, Items,
+- .NET hiện có **55 route/14 feature group**: Health, Auth, Skills, Items,
   Placement, Mastery, Reviews, Path, Lessons, Exercises/Writing,
-  Dashboard/Gamification, Speaking và Admin.
+  Dashboard/Gamification, Speaking, Privacy và Admin.
 - Flutter: `flutter analyze` sạch; `flutter test` đạt **86/86 test**.
-- .NET Release test đạt **80/80**; migration identity/profile, Lesson/content,
-  gamification và Admin content management đã apply thành công trên PostgreSQL
+- .NET Release test đạt **85/85**; migration identity/profile, Lesson/content,
+  gamification, Admin content management và privacy lifecycle đã apply thành công trên PostgreSQL
   local. Concurrent start/answer/completion, reward replay, role enforcement,
-  CRUD relation guard và import rollback/idempotency test đều xanh.
+  CRUD relation guard, import rollback/idempotency, privacy export/deletion và
+  learning-event append-only test đều xanh. EF model không còn thay đổi chưa có
+  migration; còn chờ restore/deletion drill trên production topology.
 - Admin đạt lint, **6/6 Vitest**, **2/2 Playwright E2E** và production build.
   Browser smoke với API/
   PostgreSQL thật đã xác minh login, analytics, tạo skill, import
   validate/apply, refresh danh sách và không có console error.
-- ML đạt **52/52 test** trong virtualenv dự án; manifest checksum có validator,
+- ML đạt **53/53 test** trong virtualenv dự án; manifest checksum có validator,
   môi trường có dependency lock, internal token/readiness/pre-warm được test. CAT
   là baseline; SAINT+ vẫn `shadow-blocked` vì uplift 0,0021 chưa đạt gate 0,02,
   Whisper vẫn `evaluation-only` do chưa pin weights và chưa có consent dataset.
@@ -92,6 +96,7 @@
 | Advisor/Writing/Speaking | API/mobile thật, production-gated | Có Home entry, Advisor, Writing, Speaking record/history, loading/error/retry/double-submit; audio gốc xóa sau chấm. Còn thiếu quota/cost UX, model artifact pin và consent evaluation trước production rollout |
 | Gamification | Partial, API/UI thật | Ledger append-only cho XP/coin/streak/quest, timezone, API, Home/Streak UI và replay test đã có; badge và reward tuning còn thiếu |
 | Admin CMS/analytics | API/UI thật, browser smoke đạt | Login/role guard, CRUD Skills/Items/Lessons, draft/publish, soft-delete, import hai bước, analytics và audit đã có; chưa có user-role management, pagination/search và browser E2E tự động trong CI |
+| Privacy/data lifecycle | API và worker thật | Consent/event append-only, export allowlist ZIP, scheduled deletion ≤30 ngày, audit de-link và retention job đã có test; còn cần production backup/restore/deletion drill |
 | Dữ liệu nội dung | Versioned bundle | Có 174 skills, bundle 20 lesson/100 item/3 type với stable ID/checksum/source/license/reviewer và transactional idempotent seed; còn thiếu 5–10 test learner fixture |
 | Deployment/operations | Missing/partial | Thiếu full-stack Docker, CI/CD, secrets, HTTPS, migration job, backup và monitoring |
 | Mobile release | Debug-only | Application ID mặc định, release dùng debug signing, thiếu flavor/env production và AAB smoke test |
@@ -200,12 +205,14 @@
 
 - [ ] Đánh giá/fine-tune Whisper cho giọng Việt và phoneme alignment sau khi core
   MVP ổn định.
-- [ ] Bổ sung item/lesson analytics, CAT/KT calibration, fairness và drift
-  monitoring.
+- [x] Bổ sung item/lesson analytics, CAT/KT calibration, fairness và drift
+  monitoring; báo cáo Admin gắn `insufficient_sample` khi chưa đủ 30 mẫu hoặc
+  chưa có thuộc tính demographic đã consent.
 - [ ] Đồng bộ README, `docs/bao-cao-tien-do.md`, API docs và test counts; phân biệt
   rõ backend-only, PoC, mock, design và product E2E.
-- [ ] Chốt consent, retention, export/delete và incident handling cho dữ liệu
-  người học và audio.
+- [x] Chốt consent, retention, export/delete và incident handling cho dữ liệu
+  người học và audio trong `docs/privacy-retention.md`; production vẫn phải chạy
+  restore/deletion drill trước nghiệm thu release.
 
 ## Cổng nghiệm thu hoàn thành dự án
 
@@ -242,8 +249,8 @@
    internal-token, component readiness, manifest và cohort rollout đã có; tiếp
    theo pin ML/RAG artifacts, chạy consent evaluation/quota và bổ sung test
    learner fixtures.
-7. Hoàn thiện analytics/privacy lifecycle, CI/full-stack E2E, deployment và
-   mobile release.
+7. **Analytics/privacy lifecycle đã triển khai và có test.** Tiếp theo là
+   CI/full-stack E2E, production backup/restore drill, deployment và mobile release.
 
 ---
 

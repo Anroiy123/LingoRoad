@@ -1,5 +1,8 @@
 using System.Net.Http.Json;
+using LingoRoad.Data;
 using LingoRoad.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LingoRoad.Tests;
 
@@ -173,6 +176,10 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
         var rewards = await _client.GetFromJsonAsync<RewardsDto>("/gamification/me");
         Assert.Equal(5, rewards!.Xp);
         Assert.Equal(1, rewards.Coins);
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(1, await db.LearningEvents.CountAsync(e =>
+            e.OperationId == request.operationId && e.EventType == "review_graded"));
     }
 
 }

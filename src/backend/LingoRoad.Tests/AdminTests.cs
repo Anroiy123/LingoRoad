@@ -225,6 +225,26 @@ public class AdminTests : IClassFixture<TestAppFactory>
         Assert.Contains($"vocabulary.audit_{suffix}", audit);
     }
 
+    [Fact]
+    public async Task Learning_quality_requires_admin_and_labels_small_samples()
+    {
+        using var learner = await TestAuth.ClientAsync(_factory, UserRoles.Learner);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await learner.GetAsync("/admin/analytics/learning-quality")).StatusCode);
+
+        using var admin = await TestAuth.ClientAsync(_factory);
+        var report = await admin.GetFromJsonAsync<JsonElement>(
+            "/admin/analytics/learning-quality");
+
+        Assert.Equal("insufficient_sample",
+            report.GetProperty("calibration").GetProperty("status").GetString());
+        Assert.Equal("insufficient_sample",
+            report.GetProperty("drift").GetProperty("status").GetString());
+        Assert.Equal("insufficient_sample",
+            report.GetProperty("fairness").GetProperty("status").GetString());
+        Assert.Equal(30, report.GetProperty("minimumSampleSize").GetInt32());
+    }
+
     private static object Import(string suffix, string? itemSkillCode = null,
         string stem = "Imported question")
     {
