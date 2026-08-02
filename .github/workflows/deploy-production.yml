@@ -9,13 +9,54 @@ on:
 
 permissions:
   contents: read
+  actions: read
+  packages: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Validate selected image SHA
+        shell: bash
+        env:
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          [[ "$IMAGE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::image_sha must be a full lowercase 40-character commit SHA"
+            exit 1
+          }
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.image_sha }}
+          fetch-depth: 0
+      - name: Verify green main commit and immutable images
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$IMAGE_SHA" origin/main || {
+            echo "::error::image_sha is not contained in origin/main"
+            exit 1
+          }
+          success_count="$(gh api --paginate \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$IMAGE_SHA&status=completed&per_page=100" \
+            --jq '[.workflow_runs[] | select(.conclusion == "success")] | length' |
+            awk '{ total += $1 } END { print total + 0 }')"
+          test "$success_count" -gt 0 || {
+            echo "::error::No successful Quality Gate run found for image_sha"
+            exit 1
+          }
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          for image in api ml admin; do
+            docker manifest inspect "ghcr.io/$owner/lingoroad-$image:$IMAGE_SHA" >/dev/null || {
+              echo "::error::Missing published image: lingoroad-$image:$IMAGE_SHA"
+              exit 1
+            }
+          done
       - name: Validate required deployment inputs
         shell: bash
         env:
@@ -50,6 +91,7 @@ jobs:
           ssh "$VPS_USER@$VPS_HOST" 'mkdir -p /opt/lingoroad'
           scp -r deploy "$VPS_USER@$VPS_HOST:/opt/lingoroad/"
           scp /tmp/lingoroad.env "$VPS_USER@$VPS_HOST:/opt/lingoroad/deploy/.env.production"
+          ssh "$VPS_USER@$VPS_HOST" 'chmod 0600 /opt/lingoroad/deploy/.env.production && chmod 0700 /opt/lingoroad/deploy/scripts/*.sh'
           rm -f /tmp/lingoroad.env
       - name: Deploy and rollback on failed health check
         shell: bash
@@ -57,7 +99,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           IMAGE_SHA: ${{ inputs.image_sha }}
-        run: >-
-          ssh "$VPS_USER@$VPS_HOST"
-          "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}
-          /opt/lingoroad/deploy/scripts/deploy.sh '$IMAGE_SHA'"
+        run: |
+          image_prefix="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          printf -v remote_command 'IMAGE_PREFIX=%q sh /opt/lingoroad/deploy/scripts/deploy.sh %q' "$image_prefix" "$IMAGE_SHA"
+          ssh "$VPS_USER@$VPS_HOST" "$remote_command"

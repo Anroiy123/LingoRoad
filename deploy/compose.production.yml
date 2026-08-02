@@ -41,13 +41,13 @@ services:
     env_file: .env.production
     environment: &api-environment
       ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__Default: Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-      Jwt__Issuer: ${JWT_ISSUER}
-      Jwt__Secret: ${JWT_SECRET}
+      ConnectionStrings__Default: Host=db;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      Jwt__Issuer: ${JWT_ISSUER:?JWT_ISSUER is required}
+      Jwt__Secret: ${JWT_SECRET:?JWT_SECRET is required}
       MlService__BaseUrl: http://ml:8001
-      MlService__InternalToken: ${ML_INTERNAL_TOKEN}
+      MlService__InternalToken: ${ML_INTERNAL_TOKEN:?ML_INTERNAL_TOKEN is required}
       Storage__TempPath: /tmp/lingoroad-speaking
-      Cors__AllowedOrigins__0: https://${DOMAIN}
+      Cors__AllowedOrigins__0: https://${DOMAIN:?DOMAIN is required}
       ContentSeed__Enabled: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
@@ -90,7 +90,7 @@ services:
     env_file: .env.production
     environment:
       LINGOROAD_ENVIRONMENT: production
-      LINGOROAD_ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN}
+      LINGOROAD_ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN:?ML_INTERNAL_TOKEN is required}
       LINGOROAD_ML_REQUIRED_MODELS: ${ML_REQUIRED_MODELS:-cat}
       LINGOROAD_ML_PREWARM: "true"
       QG_RAG_INDEX: /artifacts/corpus_index.npz
@@ -111,9 +111,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -128,8 +128,8 @@ services:
     command: server /data --console-address :9001
     restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
     volumes:
       - minio_data:/data
     healthcheck:
@@ -144,9 +144,9 @@ services:
     restart: unless-stopped
     environment:
       PGHOST: db
-      PGDATABASE: ${POSTGRES_DB}
-      PGUSER: ${POSTGRES_USER}
-      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:?POSTGRES_DB is required}
+      PGUSER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - postgres_backups:/backups
       - backup_metrics:/metrics
@@ -195,7 +195,9 @@ services:
     image: prometheuscommunity/postgres-exporter:v0.17.1
     restart: unless-stopped
     environment:
-      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+      DATA_SOURCE_URI: db:5432/${POSTGRES_DB:?POSTGRES_DB is required}?sslmode=disable
+      DATA_SOURCE_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      DATA_SOURCE_PASS: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     networks: [observability, data]
 
   loki:
@@ -221,9 +223,9 @@ services:
     image: grafana/grafana:12.1.1
     restart: unless-stopped
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
-      GF_SERVER_ROOT_URL: https://${DOMAIN}/ops/
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_SERVER_ROOT_URL: https://${DOMAIN:?DOMAIN is required}/ops/
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro

@@ -15,5 +15,5 @@ ENV ASPNETCORE_URLS=http://+:8080 \
 EXPOSE 8080
 USER app
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD curl --fail --silent http://127.0.0.1:8080/health || exit 1
+    CMD curl --fail --silent http://127.0.0.1:8080/ready || exit 1
 ENTRYPOINT ["dotnet", "LingoRoad.dll"]

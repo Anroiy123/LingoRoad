@@ -15,15 +15,28 @@ trap failure INT TERM HUP EXIT
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
 file="$daily/lingoroad-$timestamp.dump"
 pg_dump --format=custom --file="$file"
-sha256sum "$file" > "$file.sha256"
+name=$(basename "$file")
+(cd "$daily" && sha256sum "$name" > "$name.sha256")
 
 if [ "$(date -u +%u)" = "7" ]; then
-  cp "$file" "$weekly/"
-  cp "$file.sha256" "$weekly/"
+  cp "$file" "$weekly/$name"
+  (cd "$weekly" && sha256sum "$name" > "$name.sha256")
 fi
 
-find "$daily" -type f -mtime +7 -delete
-find "$weekly" -type f -mtime +28 -delete
+prune_backups() {
+  directory=$1
+  keep=$2
+  count=$(find "$directory" -maxdepth 1 -type f -name '*.dump' | wc -l)
+  overflow=$((count - keep))
+  [ "$overflow" -gt 0 ] || return 0
+  find "$directory" -maxdepth 1 -type f -name '*.dump' | sort | head -n "$overflow" |
+    while IFS= read -r dump; do
+      rm -f "$dump" "$dump.sha256"
+    done
+}
+
+prune_backups "$daily" 7
+prune_backups "$weekly" 4
 {
   printf 'lingoroad_backup_last_failure 0\n'
   printf 'lingoroad_backup_last_success_timestamp_seconds %s\n' "$(date -u +%s)"

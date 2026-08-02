@@ -23,9 +23,18 @@ previous="$root/.previous-images"
 
 cd "$root"
 test -s "$env_file"
-set -a
-. "$env_file"
-set +a
+
+read_env_value() {
+  key=$1
+  value=$(sed -n "s/^${key}=//p" "$env_file" | tail -n 1)
+  test -n "$value" || { echo "$key is missing from .env.production" >&2; exit 2; }
+  printf '%s' "$value"
+}
+
+domain=$(read_env_value DOMAIN)
+case "$domain" in
+  *[!A-Za-z0-9.-]*|.*|*..*|*.) echo "DOMAIN must be a plain DNS hostname" >&2; exit 2 ;;
+esac
 
 capture_previous() {
   : > "$previous.tmp"
@@ -49,10 +58,12 @@ docker compose --env-file "$env_file" -f "$compose" pull --ignore-buildable
 docker compose --env-file "$env_file" -f "$compose" build backup
 docker compose --env-file "$env_file" -f "$compose" up -d --remove-orphans
 
-domain=$(sed -n 's/^DOMAIN=//p' "$env_file" | tail -n 1)
 healthy=false
 for _ in $(seq 1 20); do
-  if curl --fail --silent --show-error "https://$domain/api/health" >/dev/null; then
+  if curl --fail --silent --show-error --connect-timeout 3 --max-time 5 \
+       "https://$domain/api/ready" >/dev/null &&
+     docker compose --env-file "$env_file" -f "$compose" exec -T ml \
+       python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/ready', timeout=4)"; then
     healthy=true
     break
   fi
@@ -62,9 +73,14 @@ done
 if [ "$healthy" != true ]; then
   echo "health check failed; rolling back images" >&2
   if [ -s "$previous" ]; then
-    set -a
-    . "$previous"
-    set +a
+    API_IMAGE=$(sed -n 's/^API_IMAGE=//p' "$previous" | tail -n 1)
+    ML_IMAGE=$(sed -n 's/^ML_IMAGE=//p' "$previous" | tail -n 1)
+    ADMIN_IMAGE=$(sed -n 's/^ADMIN_IMAGE=//p' "$previous" | tail -n 1)
+    for image in "$API_IMAGE" "$ML_IMAGE" "$ADMIN_IMAGE"; do
+      case "$image" in
+        ''|*[!A-Za-z0-9_./:@+-]*) echo "invalid rollback image reference" >&2; exit 1 ;;
+      esac
+    done
     export API_IMAGE ML_IMAGE ADMIN_IMAGE
     docker compose --env-file "$env_file" -f "$compose" up -d --remove-orphans
   fi

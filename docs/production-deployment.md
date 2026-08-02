@@ -36,8 +36,9 @@ Production deploy is manual:
    the idempotent versioned bundle before API traffic starts.
 4. Caddy obtains/renews HTTPS and routes `/api/*` to the API, `/ops/*` to
    Grafana and all other traffic to Admin.
-5. The deploy script probes `https://DOMAIN/api/health` for up to 100 seconds.
-   Failure restores the three previously running image references.
+5. The POSIX-shell deploy script probes `https://DOMAIN/api/ready` and ML
+   component readiness separately for up to 100 seconds. Failure restores the
+   three previously running image references.
 
 Database changes must follow expand → backfill → contract. A rollback only
 changes image tags; it does not reverse a destructive migration.
@@ -59,9 +60,10 @@ content until an object-storage adapter is implemented.
 - OpenTelemetry Collector exposes metrics to Prometheus.
 - Blackbox exporter probes API/ML health; node/postgres exporters cover disk/DB.
 - Promtail ships Docker JSON logs to Loki; Grafana provisions Prometheus/Loki.
-- Alerts cover unhealthy services, health latency, PostgreSQL, disk space and
-  failed/stale backups. Configure a Grafana notification contact point on the
-  VPS; contact credentials are not stored in Git.
+- Prometheus evaluates rules for unhealthy services, health latency, PostgreSQL,
+  disk space and failed/stale backups. No Alertmanager or notification delivery
+  is provisioned by this repository; operators must wire Alertmanager (or an
+  equivalent receiver) and test routing before go-live.
 - Loki retention is 30 days. Security/Admin audit rows remain 90 days according
   to `docs/privacy-retention.md`.
 
@@ -83,6 +85,11 @@ Quarterly restore drill:
 5. Record dump ID, commit SHA, duration, row-count checks and smoke output.
 
 Raw speaking audio must never exist in the dump or backup volume.
+
+The backup image currently runs BusyBox crond as root so it can use the system
+crontab. Its only writable mounts are the dedicated backup and metrics volumes;
+changing this requires a tested non-root scheduler and volume ownership
+migration. This is an accepted operational constraint, not a security claim.
 
 ## Android release
 

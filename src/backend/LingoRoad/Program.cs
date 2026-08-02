@@ -193,6 +193,23 @@ app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Text("ok"));
+app.MapGet("/ready", async (AppDbContext db, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "ready", database = "ready" })
+            : Results.Json(
+                new { status = "not_ready", database = "unavailable" },
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch
+    {
+        return Results.Json(
+            new { status = "not_ready", database = "unavailable" },
+            statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 app.MapAuth();
 app.MapSkills();
 app.MapItems();
