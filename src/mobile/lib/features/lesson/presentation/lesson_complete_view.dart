@@ -44,17 +44,21 @@ class LessonCompleteView extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _HeroIllustration(l10n: l10n),
-                    SizedBox(height: AppSpacing.xl.h),
-                    _StatsGrid(
-                      accuracy: accuracy,
-                      reviewCards: completion.reviewCardsCreated,
-                      l10n: l10n,
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _HeroIllustration(l10n: l10n),
+                        SizedBox(height: AppSpacing.xl.h),
+                        _StatsGrid(
+                          accuracy: accuracy,
+                          reviewCards: completion.reviewCardsCreated,
+                          l10n: l10n,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               _BottomActionBar(l10n: l10n),
