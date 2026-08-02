@@ -6,3 +6,9 @@
 /.claude/
 context.md
 /docs/superpowers/
+
+# Android signing material
+src/mobile/android/key.properties
+src/mobile/android/app/*.jks
+src/mobile/android/app/*.keystore
+deploy/.env.production

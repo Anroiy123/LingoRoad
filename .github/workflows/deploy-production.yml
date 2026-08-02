@@ -1,0 +1,63 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: Green main commit SHA already published to GHCR
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate required deployment inputs
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+          PRODUCTION_ENV_FILE: ${{ secrets.PRODUCTION_ENV_FILE }}
+        run: |
+          for name in VPS_HOST VPS_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS PRODUCTION_ENV_FILE; do
+            test -n "${!name:-}" || { echo "::error::$name is not configured"; exit 1; }
+          done
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 0700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 0600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload deployment definition and production environment
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          PRODUCTION_ENV_FILE: ${{ secrets.PRODUCTION_ENV_FILE }}
+        run: |
+          test -n "$PRODUCTION_ENV_FILE"
+          printf '%s\n' "$PRODUCTION_ENV_FILE" > /tmp/lingoroad.env
+          ssh "$VPS_USER@$VPS_HOST" 'mkdir -p /opt/lingoroad'
+          scp -r deploy "$VPS_USER@$VPS_HOST:/opt/lingoroad/"
+          scp /tmp/lingoroad.env "$VPS_USER@$VPS_HOST:/opt/lingoroad/deploy/.env.production"
+          rm -f /tmp/lingoroad.env
+      - name: Deploy and rollback on failed health check
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          IMAGE_SHA: ${{ inputs.image_sha }}
+        run: >-
+          ssh "$VPS_USER@$VPS_HOST"
+          "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}
+          /opt/lingoroad/deploy/scripts/deploy.sh '$IMAGE_SHA'"

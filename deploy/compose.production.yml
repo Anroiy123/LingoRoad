@@ -1,0 +1,252 @@
+name: lingoroad-production
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+    networks: [edge, app]
+
+  admin:
+    image: ${ADMIN_IMAGE:?ADMIN_IMAGE must include a commit SHA tag}
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [app]
+
+  api-migrate:
+    image: ${API_IMAGE:?API_IMAGE must include a commit SHA tag}
+    command: ["dotnet", "LingoRoad.dll", "--migrate-only"]
+    restart: "no"
+    env_file: .env.production
+    environment: &api-environment
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Secret: ${JWT_SECRET}
+      MlService__BaseUrl: http://ml:8001
+      MlService__InternalToken: ${ML_INTERNAL_TOKEN}
+      Storage__TempPath: /tmp/lingoroad-speaking
+      Cors__AllowedOrigins__0: https://${DOMAIN}
+      ContentSeed__Enabled: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [app, data, observability]
+
+  content-seed:
+    image: ${API_IMAGE:?API_IMAGE must include a commit SHA tag}
+    command: ["dotnet", "LingoRoad.dll", "--seed-only"]
+    restart: "no"
+    env_file: .env.production
+    environment:
+      <<: *api-environment
+      ContentSeed__Enabled: "true"
+    depends_on:
+      api-migrate:
+        condition: service_completed_successfully
+    networks: [app, data, observability]
+
+  api:
+    image: ${API_IMAGE:?API_IMAGE must include a commit SHA tag}
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      <<: *api-environment
+      ContentSeed__Enabled: "false"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1770
+    depends_on:
+      content-seed:
+        condition: service_completed_successfully
+    networks: [app, data, observability]
+
+  ml:
+    image: ${ML_IMAGE:?ML_IMAGE must include a commit SHA tag}
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      LINGOROAD_ENVIRONMENT: production
+      LINGOROAD_ML_INTERNAL_TOKEN: ${ML_INTERNAL_TOKEN}
+      LINGOROAD_ML_REQUIRED_MODELS: ${ML_REQUIRED_MODELS:-cat}
+      LINGOROAD_ML_PREWARM: "true"
+      QG_RAG_INDEX: /artifacts/corpus_index.npz
+      QG_KT_CHECKPOINT: /artifacts/saint_plus.pt
+    volumes:
+      - ml_artifacts:/artifacts:ro
+    read_only: true
+    tmpfs: [/tmp:size=256m]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/ready', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [app]
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [data]
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: server /data --console-address :9001
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    networks: [data]
+
+  backup:
+    build: ./backup
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_backups:/backups
+      - backup_metrics:/metrics
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [data]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.136.0
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yml"]
+    volumes:
+      - ./observability/otel-collector.yml:/etc/otelcol/config.yml:ro
+    networks: [observability]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d"]
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    networks: [observability, app]
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.27.0
+    restart: unless-stopped
+    volumes:
+      - ./observability/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks: [observability, app]
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.textfile.directory=/metrics
+    volumes:
+      - /:/host:ro,rslave
+      - backup_metrics:/metrics:ro
+    networks: [observability]
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    networks: [observability, data]
+
+  loki:
+    image: grafana/loki:3.5.3
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./observability/loki.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    networks: [observability]
+
+  promtail:
+    image: grafana/promtail:3.5.3
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./observability/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [observability]
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SERVER_ROOT_URL: https://${DOMAIN}/ops/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ./observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - grafana_data:/var/lib/grafana
+    networks: [observability, app]
+
+networks:
+  edge:
+  app:
+    internal: true
+  data:
+    internal: true
+  observability:
+    internal: true
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  postgres_backups:
+  minio_data:
+  ml_artifacts:
+  backup_metrics:
+  prometheus_data:
+  loki_data:
+  grafana_data:

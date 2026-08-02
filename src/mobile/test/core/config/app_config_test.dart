@@ -15,4 +15,31 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('production chỉ chấp nhận HTTPS', () {
+    expect(
+      () =>
+          AppConfig(apiBaseUrl: 'http://api.example.test', environment: 'prod'),
+      throwsArgumentError,
+    );
+    expect(
+      AppConfig(apiBaseUrl: 'https://api.example.test', environment: 'prod')
+          .apiBaseUrl,
+      'https://api.example.test',
+    );
+  });
+
+  test('chuẩn hóa và kiểm tra tên môi trường', () {
+    expect(
+      AppConfig(
+        apiBaseUrl: 'https://api.example.test',
+        environment: ' PROD ',
+      ).environment,
+      'prod',
+    );
+    expect(
+      () => AppConfig(environment: 'production'),
+      throwsArgumentError,
+    );
+  });
 }

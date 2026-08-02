@@ -1,0 +1,183 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lingoroad_ci
+          POSTGRES_USER: lingoroad
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lingoroad -d lingoroad_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=localhost;Database=lingoroad_ci;Username=lingoroad;Password=ci-only-password
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore src/backend/LingoRoad.sln
+      - run: dotnet build src/backend/LingoRoad.sln -c Release --no-restore
+      - run: dotnet test src/backend/LingoRoad.sln -c Release --no-build
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet ef migrations has-pending-model-changes --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj
+      - run: dotnet ef database update --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj
+      - run: dotnet list src/backend/LingoRoad.sln package --vulnerable --include-transitive
+
+  ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: src/backend/ml/requirements.txt
+      - run: pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r src/backend/ml/requirements.txt
+      - run: python -m nltk.downloader wordnet
+      - run: python -m pytest src/backend/ml/tests -q
+        env:
+          PYTHONPATH: src/backend/ml
+      - run: python src/backend/ml/research/validate_model_manifest.py
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+        working-directory: src/mobile
+      - run: flutter analyze
+        working-directory: src/mobile
+      - run: flutter test
+        working-directory: src/mobile
+      - run: flutter build apk --debug --flavor dev --dart-define=APP_ENV=dev --dart-define=API_BASE_URL=http://10.0.2.2:5000
+        working-directory: src/mobile
+
+  admin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/admin/package-lock.json
+      - run: npm ci
+        working-directory: src/admin
+      - run: npm run lint
+        working-directory: src/admin
+      - run: npm test
+        working-directory: src/admin
+      - run: npm run build
+        working-directory: src/admin
+      - run: npx playwright install --with-deps chromium
+        working-directory: src/admin
+      - run: npm run test:e2e
+        working-directory: src/admin
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f src/backend/LingoRoad/Dockerfile -t lingoroad-api:ci src/backend
+      - run: docker build -f src/backend/ml/Dockerfile -t lingoroad-ml:ci src/backend/ml
+      - run: docker build -f src/admin/Dockerfile -t lingoroad-admin:ci src/admin
+      - shell: pwsh
+        run: ./.github/scripts/validate-release-config.ps1
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm audit --audit-level=high
+        working-directory: src/admin
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip-audit -r src/backend/ml/requirements.txt
+
+  contract-full-stack:
+    needs: [backend, ml, flutter, admin]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lingoroad_contract
+          POSTGRES_USER: lingoroad
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U lingoroad -d lingoroad_contract"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=localhost;Database=lingoroad_contract;Username=lingoroad;Password=ci-only-password
+      Jwt__Issuer: lingoroad-contract-ci
+      Jwt__Secret: contract-ci-secret-at-least-32-characters
+      MlService__BaseUrl: http://127.0.0.1:8001
+      PYTHONPATH: src/backend/ml
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: src/backend/ml/requirements.txt
+      - run: pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r src/backend/ml/requirements.txt
+      - run: dotnet tool install --global dotnet-ef --version 10.0.10
+      - run: dotnet restore src/backend/LingoRoad.sln
+      - run: dotnet build src/backend/LingoRoad.sln -c Release --no-restore
+      - run: dotnet ef database update --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj
+      - name: Start API and ML, then exercise public contracts
+        shell: bash
+        run: |
+          uvicorn lingoroad_ml.serving.app:app --host 127.0.0.1 --port 8001 > ml.log 2>&1 &
+          dotnet run --project src/backend/LingoRoad/LingoRoad.csproj -c Release --no-build --urls http://127.0.0.1:5000 > api.log 2>&1 &
+          trap 'cat api.log ml.log' EXIT
+          for attempt in $(seq 1 30); do
+            curl --fail --silent http://127.0.0.1:5000/health >/dev/null &&
+              curl --fail --silent http://127.0.0.1:8001/ready >/dev/null && break
+            [ "$attempt" -lt 30 ] || exit 1
+            sleep 2
+          done
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5000/auth/me)" = "401"
+          admin_status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:5000/admin/analytics/overview)"
+          test "$admin_status" = "401" || test "$admin_status" = "403"
+          curl --fail --silent http://127.0.0.1:8001/health
