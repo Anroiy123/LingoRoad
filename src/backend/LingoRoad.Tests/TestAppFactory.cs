@@ -38,6 +38,8 @@ public class TestAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("RateLimits:MlUpload", "10000");
         builder.UseSetting("Privacy:DeletionGraceDays", "0");
         builder.UseSetting("ContentSeed:Enabled", SeedContent.ToString());
+        builder.UseSetting("BootstrapAdmin:Email", "");
+        builder.UseSetting("BootstrapAdmin:Password", "");
         builder.ConfigureServices(services =>
         {
             foreach (var d in services.Where(d =>

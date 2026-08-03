@@ -245,6 +245,123 @@ public class AdminTests : IClassFixture<TestAppFactory>
         Assert.Equal(30, report.GetProperty("minimumSampleSize").GetInt32());
     }
 
+    [Fact]
+    public async Task Users_list_supports_search_role_filter_pagination_and_requires_admin()
+    {
+        using var anonymous = _factory.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await anonymous.GetAsync("/admin/users")).StatusCode);
+
+        using var learner = await TestAuth.ClientAsync(_factory, UserRoles.Learner);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await learner.GetAsync("/admin/users")).StatusCode);
+
+        using var admin = await TestAuth.ClientAsync(_factory);
+        var suffix = Guid.NewGuid().ToString("N");
+        var email = $"searchable-{suffix}@example.test";
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Users.Add(new User
+            {
+                Email = email,
+                Name = "Searchable Learner",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Role = UserRoles.Learner
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var searched = await admin.GetFromJsonAsync<JsonElement>($"/admin/users?search={suffix}");
+        Assert.Equal(1, searched.GetProperty("total").GetInt32());
+        var users = searched.GetProperty("users").EnumerateArray().ToList();
+        Assert.Single(users);
+        Assert.Equal(email, users[0].GetProperty("email").GetString());
+        Assert.False(users[0].TryGetProperty("passwordHash", out _));
+
+        var roleFiltered = await admin.GetFromJsonAsync<JsonElement>(
+            $"/admin/users?search={suffix}&role={UserRoles.Admin}");
+        Assert.Equal(0, roleFiltered.GetProperty("total").GetInt32());
+    }
+
+    [Fact]
+    public async Task User_detail_returns_profile_mastery_activity_and_404_for_unknown()
+    {
+        using var admin = await TestAuth.ClientAsync(_factory);
+        var suffix = Guid.NewGuid().ToString("N");
+        var skillResponse = await admin.PostAsJsonAsync("/admin/skills", new
+        {
+            code = $"grammar.user_detail_{suffix}",
+            name = "User detail",
+            nameVi = "Chi tiết người dùng",
+            category = "grammar",
+            cefrLevel = "A1"
+        });
+        skillResponse.EnsureSuccessStatusCode();
+        var skillId = (await Json(skillResponse)).GetProperty("id").GetInt32();
+
+        Guid userId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var user = new User
+            {
+                Email = $"detail-{suffix}@example.test",
+                Name = "Detail Learner",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Role = UserRoles.Learner
+            };
+            db.Users.Add(user);
+            userId = user.Id;
+            var lesson = new Lesson
+            {
+                Id = Guid.NewGuid(),
+                StableId = $"lesson-detail-{suffix}",
+                Slug = $"lesson-detail-{suffix}",
+                Title = "Detail lesson",
+                TitleVi = "Bài chi tiết",
+                SkillId = skillId,
+                CefrLevel = "A1",
+                ContentVersion = "test",
+                ContentChecksum = "test",
+                Source = "test",
+                License = "test",
+                Reviewer = "test"
+            };
+            db.Lessons.Add(lesson);
+            db.Masteries.Add(new Mastery { UserId = userId, SkillId = skillId, PCorrect = .75 });
+            db.LessonAttempts.Add(new LessonAttempt
+            {
+                UserId = userId,
+                LessonId = lesson.Id,
+                Status = LessonStatuses.Completed,
+                StartOperationId = Guid.NewGuid()
+            });
+            db.ReviewCards.Add(new ReviewCard
+            {
+                UserId = userId,
+                SkillId = skillId,
+                Front = "front",
+                Back = "back",
+                Due = DateTime.UtcNow.AddDays(-1)
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var detail = await admin.GetFromJsonAsync<JsonElement>($"/admin/users/{userId}");
+        Assert.Equal(userId, detail.GetProperty("id").GetGuid());
+        Assert.Equal("Detail Learner", detail.GetProperty("name").GetString());
+        var mastery = detail.GetProperty("mastery").EnumerateArray().ToList();
+        Assert.Single(mastery);
+        Assert.Equal($"grammar.user_detail_{suffix}", mastery[0].GetProperty("skillCode").GetString());
+        var activity = detail.GetProperty("activity");
+        Assert.Equal(1, activity.GetProperty("lessonsCompleted").GetInt32());
+        Assert.Equal(1, activity.GetProperty("dueReviews").GetInt32());
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await admin.GetAsync($"/admin/users/{Guid.NewGuid()}")).StatusCode);
+    }
+
     private static object Import(string suffix, string? itemSkillCode = null,
         string stem = "Imported question")
     {

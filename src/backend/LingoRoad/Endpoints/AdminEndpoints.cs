@@ -30,11 +30,13 @@ public record AdminImportLesson(string StableId, string Slug, string Title, stri
 public record AdminImportRequest(string Version, string Source, string License, string Reviewer,
     List<AdminImportSkill> Skills, List<AdminImportItem> Items,
     List<AdminImportLesson> Lessons);
+public record AdminGenerateItemsRequest(string SkillCode, string CefrLevel, string Type, int Count);
 
 public static partial class AdminEndpoints
 {
     private static readonly HashSet<string> CefrLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
     private static readonly HashSet<string> ItemTypes = ["mcq", "cloze", "reorder", "listening_mcq"];
+    private static readonly HashSet<string> GenerateItemTypes = ["mcq", "cloze"];
 
     public static void MapAdmin(this WebApplication app)
     {
@@ -84,6 +86,7 @@ public static partial class AdminEndpoints
         admin.MapPost("/items", CreateItemAsync);
         admin.MapPut("/items/{id:guid}", UpdateItemAsync);
         admin.MapDelete("/items/{id:guid}", DeleteItemAsync);
+        admin.MapPost("/items/generate", GenerateItemsAsync).RequireRateLimiting("ml-upload");
 
         admin.MapGet("/lessons", async (AppDbContext db) =>
         {
@@ -146,6 +149,89 @@ public static partial class AdminEndpoints
         admin.MapGet("/audit", async (int? limit, AppDbContext db) =>
             await db.AdminAuditEvents.OrderByDescending(x => x.CreatedAt)
                 .Take(Math.Clamp(limit ?? 50, 1, 200)).ToListAsync());
+
+        admin.MapGet("/users", ListUsersAsync);
+        admin.MapGet("/users/{id:guid}", GetUserDetailAsync);
+    }
+
+    private static async Task<IResult> ListUsersAsync(string? search, string? role,
+        int? limit, int? offset, AppDbContext db)
+    {
+        var query = db.Users.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(u => EF.Functions.Like(u.Email, $"%{term}%") ||
+                (u.Name != null && EF.Functions.Like(u.Name, $"%{term}%")));
+        }
+        if (!string.IsNullOrWhiteSpace(role)) query = query.Where(u => u.Role == role);
+
+        var total = await query.CountAsync();
+        var users = await query.OrderByDescending(u => u.CreatedAt)
+            .Skip(Math.Max(offset ?? 0, 0)).Take(Math.Clamp(limit ?? 50, 1, 200))
+            .Select(u => new
+            {
+                u.Id,
+                u.Email,
+                u.Name,
+                u.Role,
+                u.TargetCefr,
+                u.CreatedAt
+            }).ToListAsync();
+        return Results.Ok(new { total, users });
+    }
+
+    private static async Task<IResult> GetUserDetailAsync(Guid id, AppDbContext db)
+    {
+        var user = await db.Users.SingleOrDefaultAsync(u => u.Id == id);
+        if (user is null) return Results.NotFound();
+
+        var mastery = await (from m in db.Masteries
+                             join skill in db.Skills on m.SkillId equals skill.Id
+                             where m.UserId == id
+                             select new
+                             {
+                                 skillCode = skill.Code,
+                                 skillName = skill.Name,
+                                 pCorrect = m.PCorrect,
+                                 updatedAt = m.UpdatedAt
+                             }).ToListAsync();
+
+        var lessonsCompleted = await db.LessonAttempts.CountAsync(
+            x => x.UserId == id && x.Status == LessonStatuses.Completed);
+        var exercisesAnswered = await db.Exercises.CountAsync(
+            x => x.UserId == id && x.AnsweredAt != null);
+        var exercisesCorrect = await db.Exercises.CountAsync(
+            x => x.UserId == id && x.IsCorrect == true);
+        var dueReviews = await db.ReviewCards.CountAsync(
+            x => x.UserId == id && x.Due <= DateTime.UtcNow);
+        var lastLessonAt = await db.LessonAttempts.Where(x => x.UserId == id)
+            .MaxAsync(x => (DateTime?)x.StartedAt);
+        var lastExerciseAt = await db.Exercises.Where(x => x.UserId == id && x.AnsweredAt != null)
+            .MaxAsync(x => (DateTime?)x.AnsweredAt);
+        var lastSessionAt = await db.TestSessions.Where(x => x.UserId == id)
+            .MaxAsync(x => (DateTime?)x.StartedAt);
+        var lastActiveAt = new[] { lastLessonAt, lastExerciseAt, lastSessionAt }
+            .Where(x => x is not null).Max();
+
+        return Results.Ok(new
+        {
+            user.Id,
+            user.Email,
+            user.Name,
+            user.Role,
+            user.TargetCefr,
+            user.CreatedAt,
+            mastery,
+            activity = new
+            {
+                lessonsCompleted,
+                exercisesAnswered,
+                exercisesCorrect,
+                dueReviews,
+                lastActiveAt
+            }
+        });
     }
 
     private static async Task<IResult> CreateSkillAsync(AdminSkillRequest req,
@@ -285,6 +371,69 @@ public static partial class AdminEndpoints
         Audit(db, principal, "delete", "item", id.ToString());
         await db.SaveChangesAsync();
         return Results.NoContent();
+    }
+
+    private static async Task<IResult> GenerateItemsAsync(AdminGenerateItemsRequest req,
+        ClaimsPrincipal principal, AppDbContext db, IMlClient ml)
+    {
+        var cefrLevel = req.CefrLevel?.Trim().ToUpperInvariant() ?? "";
+        var type = req.Type?.Trim() ?? "";
+        var errors = new List<string>();
+        if (!await db.Skills.AnyAsync(s => s.Code == req.SkillCode)) errors.Add("unknown_skill");
+        if (!CefrLevels.Contains(cefrLevel)) errors.Add("invalid_cefr");
+        if (!GenerateItemTypes.Contains(type)) errors.Add("unsupported_item_type");
+        if (errors.Count > 0) return Validation(errors);
+        var skill = await db.Skills.SingleAsync(s => s.Code == req.SkillCode);
+        var count = Math.Clamp(req.Count, 1, 20);
+
+        ExerciseGenResponse result;
+        try
+        {
+            result = await ml.GenerateExercisesAsync(
+                new ExerciseGenRequest(skill.Code, skill.Name, cefrLevel, type, count));
+        }
+        catch (MlInputRejectedException error) { return ApiResults.MlRejected(error); }
+        catch (MlServiceUnavailableException) { return ApiResults.MlUnavailable(); }
+
+        var items = result.Exercises.Select(e => new Item
+        {
+            SkillId = skill.Id,
+            CefrLevel = cefrLevel,
+            Type = type,
+            Stem = e.Stem,
+            OptionsJson = JsonSerializer.Serialize(e.Options),
+            CorrectAnswer = e.CorrectAnswer,
+            ExplanationVi = e.ExplanationVi,
+            Source = $"AI generated ({result.ModelVersion ?? "gemini-2.5-flash"})",
+            A = 1,
+            B = CefrDifficulty(cefrLevel),
+            C = e.Options.Length == 0 ? 0 : Math.Round(1.0 / e.Options.Length, 4)
+        }).ToList();
+        db.Items.AddRange(items);
+        Audit(db, principal, "generate", "item", skill.Code,
+            JsonSerializer.Serialize(new { count = items.Count, type, cefr = cefrLevel }));
+        await db.SaveChangesAsync();
+
+        return Results.Created("/admin/items", new
+        {
+            generated = items.Count,
+            items = items.Select(item => new
+            {
+                item.Id,
+                item.SkillId,
+                skillCode = skill.Code,
+                item.CefrLevel,
+                item.Type,
+                item.Stem,
+                options = JsonSerializer.Deserialize<string[]>(item.OptionsJson),
+                item.CorrectAnswer,
+                item.ExplanationVi,
+                item.Source,
+                item.A,
+                item.B,
+                item.C
+            })
+        });
     }
 
     private static async Task<IResult> CreateLessonAsync(AdminLessonRequest req,

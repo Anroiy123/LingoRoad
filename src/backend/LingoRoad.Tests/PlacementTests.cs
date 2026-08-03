@@ -35,10 +35,15 @@ public class FakeMlClient : IMlClient
     public Task<ExerciseGenResponse> GenerateExercisesAsync(ExerciseGenRequest req, CancellationToken ct = default)
     {
         if (Throw) throw new MlServiceUnavailableException(new HttpRequestException("down"));
-        return Task.FromResult(new ExerciseGenResponse([
-            new GeneratedExercise("She ___ here since 2019.",
+        var count = Math.Max(req.Count, 1);
+        var exercises = Enumerable.Range(0, count).Select(i => i == 0
+            ? new GeneratedExercise("She ___ here since 2019.",
                 ["has lived", "lived", "lives", "living"], "has lived",
-                "Dùng thì hiện tại hoàn thành với 'since'.")], "fake-llm-v1"));
+                "Dùng thì hiện tại hoàn thành với 'since'.")
+            : new GeneratedExercise($"Fake generated question #{i + 1} for {req.SkillCode}.",
+                ["A", "B", "C", "D"], "A", "Giải thích mẫu."))
+            .ToList();
+        return Task.FromResult(new ExerciseGenResponse(exercises, "fake-llm-v1"));
     }
 
     public Task<AweResponse> EvaluateWritingAsync(AweRequest req, CancellationToken ct = default)
