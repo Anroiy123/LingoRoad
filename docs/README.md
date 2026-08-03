@@ -20,4 +20,4 @@ All three members' results are collected in [bao-cao-ly-thuyet-nhom.md](bao-cao-
 |---|---|---|
 | Mảng 1 | Learning theory (ZPD, mastery, SRL, SRS), knowledge tracing (DKT/DKVMN/SAINT+), gamification | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) §Mảng 1; measured KT evidence in [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) |
 | Mảng 2 | LLM & RAG, CEFR assessment (IRT/CAT), ASR & pronunciation (Whisper, MFA) | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) §Mảng 2; measured placement/advisor/speaking evidence in [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) |
-| **Mảng 3** (`src/backend/.claude/theory-reqquirement.md`) | Learning-path optimization + technical infrastructure | [learning-path-optimization.md](learning-path-optimization.md) + [system-architecture.md](system-architecture.md) (VN: [bao-cao-mang-3-vn.md](bao-cao-mang-3-vn.md)) |
+| **Mảng 3** (`.claude/theory-reqquirement.md`) | Learning-path optimization + technical infrastructure | [learning-path-optimization.md](learning-path-optimization.md) + [system-architecture.md](system-architecture.md) (VN: [bao-cao-mang-3-vn.md](bao-cao-mang-3-vn.md)) |

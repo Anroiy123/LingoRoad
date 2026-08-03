@@ -16,7 +16,7 @@
 
 ## 2. Tiến độ hiện thực
 
-Kế hoạch 16 task đã hoàn tất **16/16** (task cuối đóng ngày 18–19/07/2026). Theo năm module của `src/backend/.claude/requirement.md`:
+Kế hoạch 16 task đã hoàn tất **16/16** (task cuối đóng ngày 18–19/07/2026). Theo năm module của `.claude/requirement.md`:
 
 | Module | Trạng thái | Số liệu / bằng chứng |
 | --- | --- | --- |

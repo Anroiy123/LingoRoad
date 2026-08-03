@@ -1,6 +1,6 @@
 # LingoRoad System Architecture
 
-Theory deliverable for **Mảng 3** (`src/backend/.claude/theory-reqquirement.md`), part 3
+Theory deliverable for **Mảng 3** (`.claude/theory-reqquirement.md`), part 3
 of the required output: the system architecture *(kiến trúc hệ thống)* integrating the AI
 components from the other two theory areas. This documents the system **as built**, with
 the React tier as a proposal. Paths are relative to the repo root.
@@ -114,7 +114,7 @@ Entities (`src/backend/LingoRoad/Data/AppDbContext.cs`):
 
 ## 5. Integration map — the five AI modules
 
-Module numbering from `src/backend/.claude/requirement.md`. Theory-area ownership
+Module numbering from `.claude/requirement.md`. Theory-area ownership
 *(mảng)* is **TBD** until the team finalizes the split; Mảng 3 owns the optimization
 theory and this architecture regardless.
 
@@ -169,4 +169,4 @@ coverage. Both clients call only the .NET API; neither can call ML directly.
 - [learning-path-optimization.md](learning-path-optimization.md) — the optimization
   problem and method comparison behind module 1.3.
 - `MVP_architecture.md` (repo root) — the original Vietnamese MVP design.
-- `src/backend/.claude/requirement.md` — the five-module requirement.
+- `.claude/requirement.md` — the five-module requirement.

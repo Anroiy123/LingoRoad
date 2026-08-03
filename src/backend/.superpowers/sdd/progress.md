@@ -123,7 +123,7 @@
   Gemini credits (2026-07-13 blocker unchanged).
 
 ## Session 2026-07-15 (theory Mảng-3 docs)
-- User owns theory Mảng 3 = the whole of src/backend/.claude/theory-reqquirement.md
+- User owns theory Mảng 3 = the whole of .claude/theory-reqquirement.md
   (optimization + infrastructure). Brainstormed via superpowers; spec committed 10e74a2
   (docs/superpowers/specs/2026-07-15-theory-section3-docs-design.md).
 - Written: docs/learning-path-optimization.md (problem spec, Greedy vs DP vs RL,

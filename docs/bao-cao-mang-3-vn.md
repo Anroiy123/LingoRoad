@@ -17,7 +17,7 @@ Bốn yếu tố khiến bài toán khó hơn việc "sắp xếp danh sách k�
 3. **Sự quên** — độ thành thạo suy giảm theo thời gian (`src/backend/LingoRoad/Domain/MasteryCalc.cs` suy giảm về 0.5 với tốc độ 0.03/ngày), nên một thứ tự "một chiều" là chưa đủ; lộ trình tốt phải có ôn tập.
 4. **Tính ngẫu nhiên** — lợi ích học tập thực tế thay đổi theo từng người học và từng lần luyện.
 
-Cơ sở trong repo: bộ sinh lộ trình production dựa trên luật (`src/backend/LingoRoad/Domain/PathBuilder.cs`); động lực học độ thành thạo định nghĩa mô hình chuyển trạng thái nằm trong `MasteryCalc.cs`; bản chứng minh khái niệm (PoC) học tăng cường là task 15 (`src/backend/.claude/tasks/task-15-dqn-poc.md`).
+Cơ sở trong repo: bộ sinh lộ trình production dựa trên luật (`src/backend/LingoRoad/Domain/PathBuilder.cs`); động lực học độ thành thạo định nghĩa mô hình chuyển trạng thái nằm trong `MasteryCalc.cs`; bản chứng minh khái niệm (PoC) học tăng cường là task 15 (`.claude/tasks/task-15-dqn-poc.md`).
 
 ## A.2. Phát biểu bài toán hình thức (đầu vào / đầu ra / ràng buộc)
 
@@ -249,7 +249,7 @@ Các thực thể (`src/backend/LingoRoad/Data/AppDbContext.cs`):
 
 ## B.5. Bản đồ tích hợp — năm module AI
 
-Đánh số module theo `src/backend/.claude/requirement.md`. Phân chia mảng lý thuyết còn **chưa chốt** cho đến khi nhóm thống nhất; Mảng 3 sở hữu lý thuyết tối ưu và kiến trúc này trong mọi trường hợp.
+Đánh số module theo `.claude/requirement.md`. Phân chia mảng lý thuyết còn **chưa chốt** cho đến khi nhóm thống nhất; Mảng 3 sở hữu lý thuyết tối ưu và kiến trúc này trong mọi trường hợp.
 
 | Module | Endpoint | Thành phần | Mảng |
 |---|---|---|---|
@@ -282,4 +282,4 @@ Chưa có mã React; đây là cấu trúc đề xuất.
 - `docs/learning-path-optimization.md` — bản gốc tiếng Anh của Phần A.
 - `docs/system-architecture.md` — bản gốc tiếng Anh của Phần B.
 - `MVP_architecture.md` (gốc repo) — thiết kế MVP tiếng Việt ban đầu.
-- `src/backend/.claude/requirement.md` — yêu cầu năm module.
+- `.claude/requirement.md` — yêu cầu năm module.

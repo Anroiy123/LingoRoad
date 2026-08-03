@@ -1,6 +1,6 @@
 # Learning Path Optimization in LingoRoad
 
-Theory deliverable for **Mảng 3** (`src/backend/.claude/theory-reqquirement.md`), parts 1–2
+Theory deliverable for **Mảng 3** (`.claude/theory-reqquirement.md`), parts 1–2
 of the required output: the formal optimization problem *(bài toán tối ưu)* with its
 input/output/constraints, and the comparison of Greedy vs Dynamic Programming vs
 Reinforcement Learning on accuracy and computational cost *(độ chính xác / chi phí tính
@@ -30,7 +30,7 @@ Repo grounding: the production path builder is rule-based
 (`src/backend/LingoRoad/Domain/PathBuilder.cs`, see
 [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) §5); the mastery dynamics that
 define our transition model are in `MasteryCalc.cs`; the planned RL proof-of-concept is
-task 15 (`src/backend/.claude/tasks/task-15-dqn-poc.md`).
+task 15 (`.claude/tasks/task-15-dqn-poc.md`).
 
 ## 2. Formal problem statement *(input / output / constraints)*
 
@@ -168,7 +168,7 @@ violate them, which is unacceptable for "never suggest a skill before its prereq
 are too slow and too valuable to explore on. So we train in a simulator — toy dynamics
 now, an EdNet-fitted learner model later per the requirement — and inherit the
 **sim-to-real gap**: the policy is only as good as the simulator is faithful
-(`src/backend/.claude/requirement.md`, note V-5). This is the deepest reason production
+(`.claude/requirement.md`, note V-5). This is the deepest reason production
 keeps the greedy path while RL remains a proof-of-concept.
 
 ## 6. Comparison *(so sánh 3 phương pháp)*
