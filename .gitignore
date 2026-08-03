@@ -3,7 +3,11 @@
 
 .agents
 .codex
-/.claude/
+# This machine's global gitignore excludes .claude/ everywhere; this repo
+# tracks it deliberately (Claude Code context docs), except the local
+# settings file below, which can carry machine-specific secrets.
+!/.claude/
+/.claude/settings.local.json
 context.md
 /docs/superpowers/
 
