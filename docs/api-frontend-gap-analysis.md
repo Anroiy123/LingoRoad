@@ -20,7 +20,7 @@ Each row below is classified:
 
 ## 1. API inventory summary
 
-The `.NET` API exposes 55 routes across 14 feature groups: Health, Auth,
+The `.NET` API exposes 59 routes across 14 feature groups: Health, Auth,
 Skills, Items, Placement, Mastery, Reviews (spaced repetition
 *(lặp lại ngắt quãng)*), Path (learning-path recommendation + advisor),
 Lessons, Exercises (incl. writing evaluation), Dashboard/Gamification,
@@ -47,14 +47,14 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
 | Learning path (recommendation) | ✅ `/path` + `/path/today` | ✅ Path/today lesson/player wired | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ✅ Advisor flow with API states/retry | — |
-| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ⚠️ Aggregate by category in overview; no per-user drill-down |
+| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ⚠️ Aggregate by category in overview; per-user drill-down now available via `GET /admin/users`/`{id}` (API only, no admin UI yet) |
 | Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
-| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | — |
+| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | ⚠️ `POST /admin/items/generate` bulk-generates AI items straight into the Item bank (API only, no admin UI yet) |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ✅ Writing flow with API states/retry | — |
 | Speaking assessment | ✅ Safe `/speaking/attempts` upload/history | ✅ Recording, score/history and retry flow | — |
 | User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
 | Dashboard / gamification (XP, coin, streak, quest, badges) | ⚠️ Aggregate + append-only reward ledger exist; badges missing | ⚠️ Home/Streak use real API; badges remain unavailable | ✅ Overview consumes learner/reward aggregates |
-| Admin auth / roles | ✅ `Learner/Admin` role claim + policy + bootstrap | — | ✅ Login and route guard; learner receives 403 from server |
+| Admin auth / roles | ✅ `Learner/Admin` role claim + policy + configured dev bootstrap (`BootstrapAdmin` in `appsettings.Development.json`) | — | ✅ Login and route guard; learner receives 403 from server |
 | Analytics (user/skill/question) | ✅ `/admin/analytics/overview` | — | ✅ Activity, completion, correctness, review, mastery, item/content usage |
 | Privacy/data lifecycle | ✅ Consent history, ZIP export, scheduled deletion and retention worker | ⚠️ API available; dedicated consent/export/delete UI remains optional | ✅ Learning-quality report is Admin-only and sample-gated |
 | Cross-origin access (CORS) | ✅ Production allowlist with fail-fast validation | — (native app, not affected) | ✅ Configurable API base URL; production origin is supplied at deployment |
@@ -133,15 +133,18 @@ surface implements the minimum scope from `MVP_architecture.md`
 | Admin login / role separation | ✅ Fulfilled | `User.Role`, JWT role claim, Admin policy, secret-driven bootstrap, React login and fail-closed route guard are implemented; anonymous gets 401 and learner gets 403. |
 | Skill management (create/edit/delete, assign prerequisites) | ✅ Fulfilled | Admin API/UI support create/update/soft-delete, parent relation validation and cycle prevention. |
 | Lesson management | ✅ Fulfilled | Draft/published CRUD, ordered item relationships, soft-delete and audit are implemented. |
-| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ✅ Fulfilled | Protected CRUD exposes answer/difficulty metadata only within the Admin surface and blocks unsafe relation deletion. |
-| User / skill / question analytics | ✅ MVP overview | Active learners, completion, correctness, due reviews, mastery by category, item usage and content usage are available. Per-user drill-down remains an extension. |
+| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ✅ Fulfilled | Protected CRUD exposes answer/difficulty metadata only within the Admin surface and blocks unsafe relation deletion. `POST /admin/items/generate` now bulk-generates AI questions (via the same ML exercise generator learners use) straight into the Item bank, reusing existing CRUD for review/edit/delete — no draft/approval status. API only; no admin UI trigger yet. |
+| User / skill / question analytics | ✅ MVP overview | Active learners, completion, correctness, due reviews, mastery by category, item usage and content usage are available. Per-user drill-down is now available via `GET /admin/users` (search/role/pagination) and `GET /admin/users/{id}` (profile + mastery + activity); API only, admin UI wiring remains an extension. |
 | Versioned import | ✅ Fulfilled | `validate/preview → apply` is transactional, version/checksum idempotent and rejects changed replay, broken references, duplicates and skill cycles. |
 | Audit trail | ✅ Fulfilled | Admin mutations append content/security audit events and the protected UI can inspect recent events. |
 
 The minimum Admin gate is now implemented and has API/component/Playwright
 coverage plus a browser smoke against the real API/PostgreSQL. Remaining work
-is production deployment configuration, running browser E2E in CI, pagination/search and
-optional per-user analytics/role management.
+is production deployment configuration, running browser E2E in CI,
+pagination/search, and wiring the React admin UI to the now-available
+per-user analytics (`GET /admin/users`, `/admin/users/{id}`) and
+AI item-generation (`POST /admin/items/generate`) APIs — both are backend-only
+as of this update.
 
 ## 5. Cross-cutting gaps
 
@@ -169,5 +172,8 @@ Concrete next steps, ordered by dependency:
    setup and the already smoke-tested learner loop.
 4. **Run the committed Admin Playwright specs in CI** and add pagination/search
    before the content catalog grows substantially.
-5. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
+5. **Wire the React admin UI to the per-user analytics and AI item-generation
+   APIs** (`GET /admin/users`/`{id}`, `POST /admin/items/generate`) — both
+   ship backend-only for now.
+6. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
    changing; Flutter can keep its existing hand-written repository pattern.
