@@ -22,6 +22,8 @@ class ReviewViewModel extends ChangeNotifier {
   int get remaining => _cards.length - _index;
   bool get gradePending => _gradePending;
   String? get errorCode => _errorCode;
+  List<ReviewCard> get cards => _cards;
+  int get currentIndex => _index;
   Future<void> load() async {
     if (_state == ReviewState.loading || _gradePending) return;
     _state = ReviewState.loading;

@@ -1,403 +1,419 @@
 {
-  "common": {
-    "progress_percent": "Tiến độ {} phần trăm",
-    "retry": "Thử lại",
-    "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
-    "not_implemented": "Tính năng này đang được phát triển."
-  },
-  "nav": {
-    "learn": "Học",
-    "path": "Lộ trình",
-    "review": "Ôn tập",
-    "progress": "Tiến độ",
-    "profile": "Hồ sơ"
-  },
   "auth": {
+    "error": {
+      "email_taken": "Email đã được sử dụng",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại.",
+      "invalid_credentials": "Email hoặc mật khẩu không đúng",
+      "network_unavailable": "Không thể kết nối đến máy chủ",
+      "request_timeout": "Kết nối quá thời gian chờ"
+    },
     "login": {
-      "title": "Chào mừng trở lại",
-      "subtitle": "Đăng nhập để tiếp tục lộ trình học của bạn.",
       "email": "Email",
-      "password": "Mật khẩu",
-      "show_password": "Hiện mật khẩu",
-      "hide_password": "Ẩn mật khẩu",
-      "submit": "Đăng nhập",
-      "register_link": "Chưa có tài khoản? Đăng ký",
       "email_placeholder": "Nhập email của bạn",
-      "password_placeholder": "Nhập mật khẩu của bạn",
       "forgot_password": "Quên mật khẩu?",
-      "or_continue": "HOẶC TIẾP TỤC VỚI",
+      "hide_password": "Ẩn mật khẩu",
       "no_account": "Chưa có tài khoản? ",
-      "register_action": "Đăng ký"
+      "or_continue": "HOẶC TIẾP TỤC VỚI",
+      "password": "Mật khẩu",
+      "password_placeholder": "Nhập mật khẩu của bạn",
+      "register_action": "Đăng ký",
+      "register_link": "Chưa có tài khoản? Đăng ký",
+      "show_password": "Hiện mật khẩu",
+      "submit": "Đăng nhập",
+      "subtitle": "Đăng nhập để tiếp tục lộ trình học của bạn.",
+      "title": "Chào mừng trở lại"
     },
     "register": {
-      "title": "Tạo tài khoản",
-      "subtitle": "Bắt đầu hành trình học tiếng Anh cá nhân hóa.",
-      "name": "Tên hiển thị (không bắt buộc)",
-      "password_helper": "Tối thiểu 8 ký tự",
-      "submit": "Đăng ký",
-      "login_link": "Đã có tài khoản? Đăng nhập",
-      "name_label": "Họ và tên",
-      "name_placeholder": "Nhập họ và tên",
-      "email_placeholder": "Nhập địa chỉ email",
-      "password_placeholder": "Tạo mật khẩu",
       "confirm_password_label": "Xác nhận mật khẩu",
       "confirm_password_placeholder": "Nhập lại mật khẩu",
+      "email_placeholder": "Nhập địa chỉ email",
       "has_account": "Đã có tài khoản? ",
-      "login_action": "Đăng nhập"
+      "login_action": "Đăng nhập",
+      "login_link": "Đã có tài khoản? Đăng nhập",
+      "name": "Tên hiển thị (không bắt buộc)",
+      "name_label": "Họ và tên",
+      "name_placeholder": "Nhập họ và tên",
+      "password_helper": "Tối thiểu 8 ký tự",
+      "password_placeholder": "Tạo mật khẩu",
+      "submit": "Đăng ký",
+      "subtitle": "Bắt đầu hành trình học tiếng Anh cá nhân hóa.",
+      "title": "Tạo tài khoản"
     },
     "validation": {
+      "confirm_password_empty": "Vui lòng xác nhận mật khẩu",
+      "confirm_password_mismatch": "Mật khẩu xác nhận không trùng khớp",
       "email_empty": "Vui lòng nhập email",
       "email_invalid": "Email không hợp lệ",
       "password_empty": "Vui lòng nhập mật khẩu",
-      "password_too_short": "Mật khẩu cần ít nhất 8 ký tự",
-      "confirm_password_empty": "Vui lòng xác nhận mật khẩu",
-      "confirm_password_mismatch": "Mật khẩu xác nhận không trùng khớp"
-    },
-    "error": {
-      "email_taken": "Email đã được sử dụng",
-      "invalid_credentials": "Email hoặc mật khẩu không đúng",
-      "network_unavailable": "Không thể kết nối đến máy chủ",
-      "request_timeout": "Kết nối quá thời gian chờ",
-      "generic": "Đã xảy ra lỗi. Vui lòng thử lại."
+      "password_too_short": "Mật khẩu cần ít nhất 8 ký tự"
     }
   },
-  "placement": {
-    "intro": {
-      "title": "Kiểm tra trình độ đầu vào",
-      "subtitle": "lingoRoad sẽ chọn câu hỏi thích ứng để xác định cấp độ CEFR phù hợp với bạn.",
-      "duration_title": "8–30 câu hỏi",
-      "duration_desc": "Bài kiểm tra kết thúc khi kết quả đủ tin cậy.",
-      "adaptive_title": "Độ khó thích ứng",
-      "adaptive_desc": "Câu tiếp theo được chọn theo câu trả lời trước.",
-      "result_title": "Kết quả CEFR",
-      "result_desc": "Kết quả giúp cá nhân hóa lộ trình học ban đầu.",
-      "start": "Bắt đầu kiểm tra",
-      "note": "Hãy chọn đáp án tốt nhất. Bạn không thể quay lại câu trước."
-    },
-    "question": {
-      "title": "Câu {}",
-      "max_questions": "Tối đa 30 câu",
-      "audio_instruction": "Nghe đoạn âm thanh rồi chọn đáp án.",
-      "listen": "Nghe",
-      "audio_error": "Không thể phát âm thanh. Vui lòng thử lại.",
-      "submit": "Trả lời"
-    },
-    "result": {
-      "title": "Bạn đã hoàn thành!",
-      "subtitle": "lingoRoad đã xác định cấp độ khởi đầu phù hợp với bạn.",
-      "cefr_level": "Cấp độ CEFR",
-      "answered": "Đã trả lời",
-      "answered_val": "{} câu",
-      "confidence": "Độ tin cậy",
-      "disclaimer": "Kết quả này sẽ được dùng để xây dựng lộ trình học cá nhân hóa. Đây là đánh giá định hướng ban đầu, không phải chứng chỉ CEFR chính thức.",
-      "continue_btn": "Bắt đầu lộ trình"
-    },
-    "error": {
-      "title": "Không thể kiểm tra tiến độ",
-      "subtitle": "Vui lòng kiểm tra kết nối rồi thử lại để tiếp tục đúng lộ trình của bạn.",
-      "retry": "Thử lại",
-      "logout": "Đăng xuất",
-      "logout_failed": "Không thể đăng xuất an toàn. Vui lòng thử lại."
-    }
+  "common": {
+    "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "not_implemented": "Tính năng này đang được phát triển.",
+    "progress_percent": "Tiến độ {} phần trăm",
+    "retry": "Thử lại"
   },
   "home": {
-    "welcome": "Chào {}!",
-    "subtitle": "Sẵn sàng học tiếng Anh hôm nay chưa?",
+    "error": "Không thể tải dữ liệu học hôm nay.",
     "level_summary": "{} → {} · Thành thạo {}%",
     "metrics": {
       "daily_goal": "Mục tiêu hằng ngày",
       "weekly_goal": "Mục tiêu trong tuần"
     },
-    "today_lesson": {
-      "tag": "Bài học hôm nay",
-      "start": "Bắt đầu học",
-      "empty": "Bạn đã hoàn thành các bài được đề xuất",
-      "details": "CEFR {} · {} câu · mục tiêu {} phút"
+    "plan": {
+      "daily_lesson": "Bài học hằng ngày",
+      "done": "Xong",
+      "review_cards": "Ôn tập {} thẻ",
+      "title": "Kế hoạch hôm nay"
     },
-    "error": "Không thể tải dữ liệu học hôm nay.",
-    "stats": {
-      "coins": "Xu",
-      "due": "Cần ôn"
-    },
-    "quests_title": "Nhiệm vụ hôm nay",
     "quests": {
       "daily_lesson": "Hoàn thành một bài học",
       "daily_review": "Ôn tập năm thẻ",
       "daily_xp": "Đạt 50 XP"
     },
-    "plan": {
-      "title": "Kế hoạch hôm nay",
-      "daily_lesson": "Bài học hằng ngày",
-      "done": "Xong",
-      "review_cards": "Ôn tập {} thẻ"
-    },
+    "quests_completed": "{} / {} Hoàn thành",
+    "quests_title": "Nhiệm vụ hôm nay",
     "quick_actions": {
       "need_review": "Cần ôn tập",
-      "vocab_count": "{} từ vựng",
+      "practice_desc": "5 phút mỗi ngày",
       "practice_pronunciation": "Luyện phát âm",
-      "practice_desc": "5 phút mỗi ngày"
+      "vocab_count": "{} từ vựng"
     },
     "recent": {
-      "title": "Gần đây",
-      "empty": "Chưa có bài học nào hoàn thành."
-    }
+      "empty": "Chưa có bài học nào hoàn thành.",
+      "title": "Gần đây"
+    },
+    "stats": {
+      "coins": "Xu",
+      "due": "Cần ôn"
+    },
+    "subtitle": "Sẵn sàng học tiếng Anh hôm nay chưa?",
+    "today_lesson": {
+      "details": "CEFR {} · {} câu · mục tiêu {} phút",
+      "empty": "Bạn đã hoàn thành các bài được đề xuất",
+      "start": "Bắt đầu học",
+      "tag": "Bài học hôm nay"
+    },
+    "welcome": "Chào {}!"
   },
   "learning_path": {
-    "title": "Lộ trình học của bạn",
-    "subtitle": "{} kỹ năng được đề xuất",
     "current_step": "ĐỀ XUẤT TIẾP THEO",
-    "reason": {
-      "not_started": "Chưa bắt đầu",
-      "below_threshold": "Cần luyện thêm",
-      "recommended": "Được đề xuất"
-    },
     "empty": {
-      "title": "Lộ trình hiện đã hoàn tất",
-      "message": "Hiện chưa có kỹ năng cần đề xuất. Hãy hoàn thành thêm một hoạt động để cập nhật lộ trình."
+      "message": "Hiện chưa có kỹ năng cần đề xuất. Hãy hoàn thành thêm một hoạt động để cập nhật lộ trình.",
+      "title": "Lộ trình hiện đã hoàn tất"
     },
     "error": {
-      "title": "Không thể tải lộ trình",
       "message": "Dữ liệu lộ trình chưa sẵn sàng. Vui lòng thử lại.",
-      "network": "Hãy kiểm tra kết nối rồi thử lại."
+      "network": "Hãy kiểm tra kết nối rồi thử lại.",
+      "title": "Không thể tải lộ trình"
     },
     "no_lesson": "Kỹ năng này chưa có bài học trong kế hoạch hôm nay.",
-    "open_error": "Không thể mở bài học. Vui lòng thử lại."
+    "open_error": "Không thể mở bài học. Vui lòng thử lại.",
+    "reason": {
+      "below_threshold": "Cần luyện thêm",
+      "not_started": "Chưa bắt đầu",
+      "recommended": "Được đề xuất"
+    },
+    "subtitle": "{} kỹ năng được đề xuất",
+    "title": "Lộ trình học của bạn"
   },
   "lesson": {
-    "title": "Bài học",
     "answer_hint": "Nhập câu trả lời",
-    "submit": "Gửi câu trả lời",
-    "submit_error": "Chưa thể gửi câu trả lời. Thử lại sẽ dùng cùng mã thao tác.",
-    "next": "Tiếp tục",
-    "feedback": {
-      "correct": "Chính xác!",
-      "wrong": "Chưa đúng, hãy xem đáp án và giải thích.",
-      "answer": "Đáp án đúng: {}"
-    },
     "complete": {
-      "title": "Hoàn thành bài học!",
-      "subtitle": "Bạn đã hoàn thành bài học hôm nay.",
-      "message": "Bạn đúng {}/{} câu và tạo {} thẻ ôn tập.",
-      "home": "Về trang chủ",
-      "header": "Kết thúc bài học",
-      "excellent": "TUYỆT VỜI!",
-      "results": "Kết quả bài làm của bạn",
       "accuracy": "Tỉ lệ\nchính xác",
+      "back_home": "VỀ TRANG CHỦ",
+      "excellent": "TUYỆT VỜI!",
+      "header": "Kết thúc bài học",
+      "home": "Về trang chủ",
+      "message": "Bạn đúng {}/{} câu và tạo {} thẻ ôn tập.",
+      "results": "Kết quả bài làm của bạn",
       "review_cards_label": "Số lượng\nThẻ ôn",
       "review_mistakes": "XEM LẠI LỖI",
-      "back_home": "VỀ TRANG CHỦ"
+      "subtitle": "Bạn đã hoàn thành bài học hôm nay.",
+      "title": "Hoàn thành bài học!"
+    },
+    "empty": {
+      "message": "Vui lòng quay lại sau.",
+      "title": "Bài học chưa có nội dung"
+    },
+    "error": {
+      "message": "Dữ liệu được giữ an toàn. Hãy thử lại.",
+      "title": "Không thể tiếp tục bài học"
+    },
+    "feedback": {
+      "answer": "Đáp án đúng: {}",
+      "correct": "Chính xác!",
+      "wrong": "Chưa đúng, hãy xem đáp án và giải thích."
     },
     "mistakes": {
-      "title": "Xem lại lỗi",
+      "back_home": "Về trang chủ",
       "completed": "HOÀN THÀNH BÀI TẬP",
-      "summary": "Bạn có {} lỗi cần xem lại",
+      "correct_answer": "Câu trả lời đúng",
       "empty": "Tuyệt vời, bạn không có lỗi nào!",
+      "explanation": "Giải thích:",
+      "summary": "Bạn có {} lỗi cần xem lại",
       "tag_mcq": "Trắc nghiệm",
       "tag_reorder": "Sắp xếp",
       "tag_text": "Điền từ",
-      "your_answer": "Câu trả lời của bạn",
-      "correct_answer": "Câu trả lời đúng",
-      "explanation": "Giải thích:",
-      "back_home": "Về trang chủ"
+      "title": "Xem lại lỗi",
+      "your_answer": "Câu trả lời của bạn"
     },
-    "empty": {
-      "title": "Bài học chưa có nội dung",
-      "message": "Vui lòng quay lại sau."
-    },
+    "next": "Tiếp tục",
+    "submit": "Gửi câu trả lời",
+    "submit_error": "Chưa thể gửi câu trả lời. Thử lại sẽ dùng cùng mã thao tác.",
+    "title": "Bài học"
+  },
+  "nav": {
+    "learn": "Học",
+    "path": "Lộ trình",
+    "profile": "Hồ sơ",
+    "progress": "Tiến độ",
+    "review": "Ôn tập"
+  },
+  "placement": {
     "error": {
-      "title": "Không thể tiếp tục bài học",
-      "message": "Dữ liệu được giữ an toàn. Hãy thử lại."
-    }
-  },
-  "review": {
-    "title": "Ôn tập hôm nay",
-    "remaining": "Còn lại {} mục",
-    "flip_card_semantics": "Lật thẻ ôn tập",
-    "audio_tooltip": "Phát âm",
-    "audio_pressed": "Đã nhấn phát âm",
-    "tap_to_reveal": "Chạm để xem nghĩa",
-    "category": {
-      "vocab": "TỪ VỰNG",
-      "airport": "SÂN BAY"
+      "logout": "Đăng xuất",
+      "logout_failed": "Không thể đăng xuất an toàn. Vui lòng thử lại.",
+      "retry": "Thử lại",
+      "subtitle": "Vui lòng kiểm tra kết nối rồi thử lại để tiếp tục đúng lộ trình của bạn.",
+      "title": "Không thể kiểm tra tiến độ"
     },
-    "word": {
-      "serendipity": "Serendipity",
-      "serendipity_meaning": "Sự tình cờ may mắn",
-      "serendipity_example": "Meeting her was pure serendipity.",
-      "itinerary": "Itinerary",
-      "itinerary_meaning": "Lịch trình chuyến đi",
-      "itinerary_example": "Please check your travel itinerary.",
-      "boarding_pass": "Boarding pass",
-      "boarding_pass_meaning": "Thẻ lên máy bay",
-      "boarding_pass_example": "May I see your boarding pass?"
+    "intro": {
+      "adaptive_desc": "Câu tiếp theo được chọn theo câu trả lời trước.",
+      "adaptive_title": "Độ khó thích ứng",
+      "duration_desc": "Bài kiểm tra kết thúc khi kết quả đủ tin cậy.",
+      "duration_title": "8–30 câu hỏi",
+      "note": "Hãy chọn đáp án tốt nhất. Bạn không thể quay lại câu trước.",
+      "result_desc": "Kết quả giúp cá nhân hóa lộ trình học ban đầu.",
+      "result_title": "Kết quả CEFR",
+      "start": "Bắt đầu kiểm tra",
+      "subtitle": "lingoRoad sẽ chọn câu hỏi thích ứng để xác định cấp độ CEFR phù hợp với bạn.",
+      "title": "Kiểm tra trình độ đầu vào"
     },
-    "rating": {
-      "forgot": "Quên",
-      "hard": "Khó",
-      "good": "Tốt",
-      "easy": "Dễ"
+    "question": {
+      "audio_error": "Không thể phát âm thanh. Vui lòng thử lại.",
+      "audio_instruction": "Nghe đoạn âm thanh rồi chọn đáp án.",
+      "listen": "Nghe",
+      "max_questions": "Tối đa 30 câu",
+      "submit": "Trả lời",
+      "title": "Câu {}"
     },
-    "hint": "Hãy nhớ nghĩa của từ trước khi lật thẻ",
-    "empty": {"title": "Chưa có thẻ cần ôn", "message": "Khi bạn hoàn thành bài học, thẻ ôn tập đến hạn sẽ xuất hiện ở đây."},
-    "error": {"title": "Không thể tải thẻ ôn", "message": "Hãy kiểm tra kết nối và thử lại."},
-    "grade_error": "Không thể ghi nhận đánh giá. Hãy thử lại.",
-    "complete": {
-      "title": "Đã ôn tập xong!",
-      "subtitle": "Bạn đã hoàn thành tất cả thẻ hôm nay.",
-      "restart": "Tải lại"
-    }
-  },
-  "progress": {
-    "title": "Tiến độ học tập",
-    "subtitle": "Theo dõi hành trình và mức độ thành thạo theo thời gian.",
-    "tabs": {
-      "overview": "Tổng quan",
-      "skills": "Kỹ năng",
-      "achievements": "Thành tích"
-    },
-    "overview": {
-      "current_level": "TRÌNH ĐỘ HIỆN TẠI",
-      "target_level": "MỤC TIÊU CEFR",
-      "total_xp": "TỔNG XP",
-      "coins": "XU",
-      "streak": "CHUỖI NGÀY",
-      "longest_streak": "CHUỖI DÀI NHẤT",
-      "completed_lessons": "BÀI ĐÃ HOÀN THÀNH",
-      "due_reviews": "THẺ CẦN ÔN",
-      "quests": "NHIỆM VỤ",
-      "badges": "HUY HIỆU",
-      "cefr_journey": "Hành trình CEFR",
-      "current": "Hiện tại",
-      "mastery": "Mức độ thành thạo",
-      "strengths": "Điểm mạnh",
-      "improvements": "Cần cải thiện"
-    },
-    "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
-    "summary_error": "Không thể tải các chỉ số tổng hợp.",
-    "quests_empty": "Hiện chưa có nhiệm vụ nào.",
-    "suggestion": {"start": "Hãy bắt đầu một hoạt động để cập nhật tiến độ.", "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."},
-    "skills_analysis": {
-      "title": "Phân tích kỹ năng",
-      "suggestion": "Tập trung vào Phát âm và Nói để cải thiện toàn diện."
-    },
-    "skills_list": {
-      "vocabulary": "Từ vựng",
-      "grammar": "Ngữ pháp",
-      "listening": "Nghe",
-      "writing": "Viết",
-      "speaking": "Nói",
-      "pronunciation": "Phát âm"
-    },
-    "badges_list": {
-      "streak_12": "Bền bỉ 12 ngày",
-      "traveler": "Nhà du hành",
-      "xp_1000": "1.000 XP",
-      "studious": "Ham học hỏi"
-    }
-  },
-  "profile": {
-    "status": "Cấp {} · {} · {} huy hiệu",
-    "error_load_failed": "Không thể tải thông tin cá nhân",
-    "save_failed": "Không thể lưu thay đổi. Vui lòng thử lại.",
-    "save": "Lưu",
-    "current_password": "Mật khẩu hiện tại",
-    "new_password": "Mật khẩu mới",
-    "password_failed": "Không thể đổi mật khẩu.",
-    "complete_setup": "Hoàn tất thiết lập",
-    "not_set": "Chưa thiết lập",
-    "skills_selected": "Đã chọn {} kỹ năng",
-    "groups": {
-      "goals": "Mục tiêu học tập",
-      "schedule": "Lịch học",
-      "notifications": "Thông báo",
-      "account": "Tài khoản"
-    },
-    "settings": {
-      "daily_goal": "Mục tiêu hằng ngày",
-      "daily_goal_val": "30 phút / ngày",
-      "target_level": "Trình độ mục tiêu",
-      "target_level_val": "B2 - Trung cao cấp",
-      "learning_purpose": "Mục đích học tập",
-      "focus_skills": "Kỹ năng ưu tiên",
-      "study_reminder": "Nhắc nhở học tập",
-      "reminder_time": "Cài đặt thời gian nhắc nhở",
-      "email_notif": "Thông báo qua Email",
-      "app_updates": "Cập nhật ứng dụng",
-      "change_password": "Đổi mật khẩu",
-      "logout": "Đăng xuất"
-    },
-    "logout_dialog": {
-      "title": "Đăng xuất",
-      "content": "Bạn có chắc muốn đăng xuất khỏi tài khoản?",
-      "cancel": "Hủy",
-      "confirm": "Đồng ý"
+    "result": {
+      "answered": "Đã trả lời",
+      "answered_val": "{} câu",
+      "cefr_level": "Cấp độ CEFR",
+      "confidence": "Độ tin cậy",
+      "continue_btn": "Bắt đầu lộ trình",
+      "disclaimer": "Kết quả này sẽ được dùng để xây dựng lộ trình học cá nhân hóa. Đây là đánh giá định hướng ban đầu, không phải chứng chỉ CEFR chính thức.",
+      "subtitle": "lingoRoad đã xác định cấp độ khởi đầu phù hợp với bạn.",
+      "title": "Bạn đã hoàn thành!"
     }
   },
   "practice": {
-    "title": "Luyện tập AI",
-    "tabs": {"advisor": "Cố vấn", "writing": "Viết", "speaking": "Nói"},
     "advisor": {
-      "title": "Hỏi về lộ trình của bạn",
       "hint": "Tôi nên ưu tiên kỹ năng nào?",
-      "submit": "Nhận gợi ý"
+      "submit": "Nhận gợi ý",
+      "title": "Hỏi về lộ trình của bạn"
     },
-    "writing": {
-      "title": "Chấm bài viết CEFR",
-      "task": "Đề bài",
-      "essay": "Bài viết",
-      "submit": "Nhận phản hồi"
+    "error": {
+      "request_failed": "Không thể hoàn tất"
     },
     "speaking": {
-      "title": "Luyện phát âm",
+      "cancel": "Hủy bản ghi",
+      "empty": "Chưa có lượt luyện nói.",
+      "history": "Lịch sử gần đây",
+      "overall": "Tổng điểm",
       "privacy": "Audio tối đa 120 giây/10 MB và bị xóa ngay sau khi chấm.",
       "prompt": "Câu cần đọc",
-      "stop_score": "Dừng & chấm ({}s)",
       "start": "Bắt đầu ghi âm",
-      "cancel": "Hủy bản ghi",
-      "history": "Lịch sử gần đây",
-      "empty": "Chưa có lượt luyện nói.",
-      "overall": "Tổng điểm",
+      "stop_score": "Dừng & chấm ({}s)",
+      "title": "Luyện phát âm",
       "transcript": "Bản chép lời"
     },
-    "error": {"request_failed": "Không thể hoàn tất"}
+    "tabs": {
+      "advisor": "Cố vấn",
+      "speaking": "Nói",
+      "writing": "Viết"
+    },
+    "title": "Luyện tập AI",
+    "writing": {
+      "essay": "Bài viết",
+      "submit": "Nhận phản hồi",
+      "task": "Đề bài",
+      "title": "Chấm bài viết CEFR"
+    }
+  },
+  "profile": {
+    "complete_setup": "Hoàn tất thiết lập",
+    "current_password": "Mật khẩu hiện tại",
+    "error_load_failed": "Không thể tải thông tin cá nhân",
+    "groups": {
+      "account": "Tài khoản",
+      "goals": "Mục tiêu học tập",
+      "notifications": "Thông báo",
+      "schedule": "Lịch học"
+    },
+    "logout_dialog": {
+      "cancel": "Hủy",
+      "confirm": "Đồng ý",
+      "content": "Bạn có chắc muốn đăng xuất khỏi tài khoản?",
+      "title": "Đăng xuất"
+    },
+    "new_password": "Mật khẩu mới",
+    "not_set": "Chưa thiết lập",
+    "password_failed": "Không thể đổi mật khẩu.",
+    "save": "Lưu",
+    "save_failed": "Không thể lưu thay đổi. Vui lòng thử lại.",
+    "settings": {
+      "app_updates": "Cập nhật ứng dụng",
+      "change_password": "Đổi mật khẩu",
+      "daily_goal": "Mục tiêu hằng ngày",
+      "daily_goal_val": "30 phút / ngày",
+      "email_notif": "Thông báo qua Email",
+      "focus_skills": "Kỹ năng ưu tiên",
+      "learning_purpose": "Mục đích học tập",
+      "logout": "Đăng xuất",
+      "reminder_time": "Cài đặt thời gian nhắc nhở",
+      "study_reminder": "Nhắc nhở học tập",
+      "target_level": "Trình độ mục tiêu",
+      "target_level_val": "B2 - Trung cao cấp"
+    },
+    "skills_selected": "Đã chọn {} kỹ năng",
+    "status": "Cấp {} · {} · {} huy hiệu"
+  },
+  "progress": {
+    "badges_list": {
+      "streak_12": "Bền bỉ 12 ngày",
+      "studious": "Ham học hỏi",
+      "traveler": "Nhà du hành",
+      "xp_1000": "1.000 XP"
+    },
+    "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
+    "overview": {
+      "badges": "HUY HIỆU",
+      "cefr_journey": "Hành trình CEFR",
+      "coins": "XU",
+      "completed_lessons": "BÀI ĐÃ HOÀN THÀNH",
+      "current": "Hiện tại",
+      "current_level": "TRÌNH ĐỘ HIỆN TẠI",
+      "due_reviews": "THẺ CẦN ÔN",
+      "improvements": "Cần cải thiện",
+      "longest_streak": "CHUỖI DÀI NHẤT",
+      "mastery": "Mức độ thành thạo",
+      "quests": "NHIỆM VỤ",
+      "streak": "CHUỖI NGÀY",
+      "strengths": "Điểm mạnh",
+      "target_level": "MỤC TIÊU CEFR",
+      "total_xp": "TỔNG XP"
+    },
+    "quests_empty": "Hiện chưa có nhiệm vụ nào.",
+    "skills_analysis": {
+      "suggestion": "Tập trung vào Phát âm và Nói để cải thiện toàn diện.",
+      "title": "Phân tích kỹ năng"
+    },
+    "skills_list": {
+      "grammar": "Ngữ pháp",
+      "listening": "Nghe",
+      "pronunciation": "Phát âm",
+      "speaking": "Nói",
+      "vocabulary": "Từ vựng",
+      "writing": "Viết"
+    },
+    "subtitle": "Theo dõi hành trình và mức độ thành thạo theo thời gian.",
+    "suggestion": {
+      "start": "Hãy bắt đầu một hoạt động để cập nhật tiến độ.",
+      "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."
+    },
+    "summary_error": "Không thể tải các chỉ số tổng hợp.",
+    "tabs": {
+      "achievements": "Thành tích",
+      "overview": "Tổng quan",
+      "skills": "Kỹ năng"
+    },
+    "title": "Tiến độ học tập"
+  },
+  "review": {
+    "audio_pressed": "Đã nhấn phát âm",
+    "audio_tooltip": "Phát âm",
+    "category": {
+      "airport": "SÂN BAY",
+      "vocab": "TỪ VỰNG"
+    },
+    "complete": {
+      "restart": "Tải lại",
+      "subtitle": "Bạn đã hoàn thành tất cả thẻ hôm nay.",
+      "title": "Đã ôn tập xong!"
+    },
+    "empty": {
+      "message": "Khi bạn hoàn thành bài học, thẻ ôn tập đến hạn sẽ xuất hiện ở đây.",
+      "title": "Chưa có thẻ cần ôn"
+    },
+    "error": {
+      "message": "Hãy kiểm tra kết nối và thử lại.",
+      "title": "Không thể tải thẻ ôn"
+    },
+    "flip_card_semantics": "Lật thẻ ôn tập",
+    "grade_error": "Không thể ghi nhận đánh giá. Hãy thử lại.",
+    "hint": "Hãy nhớ nghĩa của từ trước khi lật thẻ",
+    "rating": {
+      "easy": "Dễ",
+      "forgot": "Quên",
+      "good": "Tốt",
+      "hard": "Khó"
+    },
+    "remaining": "Còn lại {} mục",
+    "tap_to_reveal": "Chạm để xem nghĩa",
+    "title": "Ôn tập hôm nay",
+    "word": {
+      "boarding_pass": "Boarding pass",
+      "boarding_pass_example": "May I see your boarding pass?",
+      "boarding_pass_meaning": "Thẻ lên máy bay",
+      "itinerary": "Itinerary",
+      "itinerary_example": "Please check your travel itinerary.",
+      "itinerary_meaning": "Lịch trình chuyến đi",
+      "serendipity": "Serendipity",
+      "serendipity_example": "Meeting her was pure serendipity.",
+      "serendipity_meaning": "Sự tình cờ may mắn"
+    }
   },
   "streak": {
-    "title": "Chi tiết chuỗi",
-    "days_count": "{} Ngày",
-    "current_streak": "Chuỗi học tập hiện tại",
-    "record_title": "KỶ LỤC CHUỖI",
-    "record_value": "{} ngày",
-    "protect_title": "BẢO VỆ CHUỖI",
-    "protect_value": "{} sẵn có",
     "buy": "Mua",
-    "months": {
-      "jan": "Tháng 1",
-      "feb": "Tháng 2",
-      "mar": "Tháng 3",
-      "apr": "Tháng 4",
-      "may": "Tháng 5",
-      "jun": "Tháng 6",
-      "jul": "Tháng 7",
-      "aug": "Tháng 8",
-      "sep": "Tháng 9",
-      "oct": "Tháng 10",
-      "nov": "Tháng 11",
-      "dec": "Tháng 12"
-    },
-    "today": "Hôm nay",
+    "current_streak": "Chuỗi học tập hiện tại",
+    "days_count": "{} Ngày",
     "legend": {
-      "learned": "Đã học (Lửa cam)",
       "freeze": "Dùng bảo vệ chuỗi (Băng xanh)",
+      "learned": "Đã học (Lửa cam)",
       "missed": "Bỏ lỡ (Xám)"
     },
+    "months": {
+      "apr": "Tháng 4",
+      "aug": "Tháng 8",
+      "dec": "Tháng 12",
+      "feb": "Tháng 2",
+      "jan": "Tháng 1",
+      "jul": "Tháng 7",
+      "jun": "Tháng 6",
+      "mar": "Tháng 3",
+      "may": "Tháng 5",
+      "nov": "Tháng 11",
+      "oct": "Tháng 10",
+      "sep": "Tháng 9"
+    },
+    "protect_title": "BẢO VỆ CHUỖI",
+    "protect_value": "{} sẵn có",
+    "record_title": "KỶ LỤC CHUỖI",
+    "record_value": "{} ngày",
+    "title": "Chi tiết chuỗi",
+    "today": "Hôm nay",
     "weekdays": {
-      "mon": "T2",
-      "tue": "T3",
-      "wed": "T4",
-      "thu": "T5",
       "fri": "T6",
+      "mon": "T2",
       "sat": "T7",
-      "sun": "CN"
+      "sun": "CN",
+      "thu": "T5",
+      "tue": "T3",
+      "wed": "T4"
     }
   }
 }

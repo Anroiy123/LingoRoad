@@ -1,403 +1,419 @@
 {
-  "common": {
-    "progress_percent": "Progress {} percent",
-    "retry": "Retry",
-    "fallback_error": "An error occurred. Please try again.",
-    "not_implemented": "This feature is under development."
-  },
-  "nav": {
-    "learn": "Learn",
-    "path": "Path",
-    "review": "Review",
-    "progress": "Progress",
-    "profile": "Profile"
-  },
   "auth": {
+    "error": {
+      "email_taken": "Email is already taken",
+      "generic": "An error occurred. Please try again.",
+      "invalid_credentials": "Invalid email or password",
+      "network_unavailable": "Cannot connect to server",
+      "request_timeout": "Request timed out"
+    },
     "login": {
-      "title": "Welcome Back",
-      "subtitle": "Log in to continue your learning path.",
       "email": "Email",
-      "password": "Password",
-      "show_password": "Show password",
-      "hide_password": "Hide password",
-      "submit": "Log In",
-      "register_link": "Don't have an account? Register",
       "email_placeholder": "Enter your email",
-      "password_placeholder": "Enter your password",
       "forgot_password": "Forgot password?",
-      "or_continue": "OR CONTINUE WITH",
+      "hide_password": "Hide password",
       "no_account": "Don't have an account? ",
-      "register_action": "Sign up"
+      "or_continue": "OR CONTINUE WITH",
+      "password": "Password",
+      "password_placeholder": "Enter your password",
+      "register_action": "Sign up",
+      "register_link": "Don't have an account? Register",
+      "show_password": "Show password",
+      "submit": "Log In",
+      "subtitle": "Log in to continue your learning path.",
+      "title": "Welcome Back"
     },
     "register": {
-      "title": "Create Account",
-      "subtitle": "Begin your personalized English learning journey.",
-      "name": "Display name (optional)",
-      "password_helper": "Minimum 8 characters",
-      "submit": "Register",
-      "login_link": "Already have an account? Log In",
-      "name_label": "Full name",
-      "name_placeholder": "Enter your name",
-      "email_placeholder": "Enter email address",
-      "password_placeholder": "Create password",
       "confirm_password_label": "Confirm password",
       "confirm_password_placeholder": "Confirm your password",
+      "email_placeholder": "Enter email address",
       "has_account": "Already have an account? ",
-      "login_action": "Log in"
+      "login_action": "Log in",
+      "login_link": "Already have an account? Log In",
+      "name": "Display name (optional)",
+      "name_label": "Full name",
+      "name_placeholder": "Enter your name",
+      "password_helper": "Minimum 8 characters",
+      "password_placeholder": "Create password",
+      "submit": "Register",
+      "subtitle": "Begin your personalized English learning journey.",
+      "title": "Create Account"
     },
     "validation": {
+      "confirm_password_empty": "Please confirm your password",
+      "confirm_password_mismatch": "Passwords do not match",
       "email_empty": "Please enter your email",
       "email_invalid": "Invalid email address",
       "password_empty": "Please enter your password",
-      "password_too_short": "Password must be at least 8 characters",
-      "confirm_password_empty": "Please confirm your password",
-      "confirm_password_mismatch": "Passwords do not match"
-    },
-    "error": {
-      "email_taken": "Email is already taken",
-      "invalid_credentials": "Invalid email or password",
-      "network_unavailable": "Cannot connect to server",
-      "request_timeout": "Request timed out",
-      "generic": "An error occurred. Please try again."
+      "password_too_short": "Password must be at least 8 characters"
     }
   },
-  "placement": {
-    "intro": {
-      "title": "Placement Test",
-      "subtitle": "lingoRoad will select adaptive questions to determine your appropriate CEFR level.",
-      "duration_title": "8–30 questions",
-      "duration_desc": "The test ends when the results are reliable enough.",
-      "adaptive_title": "Adaptive difficulty",
-      "adaptive_desc": "Next question is selected based on previous answers.",
-      "result_title": "CEFR Results",
-      "result_desc": "Results help personalize the initial learning path.",
-      "start": "Start Test",
-      "note": "Please select the best answer. You cannot go back to the previous question."
-    },
-    "question": {
-      "title": "Question {}",
-      "max_questions": "Max 30 questions",
-      "audio_instruction": "Listen to the audio and select the answer.",
-      "listen": "Listen",
-      "audio_error": "Unable to play audio. Please try again.",
-      "submit": "Submit"
-    },
-    "result": {
-      "title": "You're All Done!",
-      "subtitle": "lingoRoad has determined your appropriate starting level.",
-      "cefr_level": "CEFR Level",
-      "answered": "Answered",
-      "answered_val": "{} questions",
-      "confidence": "Confidence",
-      "disclaimer": "This result will be used to build a personalized learning path. This is an initial assessment, not an official CEFR certificate.",
-      "continue_btn": "Start Learning Path"
-    },
-    "error": {
-      "title": "Cannot check progress",
-      "subtitle": "Please check your connection and try again to continue your path.",
-      "retry": "Retry",
-      "logout": "Log out",
-      "logout_failed": "Could not log out safely. Please try again."
-    }
+  "common": {
+    "fallback_error": "An error occurred. Please try again.",
+    "not_implemented": "This feature is under development.",
+    "progress_percent": "Progress {} percent",
+    "retry": "Retry"
   },
   "home": {
-    "welcome": "Hello {}!",
-    "subtitle": "Ready to learn English today?",
+    "error": "Could not load today's learning data.",
     "level_summary": "{} → {} · {}% mastery",
     "metrics": {
       "daily_goal": "Daily goal",
       "weekly_goal": "Weekly goal"
     },
-    "today_lesson": {
-      "tag": "Today's Lesson",
-      "start": "Start Learning",
-      "empty": "You have completed all recommended lessons",
-      "details": "CEFR {} · {} questions · {} minute goal"
+    "plan": {
+      "daily_lesson": "Daily Lesson",
+      "done": "Done",
+      "review_cards": "Review {} cards",
+      "title": "Today's Plan"
     },
-    "error": "Could not load today's learning data.",
-    "stats": {
-      "coins": "Coins",
-      "due": "Due"
-    },
-    "quests_title": "Today's Quests",
     "quests": {
       "daily_lesson": "Complete one lesson",
       "daily_review": "Review five cards",
       "daily_xp": "Earn 50 XP"
     },
-    "plan": {
-      "title": "Today's Plan",
-      "daily_lesson": "Daily Lesson",
-      "done": "Done",
-      "review_cards": "Review {} cards"
-    },
+    "quests_completed": "{} / {} Completed",
+    "quests_title": "Today's Quests",
     "quick_actions": {
       "need_review": "Need review",
-      "vocab_count": "{} vocab words",
+      "practice_desc": "5 minutes daily",
       "practice_pronunciation": "Practice Pronunciation",
-      "practice_desc": "5 minutes daily"
+      "vocab_count": "{} vocab words"
     },
     "recent": {
-      "title": "Recent",
-      "empty": "No completed lessons yet."
-    }
+      "empty": "No completed lessons yet.",
+      "title": "Recent"
+    },
+    "stats": {
+      "coins": "Coins",
+      "due": "Due"
+    },
+    "subtitle": "Ready to learn English today?",
+    "today_lesson": {
+      "details": "CEFR {} · {} questions · {} minute goal",
+      "empty": "You have completed all recommended lessons",
+      "start": "Start Learning",
+      "tag": "Today's Lesson"
+    },
+    "welcome": "Hello {}!"
   },
   "learning_path": {
-    "title": "Your learning path",
-    "subtitle": "{} recommended skills",
     "current_step": "RECOMMENDED NOW",
-    "reason": {
-      "not_started": "Not started",
-      "below_threshold": "Needs more practice",
-      "recommended": "Recommended"
-    },
     "empty": {
-      "title": "Your path is clear",
-      "message": "There are no recommended skills right now. Complete another activity to refresh your path."
+      "message": "There are no recommended skills right now. Complete another activity to refresh your path.",
+      "title": "Your path is clear"
     },
     "error": {
-      "title": "Could not load your path",
       "message": "The learning path response is unavailable. Please try again.",
-      "network": "Check your connection and try again."
+      "network": "Check your connection and try again.",
+      "title": "Could not load your path"
     },
     "no_lesson": "This skill is not in today's lesson plan yet.",
-    "open_error": "Could not open the lesson. Please try again."
+    "open_error": "Could not open the lesson. Please try again.",
+    "reason": {
+      "below_threshold": "Needs more practice",
+      "not_started": "Not started",
+      "recommended": "Recommended"
+    },
+    "subtitle": "{} recommended skills",
+    "title": "Your learning path"
   },
   "lesson": {
-    "title": "Lesson",
     "answer_hint": "Enter your answer",
-    "submit": "Submit answer",
-    "submit_error": "Could not submit. Retrying will reuse the same operation ID.",
-    "next": "Continue",
-    "feedback": {
-      "correct": "Correct!",
-      "wrong": "Not quite. Review the answer and explanation.",
-      "answer": "Correct answer: {}"
-    },
     "complete": {
-      "title": "Lesson complete!",
-      "subtitle": "You've completed today's lesson.",
-      "message": "You answered {}/{} correctly and created {} review cards.",
-      "home": "Back to home",
-      "header": "Lesson Complete",
-      "excellent": "EXCELLENT!",
-      "results": "Your Lesson Results",
       "accuracy": "Accuracy\nRate",
+      "back_home": "BACK TO HOME",
+      "excellent": "EXCELLENT!",
+      "header": "Lesson Complete",
+      "home": "Back to home",
+      "message": "You answered {}/{} correctly and created {} review cards.",
+      "results": "Your Lesson Results",
       "review_cards_label": "Review\nCards",
       "review_mistakes": "REVIEW MISTAKES",
-      "back_home": "BACK TO HOME"
+      "subtitle": "You've completed today's lesson.",
+      "title": "Lesson complete!"
+    },
+    "empty": {
+      "message": "Please come back later.",
+      "title": "This lesson has no content"
+    },
+    "error": {
+      "message": "Your progress is safe. Please try again.",
+      "title": "Could not continue the lesson"
+    },
+    "feedback": {
+      "answer": "Correct answer: {}",
+      "correct": "Correct!",
+      "wrong": "Not quite. Review the answer and explanation."
     },
     "mistakes": {
-      "title": "Review Mistakes",
+      "back_home": "Back to Home",
       "completed": "LESSON COMPLETED",
-      "summary": "You have {} mistakes to review",
+      "correct_answer": "Correct Answer",
       "empty": "Great, you made no mistakes!",
+      "explanation": "Explanation:",
+      "summary": "You have {} mistakes to review",
       "tag_mcq": "Multiple Choice",
       "tag_reorder": "Reorder",
       "tag_text": "Fill in",
-      "your_answer": "Your Answer",
-      "correct_answer": "Correct Answer",
-      "explanation": "Explanation:",
-      "back_home": "Back to Home"
+      "title": "Review Mistakes",
+      "your_answer": "Your Answer"
     },
-    "empty": {
-      "title": "This lesson has no content",
-      "message": "Please come back later."
-    },
+    "next": "Continue",
+    "submit": "Submit answer",
+    "submit_error": "Could not submit. Retrying will reuse the same operation ID.",
+    "title": "Lesson"
+  },
+  "nav": {
+    "learn": "Learn",
+    "path": "Path",
+    "profile": "Profile",
+    "progress": "Progress",
+    "review": "Review"
+  },
+  "placement": {
     "error": {
-      "title": "Could not continue the lesson",
-      "message": "Your progress is safe. Please try again."
-    }
-  },
-  "review": {
-    "title": "Today's Review",
-    "remaining": "{} items remaining",
-    "flip_card_semantics": "Flip review card",
-    "audio_tooltip": "Pronunciation",
-    "audio_pressed": "Pronunciation played",
-    "tap_to_reveal": "Tap to show meaning",
-    "category": {
-      "vocab": "VOCABULARY",
-      "airport": "AIRPORT"
+      "logout": "Log out",
+      "logout_failed": "Could not log out safely. Please try again.",
+      "retry": "Retry",
+      "subtitle": "Please check your connection and try again to continue your path.",
+      "title": "Cannot check progress"
     },
-    "word": {
-      "serendipity": "Serendipity",
-      "serendipity_meaning": "Lucky coincidence",
-      "serendipity_example": "Meeting her was pure serendipity.",
-      "itinerary": "Itinerary",
-      "itinerary_meaning": "Travel itinerary",
-      "itinerary_example": "Please check your travel itinerary.",
-      "boarding_pass": "Boarding pass",
-      "boarding_pass_meaning": "Boarding pass",
-      "boarding_pass_example": "May I see your boarding pass?"
+    "intro": {
+      "adaptive_desc": "Next question is selected based on previous answers.",
+      "adaptive_title": "Adaptive difficulty",
+      "duration_desc": "The test ends when the results are reliable enough.",
+      "duration_title": "8–30 questions",
+      "note": "Please select the best answer. You cannot go back to the previous question.",
+      "result_desc": "Results help personalize the initial learning path.",
+      "result_title": "CEFR Results",
+      "start": "Start Test",
+      "subtitle": "lingoRoad will select adaptive questions to determine your appropriate CEFR level.",
+      "title": "Placement Test"
     },
-    "rating": {
-      "forgot": "Forgot",
-      "hard": "Hard",
-      "good": "Good",
-      "easy": "Easy"
+    "question": {
+      "audio_error": "Unable to play audio. Please try again.",
+      "audio_instruction": "Listen to the audio and select the answer.",
+      "listen": "Listen",
+      "max_questions": "Max 30 questions",
+      "submit": "Submit",
+      "title": "Question {}"
     },
-    "hint": "Remember the meaning before flipping",
-    "empty": {"title": "No cards due", "message": "Due review cards will appear here after you complete learning activities."},
-    "error": {"title": "Could not load review cards", "message": "Check your connection and try again."},
-    "grade_error": "Could not save this grade. Please try again.",
-    "complete": {
-      "title": "Review Completed!",
-      "subtitle": "You have completed all cards for today.",
-      "restart": "Refresh"
-    }
-  },
-  "progress": {
-    "title": "Learning Progress",
-    "subtitle": "Track your journey and mastery over time.",
-    "tabs": {
-      "overview": "Overview",
-      "skills": "Skills",
-      "achievements": "Achievements"
-    },
-    "overview": {
-      "current_level": "CURRENT LEVEL",
-      "target_level": "CEFR TARGET",
-      "total_xp": "TOTAL XP",
-      "coins": "COINS",
-      "streak": "STREAK",
-      "longest_streak": "LONGEST STREAK",
-      "completed_lessons": "COMPLETED LESSONS",
-      "due_reviews": "REVIEWS DUE",
-      "quests": "QUESTS",
-      "badges": "BADGES",
-      "cefr_journey": "CEFR Journey",
-      "current": "Current",
-      "mastery": "Mastery Level",
-      "strengths": "Strengths",
-      "improvements": "Needs Improvement"
-    },
-    "empty": "The skill catalog is currently empty.",
-    "summary_error": "Unable to load summary metrics.",
-    "quests_empty": "There are no quests yet.",
-    "suggestion": {"start": "Start an activity to see your progress.", "weakest": "Prioritize more practice in: {}."},
-    "skills_analysis": {
-      "title": "Skills Analysis",
-      "suggestion": "Focus on Pronunciation and Speaking for comprehensive improvement."
-    },
-    "skills_list": {
-      "vocabulary": "Vocabulary",
-      "grammar": "Grammar",
-      "listening": "Listening",
-      "writing": "Writing",
-      "speaking": "Speaking",
-      "pronunciation": "Pronunciation"
-    },
-    "badges_list": {
-      "streak_12": "12-Day Streak",
-      "traveler": "Traveler",
-      "xp_1000": "1,000 XP",
-      "studious": "Studious"
-    }
-  },
-  "profile": {
-    "status": "Level {} · {} · {} badges",
-    "error_load_failed": "Unable to load profile",
-    "save_failed": "Unable to save changes. Please try again.",
-    "save": "Save",
-    "current_password": "Current password",
-    "new_password": "New password",
-    "password_failed": "Unable to change password.",
-    "complete_setup": "Complete setup",
-    "not_set": "Not set",
-    "skills_selected": "{} skills selected",
-    "groups": {
-      "goals": "Learning Goals",
-      "schedule": "Study Schedule",
-      "notifications": "Notifications",
-      "account": "Account"
-    },
-    "settings": {
-      "daily_goal": "Daily goal",
-      "daily_goal_val": "30 minutes / day",
-      "target_level": "Target level",
-      "target_level_val": "B2 - Upper Intermediate",
-      "learning_purpose": "Learning purpose",
-      "focus_skills": "Focus skills",
-      "study_reminder": "Study reminder",
-      "reminder_time": "Reminder time settings",
-      "email_notif": "Email Notifications",
-      "app_updates": "App updates",
-      "change_password": "Change password",
-      "logout": "Log out"
-    },
-    "logout_dialog": {
-      "title": "Log Out",
-      "content": "Are you sure you want to log out?",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
+    "result": {
+      "answered": "Answered",
+      "answered_val": "{} questions",
+      "cefr_level": "CEFR Level",
+      "confidence": "Confidence",
+      "continue_btn": "Start Learning Path",
+      "disclaimer": "This result will be used to build a personalized learning path. This is an initial assessment, not an official CEFR certificate.",
+      "subtitle": "lingoRoad has determined your appropriate starting level.",
+      "title": "You're All Done!"
     }
   },
   "practice": {
-    "title": "AI Practice",
-    "tabs": {"advisor": "Advisor", "writing": "Writing", "speaking": "Speaking"},
     "advisor": {
-      "title": "Ask about your path",
       "hint": "What should I focus on next?",
-      "submit": "Get advice"
+      "submit": "Get advice",
+      "title": "Ask about your path"
     },
-    "writing": {
-      "title": "CEFR writing feedback",
-      "task": "Task prompt",
-      "essay": "Essay",
-      "submit": "Evaluate"
+    "error": {
+      "request_failed": "Request failed"
     },
     "speaking": {
-      "title": "Pronunciation practice",
+      "cancel": "Discard recording",
+      "empty": "No speaking attempts yet.",
+      "history": "Recent attempts",
+      "overall": "Overall",
       "privacy": "Audio is limited to 120 seconds/10 MB and deleted after scoring.",
       "prompt": "Prompt to read",
-      "stop_score": "Stop & score ({}s)",
       "start": "Start recording",
-      "cancel": "Discard recording",
-      "history": "Recent attempts",
-      "empty": "No speaking attempts yet.",
-      "overall": "Overall",
+      "stop_score": "Stop & score ({}s)",
+      "title": "Pronunciation practice",
       "transcript": "Transcript"
     },
-    "error": {"request_failed": "Request failed"}
+    "tabs": {
+      "advisor": "Advisor",
+      "speaking": "Speaking",
+      "writing": "Writing"
+    },
+    "title": "AI Practice",
+    "writing": {
+      "essay": "Essay",
+      "submit": "Evaluate",
+      "task": "Task prompt",
+      "title": "CEFR writing feedback"
+    }
+  },
+  "profile": {
+    "complete_setup": "Complete setup",
+    "current_password": "Current password",
+    "error_load_failed": "Unable to load profile",
+    "groups": {
+      "account": "Account",
+      "goals": "Learning Goals",
+      "notifications": "Notifications",
+      "schedule": "Study Schedule"
+    },
+    "logout_dialog": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "content": "Are you sure you want to log out?",
+      "title": "Log Out"
+    },
+    "new_password": "New password",
+    "not_set": "Not set",
+    "password_failed": "Unable to change password.",
+    "save": "Save",
+    "save_failed": "Unable to save changes. Please try again.",
+    "settings": {
+      "app_updates": "App updates",
+      "change_password": "Change password",
+      "daily_goal": "Daily goal",
+      "daily_goal_val": "30 minutes / day",
+      "email_notif": "Email Notifications",
+      "focus_skills": "Focus skills",
+      "learning_purpose": "Learning purpose",
+      "logout": "Log out",
+      "reminder_time": "Reminder time settings",
+      "study_reminder": "Study reminder",
+      "target_level": "Target level",
+      "target_level_val": "B2 - Upper Intermediate"
+    },
+    "skills_selected": "{} skills selected",
+    "status": "Level {} · {} · {} badges"
+  },
+  "progress": {
+    "badges_list": {
+      "streak_12": "12-Day Streak",
+      "studious": "Studious",
+      "traveler": "Traveler",
+      "xp_1000": "1,000 XP"
+    },
+    "empty": "The skill catalog is currently empty.",
+    "overview": {
+      "badges": "BADGES",
+      "cefr_journey": "CEFR Journey",
+      "coins": "COINS",
+      "completed_lessons": "COMPLETED LESSONS",
+      "current": "Current",
+      "current_level": "CURRENT LEVEL",
+      "due_reviews": "REVIEWS DUE",
+      "improvements": "Needs Improvement",
+      "longest_streak": "LONGEST STREAK",
+      "mastery": "Mastery Level",
+      "quests": "QUESTS",
+      "streak": "STREAK",
+      "strengths": "Strengths",
+      "target_level": "CEFR TARGET",
+      "total_xp": "TOTAL XP"
+    },
+    "quests_empty": "There are no quests yet.",
+    "skills_analysis": {
+      "suggestion": "Focus on Pronunciation and Speaking for comprehensive improvement.",
+      "title": "Skills Analysis"
+    },
+    "skills_list": {
+      "grammar": "Grammar",
+      "listening": "Listening",
+      "pronunciation": "Pronunciation",
+      "speaking": "Speaking",
+      "vocabulary": "Vocabulary",
+      "writing": "Writing"
+    },
+    "subtitle": "Track your journey and mastery over time.",
+    "suggestion": {
+      "start": "Start an activity to see your progress.",
+      "weakest": "Prioritize more practice in: {}."
+    },
+    "summary_error": "Unable to load summary metrics.",
+    "tabs": {
+      "achievements": "Achievements",
+      "overview": "Overview",
+      "skills": "Skills"
+    },
+    "title": "Learning Progress"
+  },
+  "review": {
+    "audio_pressed": "Pronunciation played",
+    "audio_tooltip": "Pronunciation",
+    "category": {
+      "airport": "AIRPORT",
+      "vocab": "VOCABULARY"
+    },
+    "complete": {
+      "restart": "Refresh",
+      "subtitle": "You have completed all cards for today.",
+      "title": "Review Completed!"
+    },
+    "empty": {
+      "message": "Due review cards will appear here after you complete learning activities.",
+      "title": "No cards due"
+    },
+    "error": {
+      "message": "Check your connection and try again.",
+      "title": "Could not load review cards"
+    },
+    "flip_card_semantics": "Flip review card",
+    "grade_error": "Could not save this grade. Please try again.",
+    "hint": "Remember the meaning before flipping",
+    "rating": {
+      "easy": "Easy",
+      "forgot": "Forgot",
+      "good": "Good",
+      "hard": "Hard"
+    },
+    "remaining": "{} items remaining",
+    "tap_to_reveal": "Tap to show meaning",
+    "title": "Today's Review",
+    "word": {
+      "boarding_pass": "Boarding pass",
+      "boarding_pass_example": "May I see your boarding pass?",
+      "boarding_pass_meaning": "Boarding pass",
+      "itinerary": "Itinerary",
+      "itinerary_example": "Please check your travel itinerary.",
+      "itinerary_meaning": "Travel itinerary",
+      "serendipity": "Serendipity",
+      "serendipity_example": "Meeting her was pure serendipity.",
+      "serendipity_meaning": "Lucky coincidence"
+    }
   },
   "streak": {
-    "title": "Streak Details",
-    "days_count": "{} Days",
-    "current_streak": "Current study streak",
-    "record_title": "STREAK RECORD",
-    "record_value": "{} days",
-    "protect_title": "STREAK FREEZE",
-    "protect_value": "{} available",
     "buy": "Buy",
-    "months": {
-      "jan": "January",
-      "feb": "February",
-      "mar": "March",
-      "apr": "April",
-      "may": "May",
-      "jun": "June",
-      "jul": "July",
-      "aug": "August",
-      "sep": "September",
-      "oct": "October",
-      "nov": "November",
-      "dec": "December"
-    },
-    "today": "Today",
+    "current_streak": "Current study streak",
+    "days_count": "{} Days",
     "legend": {
-      "learned": "Learned (Orange fire)",
       "freeze": "Streak freeze used (Blue ice)",
+      "learned": "Learned (Orange fire)",
       "missed": "Missed (Gray)"
     },
+    "months": {
+      "apr": "April",
+      "aug": "August",
+      "dec": "December",
+      "feb": "February",
+      "jan": "January",
+      "jul": "July",
+      "jun": "June",
+      "mar": "March",
+      "may": "May",
+      "nov": "November",
+      "oct": "October",
+      "sep": "September"
+    },
+    "protect_title": "STREAK FREEZE",
+    "protect_value": "{} available",
+    "record_title": "STREAK RECORD",
+    "record_value": "{} days",
+    "title": "Streak Details",
+    "today": "Today",
     "weekdays": {
-      "mon": "M",
-      "tue": "T",
-      "wed": "W",
-      "thu": "T",
       "fri": "F",
+      "mon": "M",
       "sat": "S",
-      "sun": "S"
+      "sun": "S",
+      "thu": "T",
+      "tue": "T",
+      "wed": "W"
     }
   }
 }
