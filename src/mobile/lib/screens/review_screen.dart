@@ -1,4 +1,6 @@
+import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
@@ -16,6 +18,9 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   bool _scheduled = false;
   bool _showBack = false;
+  final CardSwiperController _swiperController = CardSwiperController();
+  int? _pendingRating;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +34,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
       _scheduled = false;
       _schedule();
     }
+  }
+
+  @override
+  void dispose() {
+    _swiperController.dispose();
+    super.dispose();
   }
 
   void _schedule() {
@@ -54,9 +65,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
       const LingoHeader(streak: null),
       Text(l.translate('review.title'),
           style: Theme.of(context)
-              .textTheme
-              .headlineMedium
-              ?.copyWith(fontSize: 28.sp)),
+               .textTheme
+               .headlineMedium
+               ?.copyWith(fontSize: 28.sp)),
       _content(vm, l)
     ]);
   }
@@ -83,27 +94,70 @@ class _ReviewScreenState extends State<ReviewScreen> {
           l.translate('review.complete.subtitle'),
           vm.load);
     }
-    final card = vm.current!;
+
     return Column(children: [
       Text(l.translate('review.remaining', [vm.remaining]),
           style: Theme.of(context).textTheme.bodyMedium),
       SizedBox(height: AppSpacing.md.h),
-      AppCard(
-          child: InkWell(
-              onTap: vm.gradePending
-                  ? null
-                  : () => setState(() => _showBack = !_showBack),
-              child: SizedBox(
-                  height: 280.h,
-                  child: Center(
-                      child: Padding(
-                          padding: EdgeInsets.all(AppSpacing.lg.w),
-                          child: Text(_showBack ? card.back : card.front,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .displaySmall
-                                  ?.copyWith(fontSize: 30.sp))))))),
+      SizedBox(
+        height: 320.h,
+        child: CardSwiper(
+          key: ValueKey(vm.cards),
+          controller: _swiperController,
+          cardsCount: vm.cards.length,
+          initialIndex: vm.currentIndex,
+          allowedSwipeDirection:
+              const AllowedSwipeDirection.only(left: true, right: true),
+          isLoop: false,
+          onSwipe: (previousIndex, currentIndex, direction) =>
+              _onSwipe(previousIndex, currentIndex, direction, vm),
+          cardBuilder: (context, index, percentX, percentY) {
+            final card = vm.cards[index];
+            return FlipCard(
+              fill: Fill.fillBack,
+              flipOnTouch: !vm.gradePending,
+              onFlip: () {
+                if (mounted) {
+                  setState(() {
+                    _showBack = true;
+                  });
+                }
+              },
+              front: AppCard(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.lg.w),
+                    child: Text(
+                      card.front,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            fontSize: 30.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+              back: AppCard(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(AppSpacing.lg.w),
+                    child: Text(
+                      card.back,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            fontSize: 30.sp,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
       SizedBox(height: AppSpacing.md.h),
       if (!_showBack)
         Text(l.translate('review.tap_to_reveal'))
@@ -123,6 +177,29 @@ class _ReviewScreenState extends State<ReviewScreen> {
     ]);
   }
 
+  bool _onSwipe(
+    int previousIndex,
+    int? currentIndex,
+    CardSwiperDirection direction,
+    ReviewViewModel vm,
+  ) {
+    final rating =
+        _pendingRating ?? (direction == CardSwiperDirection.left ? 1 : 3);
+    _pendingRating = null;
+
+    vm.grade(rating).then((_) {
+      if (mounted) {
+        setState(() {
+          _showBack = false;
+        });
+      }
+    }).catchError((_) {
+      _swiperController.undo();
+    });
+
+    return true;
+  }
+
   Widget _grade(AppLanguageProvider l, String key, int value, Color color,
           ReviewViewModel vm) =>
       Expanded(
@@ -134,10 +211,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   style: OutlinedButton.styleFrom(
                       foregroundColor: color, side: BorderSide(color: color)),
                   child: Text(l.translate('review.rating.$key')))));
+
   void _gradeCard(ReviewViewModel vm, int rating) {
-    vm.grade(rating).then((_) {
-      if (mounted) setState(() => _showBack = false);
-    });
+    _pendingRating = rating;
+    if (rating == 1 || rating == 2) {
+      _swiperController.swipe(CardSwiperDirection.left);
+    } else {
+      _swiperController.swipe(CardSwiperDirection.right);
+    }
   }
 
   Widget _message(

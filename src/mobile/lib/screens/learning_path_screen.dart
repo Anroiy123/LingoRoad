@@ -64,20 +64,23 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       children: [
         const LingoHeader(streak: null),
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               l10n.translate('learning_path.title'),
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontSize: 28.sp),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
             ),
+            SizedBox(height: AppSpacing.xxs.h),
             Text(
               l10n.translate(
                 'learning_path.subtitle',
                 [viewModel.steps.length],
               ),
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                     fontSize: 14.sp,
@@ -174,27 +177,17 @@ class _PathList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
+    return Column(
       children: [
-        Positioned(
-          top: 32.h,
-          bottom: 32.h,
-          child: Container(width: 3.w, color: AppColors.border),
-        ),
-        Column(
-          children: [
-            for (var index = 0; index < steps.length; index++)
-              _PathItem(
-                step: steps[index],
-                current: index == 0,
-                side:
-                    index.isEven ? Alignment.centerLeft : Alignment.centerRight,
-                selected: selectedCode == steps[index].code,
-                onTap: () => onSelected(steps[index].code),
-              ),
-          ],
-        ),
+        for (var index = 0; index < steps.length; index++)
+          _PathItem(
+            step: steps[index],
+            index: index,
+            isLast: index == steps.length - 1,
+            selected: selectedCode == steps[index].code,
+            onTap: () => onSelected(steps[index].code),
+          ),
+        const _GoalItem(),
       ],
     );
   }
@@ -203,15 +196,15 @@ class _PathList extends StatelessWidget {
 class _PathItem extends StatelessWidget {
   const _PathItem({
     required this.step,
-    required this.current,
-    required this.side,
+    required this.index,
+    required this.isLast,
     required this.selected,
     required this.onTap,
   });
 
   final LearningPathStep step;
-  final bool current;
-  final Alignment side;
+  final int index;
+  final bool isLast;
   final bool selected;
   final VoidCallback onTap;
 
@@ -226,90 +219,286 @@ class _PathItem extends StatelessWidget {
       _ => 'learning_path.reason.recommended',
     };
 
-    return Align(
-      alignment: side,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
-        child: SizedBox(
-          width: MediaQuery.sizeOf(context).width * .72,
-          child: AppCard(
-            padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.md.w, vertical: AppSpacing.md.h),
-            color: current ? AppColors.primaryFixed : AppColors.surface,
-            child: InkWell(
-              key: Key('learning_path_step_${step.code}'),
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadius.lg.r),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xxs.w, vertical: AppSpacing.xxs.h),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      width: 48.w,
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        color:
-                            current ? AppColors.primary : AppColors.surfaceHigh,
-                        shape: BoxShape.circle,
-                        border: selected
-                            ? Border.all(color: AppColors.primary, width: 3.w)
-                            : null,
-                      ),
-                      child: Icon(
-                        current
-                            ? Icons.flight_takeoff_rounded
-                            : Icons.route_rounded,
-                        color: current ? Colors.white : AppColors.textSecondary,
-                        size: 24.sp,
+    final side = index.isEven ? Alignment.centerLeft : Alignment.centerRight;
+    final bool current = index == 0;
+    final bool isCompleted = step.mastery >= 1.0;
+    final String statusText = l10n.translate(reasonKey);
+
+    Color progressColor = AppColors.primary;
+    Color statusColor = AppColors.textSecondary;
+    IconData iconData = Icons.play_arrow_rounded;
+    Color iconBg = AppColors.primary;
+    Color iconColor = Colors.white;
+    Color cardColor = AppColors.surface;
+    BorderSide borderSide = BorderSide(color: AppColors.surfaceHigh, width: 1.w);
+    List<BoxShadow> shadow = const [
+      BoxShadow(
+        color: AppColors.shadow,
+        blurRadius: 12,
+        offset: Offset(0, 4),
+      ),
+    ];
+
+    if (isCompleted) {
+      statusColor = AppColors.success;
+      progressColor = AppColors.success;
+      iconData = Icons.check_rounded;
+      iconBg = AppColors.successSoft;
+      iconColor = AppColors.success;
+    } else if (current) {
+      statusColor = AppColors.primary;
+      progressColor = AppColors.cta;
+      iconData = Icons.play_arrow_rounded;
+      iconBg = AppColors.cta.withOpacity(0.1);
+      iconColor = AppColors.cta;
+      borderSide = BorderSide(color: AppColors.cta, width: 2.w);
+      shadow = [
+        BoxShadow(
+          color: AppColors.primaryShadow,
+          blurRadius: 16,
+          offset: const Offset(0, 8),
+        ),
+      ];
+    } else if (step.reason == 'below_threshold') {
+      statusColor = AppColors.primary;
+      progressColor = AppColors.primaryContainer;
+      iconData = Icons.psychology_rounded;
+      iconBg = AppColors.primaryFixed;
+      iconColor = AppColors.primary;
+    } else {
+      iconData = Icons.lock_rounded;
+      iconBg = AppColors.surfaceHigh;
+      iconColor = AppColors.textSecondary;
+      cardColor = AppColors.surfaceLow;
+    }
+
+    final bool isLineActive = index == 0 || isCompleted || step.reason == 'below_threshold';
+    final Color lineSegmentColor = isLineActive ? AppColors.cta : AppColors.surfaceHigh;
+
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          top: 0,
+          bottom: 0,
+          child: Container(
+            width: 6.w,
+            color: lineSegmentColor,
+          ),
+        ),
+        Positioned(
+          bottom: -8.h,
+          child: Icon(
+            Icons.arrow_drop_down_rounded,
+            color: lineSegmentColor,
+            size: 24.sp,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          child: Align(
+            alignment: side,
+            child: FractionallySizedBox(
+              widthFactor: 0.76,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(AppRadius.xl.r),
+                      border: Border.fromBorderSide(borderSide),
+                      boxShadow: shadow,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadius.xl.r),
+                      child: InkWell(
+                        key: Key('learning_path_step_${step.code}'),
+                        onTap: onTap,
+                        child: Padding(
+                          padding: EdgeInsets.all(AppSpacing.md.w),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 40.w,
+                                    height: 40.w,
+                                    decoration: BoxDecoration(
+                                      color: iconBg,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      iconData,
+                                      color: iconColor,
+                                      size: 20.sp,
+                                    ),
+                                  ),
+                                  SizedBox(width: AppSpacing.sm.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          localizedName,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge
+                                              ?.copyWith(
+                                                fontSize: 14.sp,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.text,
+                                              ),
+                                        ),
+                                        SizedBox(height: 2.h),
+                                        Text(
+                                          '${step.cefr} · $statusText',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                                fontSize: 12.sp,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: AppSpacing.sm.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(999.r),
+                                      child: LinearProgressIndicator(
+                                        value: step.mastery.clamp(0.0, 1.0),
+                                        minHeight: 6.h,
+                                        backgroundColor: AppColors.surfaceHigh,
+                                        color: progressColor,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: AppSpacing.sm.w),
+                                  Text(
+                                    '${(step.mastery * 100).round()}%',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          fontSize: 11.sp,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(width: AppSpacing.sm.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  if (current)
+                    Positioned(
+                      top: -12.h,
+                      left: 12.w,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
                         children: [
-                          if (current)
-                            Text(
-                              l10n.translate('learning_path.current_step'),
+                          Positioned(
+                            bottom: -4.h,
+                            left: 16.w,
+                            child: Transform.rotate(
+                              angle: 3.14159 / 4,
+                              child: Container(
+                                width: 8.w,
+                                height: 8.w,
+                                color: AppColors.primaryContainer,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm.w,
+                              vertical: AppSpacing.xxs.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryContainer,
+                              borderRadius: BorderRadius.circular(AppRadius.md.r),
+                            ),
+                            child: Text(
+                              l10n.translate('learning_path.current_step').toUpperCase(),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
                                   ?.copyWith(
-                                    color: AppColors.primary,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                     fontSize: 10.sp,
                                   ),
                             ),
-                          Text(
-                            localizedName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
-                                ?.copyWith(fontSize: 14.sp),
                           ),
-                          Text(
-                            '${step.cefr} · ${l10n.translate(reasonKey)}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 12.sp,
-                                ),
-                          ),
-                          SizedBox(height: AppSpacing.xs.h),
-                          AppProgress(value: step.mastery),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
         ),
-      ),
+      ],
+    );
+  }
+}
+
+class _GoalItem extends StatelessWidget {
+  const _GoalItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          top: 0,
+          bottom: 42.h,
+          child: Container(
+            width: 6.w,
+            color: AppColors.surfaceHigh,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 16.h, bottom: 24.h),
+          child: Container(
+            width: 84.w,
+            height: 84.h,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLow,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(AppRadius.lg.r),
+              border: Border.all(color: AppColors.surfaceHigh, width: 4.w),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.shadow,
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.emoji_events_rounded,
+              color: AppColors.success,
+              size: 36.sp,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

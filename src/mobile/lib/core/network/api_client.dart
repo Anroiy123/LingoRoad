@@ -6,6 +6,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:lingoroad_mobile/core/config/app_config.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   ApiClient({
@@ -155,6 +156,11 @@ class ApiClient {
       var activeSession = requestSession;
       var response = await request(activeSession?.accessToken)
           .timeout(timeout ?? defaultTimeout);
+      
+      if (response.request != null) {
+        debugPrint('DEBUG API: [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
+      }
+      
       var body = _decode(response);
       final sessionForRefresh = activeSession;
       if (response.statusCode == 401 &&
@@ -169,6 +175,11 @@ class ApiClient {
           activeSession = refreshedSession;
           response = await request(refreshedSession.accessToken)
               .timeout(timeout ?? defaultTimeout);
+          
+          if (response.request != null) {
+            debugPrint('DEBUG API (Refreshed): [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
+          }
+          
           body = _decode(response);
         }
       }
@@ -190,20 +201,24 @@ class ApiClient {
         message: errorCode ?? 'Yêu cầu API không thành công',
       );
     } on TimeoutException catch (error) {
+      debugPrint('DEBUG API Error: Timeout connecting to backend: $error');
       throw ApiException(
         code: 'request_timeout',
         message: 'Kết nối quá thời gian chờ',
         cause: error,
       );
     } on http.ClientException catch (error) {
+      debugPrint('DEBUG API Error: ClientException (Network/CORS/IP incorrect): $error');
       throw ApiException(
         code: 'network_unavailable',
         message: 'Không thể kết nối đến máy chủ',
         cause: error,
       );
-    } on ApiException {
+    } on ApiException catch (error) {
+      debugPrint('DEBUG API Error: ApiException: [${error.code}] ${error.message}');
       rethrow;
     } catch (error) {
+      debugPrint('DEBUG API Error: Unexpected network error: $error');
       throw ApiException(
         code: 'network_unavailable',
         message: 'Không thể kết nối đến máy chủ',
