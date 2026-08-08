@@ -1,2 +1,15 @@
-:root { font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; color:#1b2522; background:#f5f3ee; font-synthesis:none; text-rendering:optimizeLegibility; }
+@import '@fontsource/hanken-grotesk/400.css';
+@import '@fontsource/hanken-grotesk/500.css';
+@import '@fontsource/hanken-grotesk/600.css';
+@import '@fontsource/hanken-grotesk/700.css';
+
+:root {
+  font-family:'Hanken Grotesk',ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:#1b1c1c;
+  background:#fbf9f9;
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+}
+
+html { background:#fbf9f9; }
 body { margin:0; min-width:320px; min-height:100vh; }
