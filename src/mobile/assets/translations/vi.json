@@ -48,6 +48,10 @@
       "password_too_short": "Mật khẩu cần ít nhất 8 ký tự"
     }
   },
+  "dictionary": {
+    "create_flashcard": "Tạo thẻ ôn tập",
+    "flashcard_created": "Đã tạo thẻ"
+  },
   "common": {
     "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "not_implemented": "Tính năng này đang được phát triển.",
@@ -334,6 +338,15 @@
     "title": "Tiến độ học tập"
   },
   "review": {
+    "selection": {
+      "title": "Lựa chọn ôn tập",
+      "question_title": "Ôn tập câu hỏi",
+      "question_desc": "Luyện tập qua các câu hỏi trắc nghiệm và điền từ để củng cố cấu trúc câu.",
+      "question_completed_badge": "{}% hoàn thành",
+      "vocab_title": "Ôn tập từ vựng",
+      "vocab_desc": "Sử dụng phương pháp lặp lại ngắt quãng (SRS) để ghi nhớ từ vựng hiệu quả hơn.",
+      "vocab_due_badge": "{} từ cần ôn"
+    },
     "audio_pressed": "Đã nhấn phát âm",
     "audio_tooltip": "Phát âm",
     "category": {

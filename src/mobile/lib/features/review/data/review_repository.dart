@@ -8,6 +8,7 @@ abstract interface class ReviewRepository {
       {required ReviewCard card,
       required int rating,
       required String operationId});
+  Future<void> createCard(String skillCode, String front, String back);
 }
 
 class ApiReviewRepository implements ReviewRepository {
@@ -32,6 +33,15 @@ class ApiReviewRepository implements ReviewRepository {
       'rating': rating,
       'operationId': operationId,
       'expectedReps': card.reps
+    });
+  }
+
+  @override
+  Future<void> createCard(String skillCode, String front, String back) async {
+    await _apiClient.postJson('/reviews/cards', body: {
+      'skillCode': skillCode,
+      'front': front,
+      'back': back,
     });
   }
 }

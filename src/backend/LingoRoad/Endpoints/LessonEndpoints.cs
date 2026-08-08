@@ -297,7 +297,10 @@ public static class LessonEndpoints
 
     private static async Task<object> AttemptSnapshotAsync(AppDbContext db, LessonAttempt attempt)
     {
-        var lesson = await db.Lessons.FindAsync(attempt.LessonId);
+        var lesson = await (from l in db.Lessons
+                            join s in db.Skills on l.SkillId equals s.Id
+                            where l.Id == attempt.LessonId
+                            select new { l, SkillCode = s.Code }).SingleOrDefaultAsync();
         var rows = await db.Exercises.Where(e => e.LessonAttemptId == attempt.Id)
             .OrderBy(e => e.Sequence).ToListAsync();
         var exercises = rows.Select(e => new
@@ -313,9 +316,10 @@ public static class LessonEndpoints
         {
             attempt.Id,
             attempt.LessonId,
-            lesson!.Slug,
-            lesson.Title,
-            lesson.TitleVi,
+            lesson!.l.Slug,
+            lesson.l.Title,
+            lesson.l.TitleVi,
+            skillCode = lesson.SkillCode,
             attempt.Status,
             attempt.StartedAt,
             attempt.CompletedAt,

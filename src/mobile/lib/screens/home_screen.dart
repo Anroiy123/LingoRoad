@@ -101,7 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildHeroActionCard(context, l10n, dashboard),
 
           // 5. Missions Grid
-          _buildMissionsGrid(context, l10n, quests, completedQuests, totalQuests),
+          _buildMissionsGrid(
+              context, l10n, quests, completedQuests, totalQuests),
 
           // 6. Quick Access Bento Grid
           _buildBentoGrid(context, l10n, dashboard),
@@ -157,7 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(999.r),
             border: Border.all(color: AppColors.surfaceHigh),
           ),
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
+          padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
           child: Text(
             dashboard.currentCefr,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -177,7 +179,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.cta.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(999.r),
             ),
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
+            padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
             child: Row(
               children: [
                 Icon(
@@ -203,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 2. Greeting Section
-  Widget _buildGreetingSection(BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
+  Widget _buildGreetingSection(
+      BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -254,7 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                 ),
                 SizedBox(width: 12.w),
-                Icon(Icons.monetization_on_rounded, size: 16.sp, color: Colors.amber),
+                Icon(Icons.monetization_on_rounded,
+                    size: 16.sp, color: Colors.amber),
                 SizedBox(width: 2.w),
                 Text(
                   '${dashboard.coins}',
@@ -272,7 +277,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 3. Activity Overview Card
-  Widget _buildActivityOverviewCard(BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
+  Widget _buildActivityOverviewCard(
+      BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +346,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Text(
                             '${(dashboard.dailyProgress * 100).round()}%',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16.sp,
                                 ),
@@ -397,7 +406,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           Text(
                             '${(dashboard.weeklyProgress * 100).round()}%',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16.sp,
                                 ),
@@ -425,7 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 4. Hero Action Card (Next Lesson)
-  Widget _buildHeroActionCard(BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
+  Widget _buildHeroActionCard(
+      BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
     final lesson = dashboard.todayLesson;
     if (lesson == null) {
       return Container(
@@ -476,7 +489,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AppRadius.md.r),
             ),
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
+            padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
             child: Text(
               l10n.translate('home.today_lesson.tag').toUpperCase(),
               style: TextStyle(
@@ -544,7 +558,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 5. Missions Grid
-  Widget _buildMissionsGrid(BuildContext context, AppLanguageProvider l10n, List<QuestData> quests, int completedQuests, int totalQuests) {
+  Widget _buildMissionsGrid(BuildContext context, AppLanguageProvider l10n,
+      List<QuestData> quests, int completedQuests, int totalQuests) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -564,7 +579,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(width: AppSpacing.sm.w),
             Text(
-              l10n.translate('home.quests_completed', [completedQuests, totalQuests]),
+              l10n.translate(
+                  'home.quests_completed', [completedQuests, totalQuests]),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -576,12 +592,15 @@ class _HomeScreenState extends State<HomeScreen> {
         Column(
           children: [
             // Draw pairs
-            for (int i = 0; i < quests.length - (quests.length % 2); i += 2) ...[
+            for (int i = 0;
+                i < quests.length - (quests.length % 2);
+                i += 2) ...[
               Row(
                 children: [
                   Expanded(child: _buildQuestCard(context, l10n, quests[i])),
                   SizedBox(width: AppSpacing.md.w),
-                  Expanded(child: _buildQuestCard(context, l10n, quests[i + 1])),
+                  Expanded(
+                      child: _buildQuestCard(context, l10n, quests[i + 1])),
                 ],
               ),
               SizedBox(height: AppSpacing.md.h),
@@ -595,7 +614,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuestCard(BuildContext context, AppLanguageProvider l10n, QuestData quest, {bool fullWidth = false}) {
+  Widget _buildQuestCard(
+      BuildContext context, AppLanguageProvider l10n, QuestData quest,
+      {bool fullWidth = false}) {
     final titleKey = switch (quest.code) {
       'daily_lesson' => 'home.quests.daily_lesson',
       'daily_review' => 'home.quests.daily_review',
@@ -618,16 +639,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 40.w,
                     height: 40.w,
                     decoration: BoxDecoration(
-                      color: quest.completed ? AppColors.primaryContainer.withValues(alpha: 0.2) : AppColors.surfaceLow,
+                      color: quest.completed
+                          ? AppColors.primaryContainer.withValues(alpha: 0.2)
+                          : AppColors.surfaceLow,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: quest.completed ? AppColors.primaryContainer.withValues(alpha: 0.3) : AppColors.surfaceHigh,
+                        color: quest.completed
+                            ? AppColors.primaryContainer.withValues(alpha: 0.3)
+                            : AppColors.surfaceHigh,
                       ),
                     ),
                     child: Icon(
                       quest.completed ? Icons.check_rounded : icon,
                       size: 20.sp,
-                      color: quest.completed ? AppColors.primaryContainer : AppColors.text,
+                      color: quest.completed
+                          ? AppColors.primaryContainer
+                          : AppColors.text,
                     ),
                   ),
                   SizedBox(width: AppSpacing.md.w),
@@ -641,15 +668,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             Expanded(
                               child: Text(
                                 l10n.translate(titleKey),
-                                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      decoration: quest.completed ? TextDecoration.lineThrough : null,
+                                      decoration: quest.completed
+                                          ? TextDecoration.lineThrough
+                                          : null,
                                     ),
                               ),
                             ),
                             Text(
                               '${quest.current}/${quest.target}',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -658,7 +693,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         SizedBox(height: AppSpacing.xs.h),
                         AppProgress(
-                          value: quest.target == 0 ? 0.0 : quest.current / quest.target,
+                          value: quest.target == 0
+                              ? 0.0
+                              : quest.current / quest.target,
                           height: 4,
                           color: AppColors.primaryContainer,
                         ),
@@ -678,31 +715,43 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 40.w,
                         height: 40.w,
                         decoration: BoxDecoration(
-                          color: quest.completed ? AppColors.primaryContainer.withValues(alpha: 0.2) : AppColors.surfaceLow,
+                          color: quest.completed
+                              ? AppColors.primaryContainer
+                                  .withValues(alpha: 0.2)
+                              : AppColors.surfaceLow,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: quest.completed ? AppColors.primaryContainer.withValues(alpha: 0.3) : AppColors.surfaceHigh,
+                            color: quest.completed
+                                ? AppColors.primaryContainer
+                                    .withValues(alpha: 0.3)
+                                : AppColors.surfaceHigh,
                           ),
                         ),
                         child: Icon(
                           quest.completed ? Icons.check_rounded : icon,
                           size: 20.sp,
-                          color: quest.completed ? AppColors.primaryContainer : AppColors.text,
+                          color: quest.completed
+                              ? AppColors.primaryContainer
+                              : AppColors.text,
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs.w, vertical: AppSpacing.xxs.h),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs.w,
+                            vertical: AppSpacing.xxs.h),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryContainer.withValues(alpha: 0.1),
+                          color:
+                              AppColors.primaryContainer.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppRadius.md.r),
                         ),
                         child: Text(
                           '${quest.current}/${quest.target}',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.primaryContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10.sp,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10.sp,
+                                  ),
                         ),
                       ),
                     ],
@@ -717,7 +766,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   SizedBox(height: AppSpacing.xs.h),
                   AppProgress(
-                    value: quest.target == 0 ? 0.0 : quest.current / quest.target,
+                    value:
+                        quest.target == 0 ? 0.0 : quest.current / quest.target,
                     height: 4,
                     color: AppColors.primaryContainer,
                   ),
@@ -728,7 +778,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 6. Quick Access Bento Grid
-  Widget _buildBentoGrid(BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
+  Widget _buildBentoGrid(
+      BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
     return Row(
       children: [
         // Review Card
@@ -755,7 +806,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 44.w,
                         height: 44.w,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryContainer.withValues(alpha: 0.15),
+                          color: AppColors.primaryContainer
+                              .withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -842,17 +894,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.translate('home.quick_actions.practice_pronunciation'),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          l10n.translate(
+                              'home.quick_actions.practice_pronunciation'),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         SizedBox(height: 2.h),
                         Text(
                           l10n.translate('home.quick_actions.practice_desc'),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
                         ),
                       ],
                     ),
@@ -867,7 +922,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 7. Recent Activity (Horizontal Scroll)
-  Widget _buildRecentActivity(BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
+  Widget _buildRecentActivity(
+      BuildContext context, AppLanguageProvider l10n, DashboardData dashboard) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -927,14 +983,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                       : activity.title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
                                 SizedBox(height: 2.h),
                                 Text(
-                                  _formatActivityDate(context, activity.completedAt, l10n),
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  _formatActivityDate(
+                                      context, activity.completedAt, l10n),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
                                         color: AppColors.textSecondary,
                                         fontSize: 10.sp,
                                       ),
@@ -960,7 +1023,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _formatActivityDate(BuildContext context, DateTime date, AppLanguageProvider l10n) {
+  String _formatActivityDate(
+      BuildContext context, DateTime date, AppLanguageProvider l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -975,7 +1039,9 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       final daysDiff = today.difference(compare).inDays;
       if (daysDiff > 0 && daysDiff < 7) {
-        return isVi ? 'Hoàn thành • $daysDiff ngày trước' : 'Completed • $daysDiff days ago';
+        return isVi
+            ? 'Hoàn thành • $daysDiff ngày trước'
+            : 'Completed • $daysDiff days ago';
       }
       return isVi
           ? 'Hoàn thành • ${date.day}/${date.month}'

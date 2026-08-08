@@ -79,6 +79,7 @@ class LessonAttempt {
     required this.slug,
     required this.title,
     required this.titleVi,
+    required this.skillCode,
     required this.status,
     required this.exercises,
   });
@@ -88,6 +89,7 @@ class LessonAttempt {
   final String slug;
   final String title;
   final String titleVi;
+  final String skillCode;
   final String status;
   final List<LessonExercise> exercises;
 
@@ -101,6 +103,7 @@ class LessonAttempt {
       slug: _text(json, 'slug'),
       title: _text(json, 'title'),
       titleVi: _text(json, 'titleVi'),
+      skillCode: json['skillCode']?.toString() ?? '',
       status: _text(json, 'status'),
       exercises:
           rawExercises.map(LessonExercise.fromJson).toList(growable: false),
@@ -189,4 +192,3 @@ class MistakeRecord {
   final String userAnswer;
   final ExerciseFeedback feedback;
 }
-

@@ -9,7 +9,6 @@ import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
-
 class PlacementQuestionScreen extends StatefulWidget {
   const PlacementQuestionScreen({
     this.audioPlayer,
@@ -70,7 +69,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
     }
   }
 
-  Future<void> _submit(BuildContext context, PlacementViewModel viewModel) async {
+  Future<void> _submit(
+      BuildContext context, PlacementViewModel viewModel) async {
     try {
       await _audioPlayer?.stop();
     } catch (_) {
@@ -112,12 +112,14 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                           Row(
                             children: [
                               Text(
-                                l10n.translate('placement.question.title', [viewModel.questionNumber]),
+                                l10n.translate('placement.question.title',
+                                    [viewModel.questionNumber]),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const Spacer(),
                               Text(
-                                l10n.translate('placement.question.max_questions'),
+                                l10n.translate(
+                                    'placement.question.max_questions'),
                                 style: Theme.of(context)
                                     .textTheme
                                     .labelSmall
@@ -153,7 +155,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
                                         child: Text(
-                                          l10n.translate('placement.question.audio_instruction'),
+                                          l10n.translate(
+                                              'placement.question.audio_instruction'),
                                         ),
                                       ),
                                       FilledButton.tonalIcon(
@@ -174,7 +177,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                             : const Icon(
                                                 Icons.play_arrow_rounded,
                                               ),
-                                        label: Text(l10n.translate('placement.question.listen')),
+                                        label: Text(l10n.translate(
+                                            'placement.question.listen')),
                                       ),
                                     ],
                                   ),
@@ -254,7 +258,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : Text(l10n.translate('placement.question.submit')),
+                              : Text(
+                                  l10n.translate('placement.question.submit')),
                         ),
                       ),
                     ),

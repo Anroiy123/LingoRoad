@@ -22,6 +22,7 @@ import 'package:lingoroad_mobile/features/progress/presentation/progress_view_mo
 import 'package:lingoroad_mobile/features/practice/data/practice_repository.dart';
 import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,6 +47,7 @@ void main() async {
   final lessonRepository = ApiLessonRepository(apiClient);
   final dashboardRepository = ApiDashboardRepository(apiClient);
   final aiPracticeRepository = ApiAiPracticeRepository(apiClient);
+  final dictionaryRepository = ApiDictionaryRepository(apiClient);
 
   final viJson = await rootBundle.loadString('assets/translations/vi.json');
   final enJson = await rootBundle.loadString('assets/translations/en.json');
@@ -81,6 +83,7 @@ void main() async {
       lessonRepository: lessonRepository,
       dashboardRepository: dashboardRepository,
       aiPracticeRepository: aiPracticeRepository,
+      dictionaryRepository: dictionaryRepository,
       languageProvider: languageProvider,
     ),
   );
@@ -102,6 +105,7 @@ class LingoRoadApp extends StatelessWidget {
     this.lessonRepository,
     this.dashboardRepository,
     this.aiPracticeRepository,
+    this.dictionaryRepository,
     super.key,
   });
 
@@ -117,6 +121,7 @@ class LingoRoadApp extends StatelessWidget {
   final LessonRepository? lessonRepository;
   final DashboardRepository? dashboardRepository;
   final AiPracticeRepository? aiPracticeRepository;
+  final DictionaryRepository? dictionaryRepository;
   final AppLanguageProvider languageProvider;
 
   @override
@@ -237,6 +242,17 @@ class LingoRoadApp extends StatelessWidget {
         else
           Provider<AiPracticeRepository>(
             create: (context) => ApiAiPracticeRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (dictionaryRepository != null)
+          Provider<DictionaryRepository>.value(value: dictionaryRepository!)
+        else
+          Provider<DictionaryRepository>(
+            create: (context) => ApiDictionaryRepository(
               ApiClient(
                 config: AppConfig(),
                 session: context.read<SessionController>(),

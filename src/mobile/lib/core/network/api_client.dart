@@ -156,11 +156,12 @@ class ApiClient {
       var activeSession = requestSession;
       var response = await request(activeSession?.accessToken)
           .timeout(timeout ?? defaultTimeout);
-      
+
       if (response.request != null) {
-        debugPrint('DEBUG API: [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
+        debugPrint(
+            'DEBUG API: [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
       }
-      
+
       var body = _decode(response);
       final sessionForRefresh = activeSession;
       if (response.statusCode == 401 &&
@@ -175,11 +176,12 @@ class ApiClient {
           activeSession = refreshedSession;
           response = await request(refreshedSession.accessToken)
               .timeout(timeout ?? defaultTimeout);
-          
+
           if (response.request != null) {
-            debugPrint('DEBUG API (Refreshed): [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
+            debugPrint(
+                'DEBUG API (Refreshed): [${response.request!.method}] ${response.request!.url} -> Status ${response.statusCode}');
           }
-          
+
           body = _decode(response);
         }
       }
@@ -208,14 +210,16 @@ class ApiClient {
         cause: error,
       );
     } on http.ClientException catch (error) {
-      debugPrint('DEBUG API Error: ClientException (Network/CORS/IP incorrect): $error');
+      debugPrint(
+          'DEBUG API Error: ClientException (Network/CORS/IP incorrect): $error');
       throw ApiException(
         code: 'network_unavailable',
         message: 'Không thể kết nối đến máy chủ',
         cause: error,
       );
     } on ApiException catch (error) {
-      debugPrint('DEBUG API Error: ApiException: [${error.code}] ${error.message}');
+      debugPrint(
+          'DEBUG API Error: ApiException: [${error.code}] ${error.message}');
       rethrow;
     } catch (error) {
       debugPrint('DEBUG API Error: Unexpected network error: $error');

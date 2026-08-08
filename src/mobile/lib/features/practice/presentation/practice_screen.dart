@@ -161,7 +161,8 @@ class _AiPracticeScreenState extends State<AiPracticeScreen> {
                 : () => vm.startRecording(_speakingPrompt.text),
         icon: Icon(vm.recording ? Icons.stop_rounded : Icons.mic_rounded),
         label: Text(vm.recording
-            ? _tr(context, 'practice.speaking.stop_score', [vm.recordingSeconds])
+            ? _tr(
+                context, 'practice.speaking.stop_score', [vm.recordingSeconds])
             : _tr(context, 'practice.speaking.start')),
       ),
       if (vm.recording)
@@ -184,8 +185,7 @@ class _AiPracticeScreenState extends State<AiPracticeScreen> {
       if (vm.historyStatus == PracticeStatus.error)
         _ErrorCard(code: vm.historyError, onRetry: vm.loadHistory),
       if (vm.historyStatus == PracticeStatus.success && vm.history.isEmpty)
-        AppCard(
-            child: Text(_tr(context, 'practice.speaking.empty'))),
+        AppCard(child: Text(_tr(context, 'practice.speaking.empty'))),
       for (final item in vm.history) _HistoryCard(item: item),
     ]);
   }

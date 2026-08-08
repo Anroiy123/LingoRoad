@@ -48,6 +48,10 @@
       "password_too_short": "Password must be at least 8 characters"
     }
   },
+  "dictionary": {
+    "create_flashcard": "Create Flashcard",
+    "flashcard_created": "Flashcard Created"
+  },
   "common": {
     "fallback_error": "An error occurred. Please try again.",
     "not_implemented": "This feature is under development.",
@@ -334,6 +338,15 @@
     "title": "Learning Progress"
   },
   "review": {
+    "selection": {
+      "title": "Review Mode Selection",
+      "question_title": "Question Review",
+      "question_desc": "Practice with multiple choice and fill-in-the-blank questions to reinforce sentence structures.",
+      "question_completed_badge": "{}% completed",
+      "vocab_title": "Vocabulary Review",
+      "vocab_desc": "Use spaced repetition system (SRS) to memorize vocabulary more effectively.",
+      "vocab_due_badge": "{} words need review"
+    },
     "audio_pressed": "Pronunciation played",
     "audio_tooltip": "Pronunciation",
     "category": {

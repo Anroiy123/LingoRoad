@@ -9,7 +9,8 @@ import 'package:provider/provider.dart';
 class PlacementIntroScreen extends StatelessWidget {
   const PlacementIntroScreen({super.key});
 
-  Future<void> _start(BuildContext context, PlacementViewModel viewModel) async {
+  Future<void> _start(
+      BuildContext context, PlacementViewModel viewModel) async {
     final started = await viewModel.start();
     if (started && context.mounted) {
       context.go('/placement/question');
@@ -55,14 +56,16 @@ class PlacementIntroScreen extends StatelessWidget {
                       children: [
                         _IntroPoint(
                           icon: Icons.quiz_outlined,
-                          title: l10n.translate('placement.intro.duration_title'),
+                          title:
+                              l10n.translate('placement.intro.duration_title'),
                           description:
                               l10n.translate('placement.intro.duration_desc'),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _IntroPoint(
                           icon: Icons.tune_rounded,
-                          title: l10n.translate('placement.intro.adaptive_title'),
+                          title:
+                              l10n.translate('placement.intro.adaptive_title'),
                           description:
                               l10n.translate('placement.intro.adaptive_desc'),
                         ),
@@ -88,8 +91,9 @@ class PlacementIntroScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     key: const Key('placement_start'),
-                    onPressed:
-                        viewModel.isLoading ? null : () => _start(context, viewModel),
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : () => _start(context, viewModel),
                     child: viewModel.isLoading
                         ? const SizedBox.square(
                             dimension: 20,

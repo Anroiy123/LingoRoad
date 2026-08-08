@@ -76,7 +76,8 @@ class LessonMistakesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryHeader(BuildContext context, AppLanguageProvider l10n, int mistakeCount) {
+  Widget _buildSummaryHeader(
+      BuildContext context, AppLanguageProvider l10n, int mistakeCount) {
     return Container(
       padding: EdgeInsets.all(AppSpacing.md.w),
       decoration: BoxDecoration(
@@ -124,7 +125,8 @@ class LessonMistakesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDynamicMistakeCard(BuildContext context, MistakeRecord mistake, AppLanguageProvider l10n) {
+  Widget _buildDynamicMistakeCard(
+      BuildContext context, MistakeRecord mistake, AppLanguageProvider l10n) {
     String tag = 'Ôn tập';
     if (mistake.exercise.type == 'mcq') {
       tag = l10n.translate('lesson.mistakes.tag_mcq');
@@ -197,7 +199,8 @@ class _MistakeCardLayout extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceHigh,
                   borderRadius: BorderRadius.circular(AppRadius.xl.r),
@@ -212,7 +215,8 @@ class _MistakeCardLayout extends StatelessWidget {
               if (hasAudio)
                 InkWell(
                   onTap: () {},
-                  child: const Icon(Icons.volume_up_rounded, color: AppColors.textSecondary),
+                  child: const Icon(Icons.volume_up_rounded,
+                      color: AppColors.textSecondary),
                 ),
             ],
           ),
@@ -257,7 +261,10 @@ class _IncorrectAnswer extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.error),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: AppColors.error),
                 ),
                 SizedBox(height: 2.h),
                 Text(
@@ -293,7 +300,8 @@ class _CorrectAnswer extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle_rounded, color: AppColors.success, size: 20.sp),
+          Icon(Icons.check_circle_rounded,
+              color: AppColors.success, size: 20.sp),
           SizedBox(width: AppSpacing.sm.w),
           Expanded(
             child: Column(
@@ -301,7 +309,10 @@ class _CorrectAnswer extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.success),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: AppColors.success),
                 ),
                 SizedBox(height: 2.h),
                 Text(
@@ -363,7 +374,8 @@ class _BottomActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.margin.w, vertical: AppSpacing.md.h),
+      padding: EdgeInsets.symmetric(
+          horizontal: AppSpacing.margin.w, vertical: AppSpacing.md.h),
       decoration: BoxDecoration(
         color: AppColors.surface.withValues(alpha: 0.9),
         border: const Border(top: BorderSide(color: AppColors.border)),
@@ -382,7 +394,8 @@ class _BottomActionBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.lg.r),
                   ),
                   elevation: 4,
-                  shadowColor: AppColors.primaryContainer.withValues(alpha: 0.4),
+                  shadowColor:
+                      AppColors.primaryContainer.withValues(alpha: 0.4),
                 ),
                 onPressed: () => context.go('/home'),
                 child: Row(
@@ -406,7 +419,9 @@ class _BottomActionBar extends StatelessWidget {
             TextButton(
               onPressed: () => context.go('/home'),
               child: Text(
-                l10n.currentLanguage == AppLanguage.vi ? 'Bỏ qua lúc này' : 'Skip for now',
+                l10n.currentLanguage == AppLanguage.vi
+                    ? 'Bỏ qua lúc này'
+                    : 'Skip for now',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.textSecondary,
                     ),

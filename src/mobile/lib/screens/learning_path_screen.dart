@@ -229,7 +229,8 @@ class _PathItem extends StatelessWidget {
     Color iconBg = AppColors.primary;
     Color iconColor = Colors.white;
     Color cardColor = AppColors.surface;
-    BorderSide borderSide = BorderSide(color: AppColors.surfaceHigh, width: 1.w);
+    BorderSide borderSide =
+        BorderSide(color: AppColors.surfaceHigh, width: 1.w);
     List<BoxShadow> shadow = const [
       BoxShadow(
         color: AppColors.shadow,
@@ -268,8 +269,10 @@ class _PathItem extends StatelessWidget {
       cardColor = AppColors.surfaceLow;
     }
 
-    final bool isLineActive = index == 0 || isCompleted || step.reason == 'below_threshold';
-    final Color lineSegmentColor = isLineActive ? AppColors.cta : AppColors.surfaceHigh;
+    final bool isLineActive =
+        index == 0 || isCompleted || step.reason == 'below_threshold';
+    final Color lineSegmentColor =
+        isLineActive ? AppColors.cta : AppColors.surfaceHigh;
 
     return Stack(
       alignment: Alignment.center,
@@ -336,7 +339,8 @@ class _PathItem extends StatelessWidget {
                                   SizedBox(width: AppSpacing.sm.w),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           localizedName,
@@ -370,7 +374,8 @@ class _PathItem extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(999.r),
+                                      borderRadius:
+                                          BorderRadius.circular(999.r),
                                       child: LinearProgressIndicator(
                                         value: step.mastery.clamp(0.0, 1.0),
                                         minHeight: 6.h,
@@ -425,10 +430,13 @@ class _PathItem extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.primaryContainer,
-                              borderRadius: BorderRadius.circular(AppRadius.md.r),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.md.r),
                             ),
                             child: Text(
-                              l10n.translate('learning_path.current_step').toUpperCase(),
+                              l10n
+                                  .translate('learning_path.current_step')
+                                  .toUpperCase(),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall

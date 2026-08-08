@@ -19,6 +19,7 @@ import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
+import 'package:lingoroad_mobile/screens/vocabulary_review_screen.dart';
 import 'package:provider/provider.dart';
 
 GoRouter createAppRouter({
@@ -132,6 +133,10 @@ GoRouter createAppRouter({
           ),
           child: const AiPracticeScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/vocabulary-review',
+        builder: (context, state) => const VocabularyReviewScreen(),
       ),
     ],
   );

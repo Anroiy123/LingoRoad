@@ -144,7 +144,8 @@ class _StatsGrid extends StatelessWidget {
   final int reviewCards;
   final AppLanguageProvider l10n;
 
-  Widget _buildStatCard(BuildContext context, String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Expanded(
       child: _StatCard(
         icon: icon,
@@ -210,14 +211,20 @@ class _StatsGrid extends StatelessWidget {
                         children: [
                           Text(
                             l10n.translate('lesson.complete.excellent'),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
                                   color: Colors.white70,
                                   letterSpacing: 1.2,
                                 ),
                           ),
                           Text(
                             l10n.translate('lesson.complete.results'),
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -302,7 +309,8 @@ class _BottomActionBar extends StatelessWidget {
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: AppSpacing.md.h),
-                    side: BorderSide(color: AppColors.primaryContainer, width: 2.w),
+                    side: BorderSide(
+                        color: AppColors.primaryContainer, width: 2.w),
                     foregroundColor: AppColors.primaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg.r),
@@ -311,14 +319,16 @@ class _BottomActionBar extends StatelessWidget {
                   icon: const Icon(Icons.history_edu_rounded),
                   label: Text(
                     l10n.translate('lesson.complete.review_mistakes'),
-                    style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    style:
+                        TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {
                     final mistakes = context.read<LessonViewModel>().mistakes;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => LessonMistakesScreen(mistakes: mistakes),
+                        builder: (_) =>
+                            LessonMistakesScreen(mistakes: mistakes),
                       ),
                     );
                   },
