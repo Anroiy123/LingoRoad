@@ -225,7 +225,6 @@ class _PathItem extends StatelessWidget {
     final String statusText = l10n.translate(reasonKey);
 
     Color progressColor = AppColors.primary;
-    Color statusColor = AppColors.textSecondary;
     IconData iconData = Icons.play_arrow_rounded;
     Color iconBg = AppColors.primary;
     Color iconColor = Colors.white;
@@ -240,16 +239,14 @@ class _PathItem extends StatelessWidget {
     ];
 
     if (isCompleted) {
-      statusColor = AppColors.success;
       progressColor = AppColors.success;
       iconData = Icons.check_rounded;
       iconBg = AppColors.successSoft;
       iconColor = AppColors.success;
     } else if (current) {
-      statusColor = AppColors.primary;
       progressColor = AppColors.cta;
       iconData = Icons.play_arrow_rounded;
-      iconBg = AppColors.cta.withOpacity(0.1);
+      iconBg = AppColors.cta.withValues(alpha: 0.1);
       iconColor = AppColors.cta;
       borderSide = BorderSide(color: AppColors.cta, width: 2.w);
       shadow = [
@@ -260,7 +257,6 @@ class _PathItem extends StatelessWidget {
         ),
       ];
     } else if (step.reason == 'below_threshold') {
-      statusColor = AppColors.primary;
       progressColor = AppColors.primaryContainer;
       iconData = Icons.psychology_rounded;
       iconBg = AppColors.primaryFixed;
