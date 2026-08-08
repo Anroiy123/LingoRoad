@@ -119,7 +119,7 @@ The visual style is **Corporate / Modern** with a friendly lean, utilizing a fla
 
 The palette is built on a high-contrast foundation to facilitate one-handed mobile use.
 
-- **Primary (#F24822):** Derived from the logo, this energetic orange-red is reserved for the most critical actions (CTAs), progress highlights, and interactive states.
+- **Primary (#B22300):** Derived from the logo, this energetic orange-red is reserved for the most critical actions (CTAs), progress highlights, and interactive states.
 - **Surface:** A pure white (#FFFFFF) background provides a sterile, distraction-free canvas for learning.
 - **Typography:** Deep Charcoal/Black (#212121) is used for body text and headers to ensure AA/AAA accessibility compliance.
 - **Accents:** A soft Neutral Grey (#F5F5F5) is used for secondary card backgrounds and input fields to maintain visual hierarchy without adding noise.
@@ -157,9 +157,14 @@ The shape language is defined as **Rounded**, balancing professional structure w
 
 ## Components
 
-- **Buttons:** Primary buttons use the #F24822 background with white text, 16px vertical padding, and bold labels. Secondary buttons use a #F5F5F5 background with charcoal text.
+- **Buttons:** Primary buttons use the #B22300 background with white text, 16px vertical padding, and bold labels. Secondary buttons use a #F5F5F5 background with charcoal text.
 - **Cards:** Large 24px corner radius. They should include 24px internal padding to ensure content feels focused and breathable.
 - **Input Fields:** 8px radius with a 1px #E0E0E0 border. On focus, the border transitions to 2px primary orange-red.
 - **Chips:** Small, pill-shaped tags used for categories (e.g., "Grammar", "Vocabulary"). Use light gray backgrounds with dark text.
 - **Progress Bars:** Use a thick 8px height with fully rounded ends. The track is light gray, and the progress fill is the primary orange-red.
 - **Icons:** 24px bounding box, 2px stroke weight, line-based style. Ensure consistent rounded caps and joins to match the typography.
+
+## Anti-patterns
+
+- Product surfaces share the canonical orange-red palette and Hanken Grotesk typography; do not introduce a separate brand theme for Admin or internal tools.
+- Decorative metrics and controls are omitted unless they represent real product data or a working capability.
