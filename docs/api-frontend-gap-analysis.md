@@ -47,9 +47,9 @@ doesn't apply to that surface (e.g. Admin has no placement-test UI).
 | Placement test | ✅ Full adaptive-test flow (start/answer/result) | ✅ Wired (`ApiPlacementRepository`) | — |
 | Learning path (recommendation) | ✅ `/path` + `/path/today` | ✅ Path/today lesson/player wired | — |
 | Learning-path advisor (Q&A) | ✅ `/path/advisor` (RAG) | ✅ Advisor flow with API states/retry | — |
-| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ⚠️ Aggregate by category in overview; per-user drill-down now available via `GET /admin/users`/`{id}` (API only, no admin UI yet) |
+| Mastery tracking | ✅ `/mastery` + lesson answer updates | ✅ Progress uses real catalog/mastery | ✅ Aggregate by category plus read-only Users list/detail with per-user mastery and activity |
 | Spaced-repetition reviews (SRS) | ✅ FSRS + wrong-answer producer | ✅ Due/grade flow wired | — |
-| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | ⚠️ `POST /admin/items/generate` bulk-generates AI items straight into the Item bank (API only, no admin UI yet) |
+| Exercises (3 seeded types + grading) | ✅ Lesson-bound/idempotent submit and ML generation | ⚠️ Lesson-bound MCQ/cloze/reorder wired; standalone ML generation has no UI | ✅ AI dialog calls `POST /admin/items/generate` for validated MCQ/cloze batches and reloads the real Item bank |
 | Writing evaluation (AWE) | ✅ `/writing/evaluate` | ✅ Writing flow with API states/retry | — |
 | Speaking assessment | ✅ Safe `/speaking/attempts` upload/history | ✅ Recording, score/history and retry flow | — |
 | User profile (read/update) | ✅ `GET/PATCH /auth/me`, password change | ✅ Read/update/preferences/password wired | — |
@@ -133,18 +133,17 @@ surface implements the minimum scope from `MVP_architecture.md`
 | Admin login / role separation | ✅ Fulfilled | `User.Role`, JWT role claim, Admin policy, secret-driven bootstrap, React login and fail-closed route guard are implemented; anonymous gets 401 and learner gets 403. |
 | Skill management (create/edit/delete, assign prerequisites) | ✅ Fulfilled | Admin API/UI support create/update/soft-delete, parent relation validation and cycle prevention. |
 | Lesson management | ✅ Fulfilled | Draft/published CRUD, ordered item relationships, soft-delete and audit are implemented. |
-| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ✅ Fulfilled | Protected CRUD exposes answer/difficulty metadata only within the Admin surface and blocks unsafe relation deletion. `POST /admin/items/generate` now bulk-generates AI questions (via the same ML exercise generator learners use) straight into the Item bank, reusing existing CRUD for review/edit/delete — no draft/approval status. API only; no admin UI trigger yet. |
-| User / skill / question analytics | ✅ MVP overview | Active learners, completion, correctness, due reviews, mastery by category, item usage and content usage are available. Per-user drill-down is now available via `GET /admin/users` (search/role/pagination) and `GET /admin/users/{id}` (profile + mastery + activity); API only, admin UI wiring remains an extension. |
+| Question management (create/edit/delete, assign answer/difficulty/CEFR) | ✅ Fulfilled | Protected CRUD exposes answer/difficulty metadata only within the Admin surface and blocks unsafe relation deletion. The AI dialog calls `POST /admin/items/generate` for reviewed `mcq`/`cloze` batches and reloads the Item bank; no draft/approval status exists. |
+| User / skill / question analytics | ✅ Fulfilled | Active learners, completion, correctness, due reviews, mastery by category, item/content usage and sample-gated learning quality are available. The read-only Users UI consumes `GET /admin/users` (debounced search, role filter, server pagination) and `GET /admin/users/{id}` (profile + mastery + activity). |
 | Versioned import | ✅ Fulfilled | `validate/preview → apply` is transactional, version/checksum idempotent and rejects changed replay, broken references, duplicates and skill cycles. |
 | Audit trail | ✅ Fulfilled | Admin mutations append content/security audit events and the protected UI can inspect recent events. |
 
-The minimum Admin gate is now implemented and has API/component/Playwright
-coverage plus a browser smoke against the real API/PostgreSQL. Remaining work
-is production deployment configuration, running browser E2E in CI,
-pagination/search, and wiring the React admin UI to the now-available
-per-user analytics (`GET /admin/users`, `/admin/users/{id}`) and
-AI item-generation (`POST /admin/items/generate`) APIs — both are backend-only
-as of this update.
+The minimum Admin gate is now implemented and has API/component tests plus
+Playwright route-mocked browser coverage. This evidence does not constitute a
+production-like real-stack smoke. Remaining work is production deployment
+configuration, real-stack browser validation and running browser E2E in CI. The
+responsive routed UI now includes server-side Users search/pagination,
+per-user analytics and AI item generation.
 
 ## 5. Cross-cutting gaps
 
@@ -170,10 +169,7 @@ Concrete next steps, ordered by dependency:
    backup/restore drills.
 3. **Add a clean-account full-stack E2E** for registration, placement, profile
    setup and the already smoke-tested learner loop.
-4. **Run the committed Admin Playwright specs in CI** and add pagination/search
-   before the content catalog grows substantially.
-5. **Wire the React admin UI to the per-user analytics and AI item-generation
-   APIs** (`GET /admin/users`/`{id}`, `POST /admin/items/generate`) — both
-   ship backend-only for now.
-6. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
+4. **Run the committed Admin Playwright specs in CI**, including the routed
+   Users flow and responsive mobile drawer coverage.
+5. **Consider client codegen from OpenAPI for Admin** once CRUD contracts stop
    changing; Flutter can keep its existing hand-written repository pattern.

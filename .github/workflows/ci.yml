@@ -97,6 +97,14 @@ jobs:
         working-directory: src/admin
       - run: npm run test:e2e
         working-directory: src/admin
+      - name: Upload Admin Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: admin-playwright-failure-${{ github.run_id }}
+          path: src/admin/test-results
+          if-no-files-found: warn
+          retention-days: 7
 
   containers:
     runs-on: ubuntu-latest
