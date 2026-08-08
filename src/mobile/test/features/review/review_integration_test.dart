@@ -48,6 +48,9 @@ class FakeReviewRepository implements ReviewRepository {
     if (gradeError != null) throw gradeError!;
     await pendingGrade?.future;
   }
+
+  @override
+  Future<void> createCard(String skillCode, String front, String back) async {}
 }
 
 void main() {

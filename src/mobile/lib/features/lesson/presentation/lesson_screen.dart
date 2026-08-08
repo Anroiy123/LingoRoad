@@ -9,6 +9,8 @@ import 'package:lingoroad_mobile/features/progress/presentation/progress_view_mo
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_complete_view.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
+import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
@@ -102,7 +104,6 @@ class _LessonScreenState extends State<LessonScreen> {
       );
     }
 
-
     final exercise = viewModel.current;
     if (exercise == null) {
       return _StateCard(
@@ -122,9 +123,22 @@ class _LessonScreenState extends State<LessonScreen> {
           ],
         ),
         SizedBox(height: AppSpacing.xl.h),
-        Text(
-          exercise.stem,
-          style: Theme.of(context).textTheme.headlineSmall,
+        Wrap(
+          children: exercise.stem.split(' ').map((word) {
+            final cleanWord =
+                word.replaceAll(RegExp(r'[^\p{L}]', unicode: true), '');
+            return GestureDetector(
+              onLongPress: () => _showDictionaryBottomSheet(
+                  context, l10n, cleanWord, viewModel.attempt?.skillCode ?? ''),
+              child: Padding(
+                padding: EdgeInsets.only(right: 6.w, bottom: 4.h),
+                child: Text(
+                  word.replaceAll('*', ''),
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
+            );
+          }).toList(),
         ),
         SizedBox(height: AppSpacing.lg.h),
         Expanded(
@@ -282,6 +296,15 @@ class _LessonScreenState extends State<LessonScreen> {
       context.read<ProgressViewModel?>()?.load();
     });
   }
+
+  void _showDictionaryBottomSheet(BuildContext context,
+      AppLanguageProvider l10n, String word, String skillCode) {
+    if (word.isEmpty) return;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => _DictionarySheet(word: word, skillCode: skillCode),
+    );
+  }
 }
 
 class _StateCard extends StatelessWidget {
@@ -317,4 +340,115 @@ class _StateCard extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _DictionarySheet extends StatefulWidget {
+  const _DictionarySheet({required this.word, required this.skillCode});
+  final String word;
+  final String skillCode;
+
+  @override
+  State<_DictionarySheet> createState() => _DictionarySheetState();
+}
+
+class _DictionarySheetState extends State<_DictionarySheet> {
+  String? _definition;
+  String? _error;
+  bool _loading = true;
+  bool _creatingCard = false;
+  bool _cardCreated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefinition();
+  }
+
+  Future<void> _loadDefinition() async {
+    try {
+      final repo = context.read<DictionaryRepository>();
+      final def = await repo.lookup(widget.word);
+      if (mounted) {
+        setState(() {
+          _definition = def;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _createFlashcard() async {
+    if (_definition == null) return;
+    setState(() => _creatingCard = true);
+    try {
+      final repo = context.read<ReviewRepository>();
+      await repo.createCard(
+          widget.skillCode, widget.word, _definition!.replaceAll('*', ''));
+      if (mounted) {
+        setState(() {
+          _creatingCard = false;
+          _cardCreated = true;
+        });
+        context.read<ReviewViewModel?>()?.load();
+      }
+    } catch (e) {
+      if (mounted) setState(() => _creatingCard = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.lg.w),
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.word,
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          SizedBox(height: AppSpacing.md.h),
+          if (_loading)
+            const Center(child: CircularProgressIndicator())
+          else if (_error != null)
+            Text(l10n.translate('lesson.error.message'),
+                style: const TextStyle(color: AppColors.error))
+          else ...[
+            Text((_definition ?? '').replaceAll('*', ''),
+                style: Theme.of(context).textTheme.bodyLarge),
+            SizedBox(height: AppSpacing.lg.h),
+            if (_cardCreated)
+              Row(
+                children: [
+                  const Icon(Icons.check_circle, color: AppColors.success),
+                  SizedBox(width: AppSpacing.sm.w),
+                  Text(l10n.translate('dictionary.flashcard_created')),
+                ],
+              )
+            else
+              FilledButton.icon(
+                onPressed: _creatingCard ? null : _createFlashcard,
+                icon: _creatingCard
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.style),
+                label: Text(l10n.translate('dictionary.create_flashcard')),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
 }

@@ -31,6 +31,9 @@ class CountingReviewRepository implements ReviewRepository {
       {required ReviewCard card,
       required int rating,
       required String operationId}) async {}
+
+  @override
+  Future<void> createCard(String skillCode, String front, String back) async {}
 }
 
 class CountingProgressRepository implements ProgressRepository {

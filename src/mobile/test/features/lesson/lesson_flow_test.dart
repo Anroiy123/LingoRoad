@@ -30,6 +30,7 @@ const attempt = LessonAttempt(
   slug: 'present-simple',
   title: 'Present Simple',
   titleVi: 'Hiện tại đơn',
+  skillCode: 'grammar.present-simple',
   status: 'in_progress',
   exercises: [exercise],
 );

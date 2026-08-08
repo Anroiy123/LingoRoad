@@ -80,10 +80,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fit: BoxFit.contain,
                           ),
                           const SizedBox(height: AppSpacing.xs),
-                           Text(
+                          Text(
                             l10n.translate('auth.register.title'),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
                                   color: AppColors.text,
                                   fontWeight: FontWeight.bold,
                                   fontFamily: 'Plus Jakarta Sans',
@@ -93,7 +96,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Text(
                             l10n.translate('auth.register.subtitle'),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
                                   color: AppColors.textSecondary,
                                   fontFamily: 'Plus Jakarta Sans',
                                 ),
@@ -121,11 +127,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               key: _formKey,
                               child: AutofillGroup(
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     // Full Name Input
                                     Text(
-                                      l10n.translate('auth.register.name_label'),
+                                      l10n.translate(
+                                          'auth.register.name_label'),
                                       style: const TextStyle(
                                         color: AppColors.textSecondary,
                                         fontSize: 12,
@@ -140,29 +148,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       enabled: !viewModel.isSubmitting,
                                       textInputAction: TextInputAction.next,
                                       autofillHints: const [AutofillHints.name],
-                                      style: const TextStyle(color: AppColors.text),
+                                      style: const TextStyle(
+                                          color: AppColors.text),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
-                                        hintText: l10n.translate('auth.register.name_placeholder'),
-                                        hintStyle: const TextStyle(color: AppColors.muted),
+                                        hintText: l10n.translate(
+                                            'auth.register.name_placeholder'),
+                                        hintStyle: const TextStyle(
+                                            color: AppColors.muted),
                                         prefixIcon: const Icon(
                                           Icons.person_outline_rounded,
                                           color: AppColors.muted,
                                           size: 20,
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
                                           vertical: 14,
                                           horizontal: AppSpacing.md,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
@@ -189,44 +203,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       enabled: !viewModel.isSubmitting,
                                       keyboardType: TextInputType.emailAddress,
                                       textInputAction: TextInputAction.next,
-                                      autofillHints: const [AutofillHints.newUsername],
-                                      style: const TextStyle(color: AppColors.text),
+                                      autofillHints: const [
+                                        AutofillHints.newUsername
+                                      ],
+                                      style: const TextStyle(
+                                          color: AppColors.text),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
-                                        hintText: l10n.translate('auth.register.email_placeholder'),
-                                        hintStyle: const TextStyle(color: AppColors.muted),
+                                        hintText: l10n.translate(
+                                            'auth.register.email_placeholder'),
+                                        hintStyle: const TextStyle(
+                                            color: AppColors.muted),
                                         prefixIcon: const Icon(
                                           Icons.mail_outlined,
                                           color: AppColors.muted,
                                           size: 20,
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
                                           vertical: 14,
                                           horizontal: AppSpacing.md,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
@@ -234,8 +258,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                       ),
                                       validator: (value) {
-                                        final key = AuthViewModel.validateEmail(value);
-                                        return key != null ? l10n.translate(key) : null;
+                                        final key =
+                                            AuthViewModel.validateEmail(value);
+                                        return key != null
+                                            ? l10n.translate(key)
+                                            : null;
                                       },
                                     ),
                                     const SizedBox(height: AppSpacing.md),
@@ -257,13 +284,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       enabled: !viewModel.isSubmitting,
                                       obscureText: _obscurePassword,
                                       textInputAction: TextInputAction.next,
-                                      autofillHints: const [AutofillHints.newPassword],
-                                      style: const TextStyle(color: AppColors.text),
+                                      autofillHints: const [
+                                        AutofillHints.newPassword
+                                      ],
+                                      style: const TextStyle(
+                                          color: AppColors.text),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
-                                        hintText: l10n.translate('auth.register.password_placeholder'),
-                                        hintStyle: const TextStyle(color: AppColors.muted),
+                                        hintText: l10n.translate(
+                                            'auth.register.password_placeholder'),
+                                        hintStyle: const TextStyle(
+                                            color: AppColors.muted),
                                         prefixIcon: const Icon(
                                           Icons.lock_outline_rounded,
                                           color: AppColors.muted,
@@ -271,7 +303,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                         suffixIcon: IconButton(
                                           onPressed: () => setState(
-                                            () => _obscurePassword = !_obscurePassword,
+                                            () => _obscurePassword =
+                                                !_obscurePassword,
                                           ),
                                           icon: Icon(
                                             _obscurePassword
@@ -280,35 +313,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             color: AppColors.muted,
                                           ),
                                           tooltip: _obscurePassword
-                                              ? l10n.translate('auth.login.show_password')
-                                              : l10n.translate('auth.login.hide_password'),
+                                              ? l10n.translate(
+                                                  'auth.login.show_password')
+                                              : l10n.translate(
+                                                  'auth.login.hide_password'),
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
                                           vertical: 14,
                                           horizontal: AppSpacing.md,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
@@ -316,15 +356,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         ),
                                       ),
                                       validator: (value) {
-                                        final key = AuthViewModel.validatePassword(value);
-                                        return key != null ? l10n.translate(key) : null;
+                                        final key =
+                                            AuthViewModel.validatePassword(
+                                                value);
+                                        return key != null
+                                            ? l10n.translate(key)
+                                            : null;
                                       },
                                     ),
                                     const SizedBox(height: AppSpacing.md),
 
                                     // Confirm Password Input
                                     Text(
-                                      l10n.translate('auth.register.confirm_password_label'),
+                                      l10n.translate(
+                                          'auth.register.confirm_password_label'),
                                       style: const TextStyle(
                                         color: AppColors.textSecondary,
                                         fontSize: 12,
@@ -334,48 +379,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                     const SizedBox(height: 6),
                                     TextFormField(
-                                      key: const Key('register_confirm_password'),
+                                      key: const Key(
+                                          'register_confirm_password'),
                                       controller: _confirmPasswordController,
                                       enabled: !viewModel.isSubmitting,
                                       obscureText: _obscurePassword,
                                       textInputAction: TextInputAction.done,
-                                      style: const TextStyle(color: AppColors.text),
+                                      style: const TextStyle(
+                                          color: AppColors.text),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
-                                        hintText: l10n.translate('auth.register.confirm_password_placeholder'),
-                                        hintStyle: const TextStyle(color: AppColors.muted),
+                                        hintText: l10n.translate(
+                                            'auth.register.confirm_password_placeholder'),
+                                        hintStyle: const TextStyle(
+                                            color: AppColors.muted),
                                         prefixIcon: const Icon(
                                           Icons.lock_outline_rounded,
                                           color: AppColors.muted,
                                           size: 20,
                                         ),
-                                        contentPadding: const EdgeInsets.symmetric(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
                                           vertical: 14,
                                           horizontal: AppSpacing.md,
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
@@ -384,14 +438,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
-                                          return l10n.translate('auth.validation.confirm_password_empty');
+                                          return l10n.translate(
+                                              'auth.validation.confirm_password_empty');
                                         }
                                         if (value != _passwordController.text) {
-                                          return l10n.translate('auth.validation.confirm_password_mismatch');
+                                          return l10n.translate(
+                                              'auth.validation.confirm_password_mismatch');
                                         }
                                         return null;
                                       },
-                                      onFieldSubmitted: (_) => _submit(viewModel),
+                                      onFieldSubmitted: (_) =>
+                                          _submit(viewModel),
                                     ),
 
                                     if (viewModel.errorMessage != null) ...[
@@ -399,7 +456,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       Text(
                                         l10n.translate(viewModel.errorMessage!),
                                         key: const Key('auth_error'),
-                                        style: const TextStyle(color: AppColors.error),
+                                        style: const TextStyle(
+                                            color: AppColors.error),
                                       ),
                                     ],
                                     const SizedBox(height: AppSpacing.lg),
@@ -414,7 +472,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           backgroundColor: AppColors.cta,
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12.0),
+                                            borderRadius:
+                                                BorderRadius.circular(12.0),
                                           ),
                                         ),
                                         onPressed: viewModel.isSubmitting
@@ -423,17 +482,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                         child: viewModel.isSubmitting
                                             ? const SizedBox.square(
                                                 dimension: 20,
-                                                child: CircularProgressIndicator(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   strokeWidth: 2,
-                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
                                                 ),
                                               )
                                             : Text(
-                                                l10n.translate('auth.register.submit').toUpperCase(),
+                                                l10n
+                                                    .translate(
+                                                        'auth.register.submit')
+                                                    .toUpperCase(),
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Plus Jakarta Sans',
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
                                                   letterSpacing: 0.5,
                                                 ),
                                               ),
@@ -455,9 +521,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             horizontal: AppSpacing.sm,
                                           ),
                                           child: Text(
-                                            l10n.translate('auth.login.or_continue'),
+                                            l10n.translate(
+                                                'auth.login.or_continue'),
                                             style: TextStyle(
-                                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                              color: AppColors.textSecondary
+                                                  .withValues(alpha: 0.7),
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
                                               fontFamily: 'Plus Jakarta Sans',
@@ -485,22 +553,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 color: AppColors.border,
                                                 width: 2,
                                               ),
-                                              padding: const EdgeInsets.symmetric(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
                                                 vertical: 12,
                                               ),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                             ),
                                             onPressed: () {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
-                                                  content: Text(l10n.translate('common.not_implemented')),
+                                                  content: Text(l10n.translate(
+                                                      'common.not_implemented')),
                                                 ),
                                               );
                                             },
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 const CustomPaint(
                                                   size: Size(20, 20),
@@ -510,10 +583,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 Text(
                                                   'Google',
                                                   style: TextStyle(
-                                                    color: AppColors.text.withValues(alpha: 0.9),
+                                                    color: AppColors.text
+                                                        .withValues(alpha: 0.9),
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w700,
-                                                    fontFamily: 'Plus Jakarta Sans',
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
                                                   ),
                                                 ),
                                               ],
@@ -528,22 +603,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 color: AppColors.border,
                                                 width: 2,
                                               ),
-                                              padding: const EdgeInsets.symmetric(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
                                                 vertical: 12,
                                               ),
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
                                               ),
                                             ),
                                             onPressed: () {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
-                                                  content: Text(l10n.translate('common.not_implemented')),
+                                                  content: Text(l10n.translate(
+                                                      'common.not_implemented')),
                                                 ),
                                               );
                                             },
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
                                                 const Icon(
                                                   Icons.facebook,
@@ -557,10 +637,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     child: Text(
                                                       'Facebook',
                                                       style: TextStyle(
-                                                        color: AppColors.text.withValues(alpha: 0.9),
+                                                        color: AppColors.text
+                                                            .withValues(
+                                                                alpha: 0.9),
                                                         fontSize: 14,
-                                                        fontWeight: FontWeight.w700,
-                                                        fontFamily: 'Plus Jakarta Sans',
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        fontFamily:
+                                                            'Plus Jakarta Sans',
                                                       ),
                                                     ),
                                                   ),
@@ -588,9 +672,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                               fontFamily: 'Plus Jakarta Sans',
                                             ),
                                             children: [
-                                              TextSpan(text: l10n.translate('auth.register.has_account')),
                                               TextSpan(
-                                                text: l10n.translate('auth.register.login_action'),
+                                                  text: l10n.translate(
+                                                      'auth.register.has_account')),
+                                              TextSpan(
+                                                text: l10n.translate(
+                                                    'auth.register.login_action'),
                                                 style: const TextStyle(
                                                   color: AppColors.cta,
                                                   fontWeight: FontWeight.bold,
@@ -651,7 +738,8 @@ class GoogleLogoPainter extends CustomPainter {
     final double r = size.width / 2;
     final double thickness = size.width * 0.28;
 
-    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r - thickness / 2);
+    final rect =
+        Rect.fromCircle(center: Offset(cx, cy), radius: r - thickness / 2);
 
     // Red (Top)
     final redPaint = Paint()
@@ -685,7 +773,7 @@ class GoogleLogoPainter extends CustomPainter {
     final barPaint = Paint()
       ..color = const Color(0xFF4285F4)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawRect(
       Rect.fromLTRB(cx, cy - thickness / 2, cx + r, cy + thickness / 2),
       barPaint,
@@ -695,4 +783,3 @@ class GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

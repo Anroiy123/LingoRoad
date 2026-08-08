@@ -43,6 +43,7 @@ const routeAttempt = LessonAttempt(
   slug: 'a1-articles',
   title: 'Articles',
   titleVi: 'Mạo từ',
+  skillCode: 'grammar.present-simple',
   status: 'in_progress',
   exercises: [routeExercise],
 );
