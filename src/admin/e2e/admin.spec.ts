@@ -101,15 +101,15 @@ test('route Users debounce, phân trang và detail 404 dùng API thật', async 
   const userRequests: string[] = []
   await page.route('http://localhost:5000/**', async (route) => {
     const url = new URL(route.request().url()); const path = url.pathname
-    if (path === '/admin/users') { userRequests.push(url.search); const second = url.searchParams.get('offset') === '50'; await route.fulfill({ json:{ total:51, users:[{ id:second ? '22222222-2222-2222-2222-222222222222' : '11111111-1111-1111-1111-111111111111', email:second ? 'admin@example.test' : 'lan@example.test', name:second ? 'Admin' : 'Lan', role:second ? 'Admin' : 'Learner', targetCefr:'B1', createdAt:'2026-08-01T00:00:00Z' }] } }); return }
+    if (path === '/admin/users') { userRequests.push(url.search); const second = url.searchParams.get('offset') === '10'; await route.fulfill({ json:{ total:11, users:[{ id:second ? '22222222-2222-2222-2222-222222222222' : '11111111-1111-1111-1111-111111111111', email:second ? 'admin@example.test' : 'lan@example.test', name:second ? 'Admin' : 'Lan', role:second ? 'Admin' : 'Learner', targetCefr:'B1', createdAt:'2026-08-01T00:00:00Z' }] } }); return }
     if (path.endsWith('22222222-2222-2222-2222-222222222222')) { await route.fulfill({ json:{ id:'22222222-2222-2222-2222-222222222222', email:'admin@example.test', name:'Admin', role:'Admin', targetCefr:'B2', createdAt:'2026-08-01T00:00:00Z', mastery:[], activity:{ lessonsCompleted:2, exercisesAnswered:4, exercisesCorrect:3, dueReviews:1, lastActiveAt:null } } }); return }
     if (path.startsWith('/admin/users/')) { await route.fulfill({ status:404, json:{ error:'not_found' } }); return }
     await route.fulfill({ json:[] })
   })
   await page.goto('/users'); await expect(page.getByRole('heading', { name:'User Management' })).toBeVisible()
   await page.getByPlaceholder('Tên, email hoặc ID…').fill('lan')
-  await expect.poll(() => userRequests.some((query) => query.includes('search=lan') && query.includes('limit=50') && query.includes('offset=0'))).toBeTruthy()
-  await page.getByLabel('Vai trò').selectOption('Admin'); await expect.poll(() => userRequests.some((query) => query.includes('role=Admin'))).toBeTruthy(); await page.getByRole('button', { name:'Sau' }).click(); await expect.poll(() => userRequests.some((query) => query.includes('offset=50'))).toBeTruthy()
+  await expect.poll(() => userRequests.some((query) => query.includes('search=lan') && query.includes('limit=10') && query.includes('offset=0'))).toBeTruthy()
+  await page.getByLabel('Vai trò').selectOption('Admin'); await expect.poll(() => userRequests.some((query) => query.includes('role=Admin'))).toBeTruthy(); await page.getByRole('button', { name:'Trang 2' }).click(); await expect.poll(() => userRequests.some((query) => query.includes('offset=10'))).toBeTruthy()
   await page.getByRole('link', { name:'Xem chi tiết' }).click(); await expect(page.getByRole('heading', { level:1, name:'Admin' })).toBeVisible(); await page.goto('/users/33333333-3333-3333-3333-333333333333'); await expect(page.getByRole('heading', { name:'Không tìm thấy người dùng' })).toBeVisible()
 })
 
@@ -140,7 +140,7 @@ test('bảng mobile giữ cột thao tác trong vùng nhìn thấy khi cuộn ng
   const overflow = await table.evaluate((element) => ({ clientWidth:element.clientWidth, scrollWidth:element.scrollWidth })); expect(overflow.scrollWidth).toBeGreaterThan(overflow.clientWidth)
   const row = table.locator('tbody tr').first(); const typeCell = row.locator('.table-pin-secondary'); const actionCell = row.locator('td').last(); const assertPinned = async (): Promise<void> => { const wrapBox = await table.boundingBox(); const typeBox = await typeCell.boundingBox(); const actionBox = await actionCell.boundingBox(); expect(wrapBox).not.toBeNull(); expect(typeBox).not.toBeNull(); expect(actionBox).not.toBeNull(); expect(actionBox!.x + actionBox!.width).toBeLessThanOrEqual(wrapBox!.x + wrapBox!.width + 1); expect(typeBox!.x).toBeGreaterThanOrEqual(wrapBox!.x - 1); expect(typeBox!.x + typeBox!.width).toBeLessThanOrEqual(actionBox!.x + 1) }
   await assertPinned(); await table.evaluate((element) => { element.scrollLeft = element.scrollWidth }); await assertPinned()
-  await expect(typeCell).toContainText('mcq'); await expect(actionCell.getByRole('button', { name:'Sửa' })).toBeVisible(); await expect(actionCell.getByRole('button', { name:'Xóa' })).toBeVisible(); await expect(page.getByText('Hiển thị 1–20 / 45')).toBeVisible(); await page.getByRole('button', { name:'Sau' }).click(); await expect(page.getByText('Hiển thị 21–40 / 45')).toBeVisible(); await expect(page.getByText('Câu hỏi 21')).toBeVisible()
+  await expect(typeCell).toContainText('mcq'); await expect(actionCell.getByRole('button', { name:'Sửa' })).toBeVisible(); await expect(actionCell.getByRole('button', { name:'Xóa' })).toBeVisible(); await expect(page.getByText('Hiển thị 1–10 / 45')).toBeVisible(); await page.getByRole('button', { name:'Trang sau' }).click(); await expect(page.getByText('Hiển thị 11–20 / 45')).toBeVisible(); await expect(page.getByText('Câu hỏi 11')).toBeVisible()
 })
 
 test('AI item xử lý validation, rate limit, unavailable, success và không gửi trùng', async ({ page }) => {
@@ -162,18 +162,19 @@ test('AI item xử lý validation, rate limit, unavailable, success và không g
 
 test('delete và import chỉ mutation sau confirmation dialog', async ({ page }) => {
   await page.addInitScript((session) => window.sessionStorage.setItem('lingoroad.admin.session', JSON.stringify(session)), { token:token('Admin'), refreshToken:'refresh' })
-  let deletes = 0; let applies = 0
+  let deletes = 0; let applies = 0; let lastValidated: Record<string, unknown> | undefined
   await page.route('http://localhost:5000/**', async (route) => {
     const request = route.request(); const path = new URL(request.url()).pathname
     if (path === '/admin/skills' && request.method() === 'GET') { await route.fulfill({ json:[{ id:1, code:'grammar.delete', name:'Delete', nameVi:'Xóa', category:'grammar', parentId:null, cefrLevel:'A1' }] }); return }
     if (path === '/admin/skills/1' && request.method() === 'DELETE') { deletes++; await route.fulfill({ status:204 }); return }
-    if (path === '/admin/imports/validate') { await route.fulfill({ json:{ valid:true, checksum:'abc123', counts:{ skills:0,items:0,lessons:0 }, errors:[] } }); return }
+    if (path === '/admin/imports/validate') { lastValidated = request.postDataJSON() as Record<string, unknown>; await route.fulfill({ json:{ valid:true, checksum:'abc123', counts:{ skills:0,items:0,lessons:0 }, errors:[] } }); return }
     if (path === '/admin/imports') { applies++; await route.fulfill({ json:{ replay:false, checksum:'abc123' } }); return }
     await route.fulfill({ json:[] })
   })
   await page.goto('/skills'); await page.getByRole('button', { name:'Xóa' }).click(); await expect(page.getByRole('dialog')).toBeVisible(); await page.getByRole('button', { name:'Hủy' }).click(); expect(deletes).toBe(0)
   await page.getByRole('button', { name:'Xóa' }).click(); await page.getByRole('button', { name:'Xóa kỹ năng' }).click(); await expect.poll(() => deletes).toBe(1)
   await page.getByRole('link', { name:'Import' }).click(); const apply = page.getByRole('button', { name:'Apply' }); const validate = page.getByRole('button', { name:'Validate / Preview' }); await expect(apply).toBeDisabled(); await validate.click(); await expect(apply).toBeEnabled(); const editor = page.getByLabel('Content bundle JSON'); await editor.fill(`${await editor.inputValue()} `); await expect(apply).toBeDisabled(); await validate.click(); await expect(apply).toBeEnabled(); await apply.click(); expect(applies).toBe(0); await expect(page.getByRole('dialog')).toContainText('abc123'); await page.getByRole('button', { name:'Xác nhận Apply' }).click(); await expect.poll(() => applies).toBe(1)
+  await page.getByRole('button', { name:'CSV' }).click(); await page.getByRole('button', { name:'Validate / Preview' }).click(); await expect(apply).toBeEnabled(); const validatedSkills = lastValidated?.skills as { code:string }[] | undefined; expect(validatedSkills?.[0]?.code).toBe('grammar.example'); await apply.click(); await page.getByRole('button', { name:'Xác nhận Apply' }).click(); await expect.poll(() => applies).toBe(2)
 })
 
 test('visual regression bốn màn Stitch desktop', async ({ page }) => {

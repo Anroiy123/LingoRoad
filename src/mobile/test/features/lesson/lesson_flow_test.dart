@@ -140,7 +140,10 @@ void main() {
     await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
     await tester.pumpAndSettle();
 
-    expect(find.text('Lan ___ English every day.'), findsOneWidget);
+    expectRenderedTextSequence(
+      find.byKey(const Key('lesson_stem')),
+      'Lan ___ English every day.',
+    );
     await tester.tap(find.byKey(const Key('lesson_option_studies')));
     await tester.pumpAndSettle();
     expect(find.text('Chính xác!'), findsOneWidget);
@@ -166,6 +169,9 @@ void main() {
     repository.startError = null;
     await tester.tap(find.byKey(const Key('lesson_retry')));
     await tester.pumpAndSettle();
-    expect(find.text('Lan ___ English every day.'), findsOneWidget);
+    expectRenderedTextSequence(
+      find.byKey(const Key('lesson_stem')),
+      'Lan ___ English every day.',
+    );
   });
 }

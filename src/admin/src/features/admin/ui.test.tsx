@@ -36,10 +36,18 @@ describe('DataTable layout', () => {
     expect(screen.getByRole('button', { name:'Sửa' })).toBeVisible()
   })
 
-  it('hiển thị khoảng bản ghi và chuyển trang bằng nút phân trang', () => {
-    const changePage = vi.fn(); render(<Pagination page={1} pageSize={20} total={45} onPageChange={changePage} />)
-    expect(screen.getByText('Hiển thị 21–40 / 45')).toBeVisible(); expect(screen.getByText('Trang 2 / 3')).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name:'Sau' })); expect(changePage).toHaveBeenCalledWith(2)
+  it('hiển thị số trang, ellipsis, giới hạn và đổi kích thước trang', () => {
+    const changePage = vi.fn(); const changeSize = vi.fn(); render(<Pagination page={4} pageSize={10} total={100} onPageChange={changePage} onPageSizeChange={changeSize} />)
+    expect(screen.getByText('Hiển thị 41–50 / 100')).toBeVisible(); expect(screen.getByRole('button', { name:'Trang 5' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getAllByText('…')).toHaveLength(2); fireEvent.click(screen.getByRole('button', { name:'Trang sau' })); expect(changePage).toHaveBeenCalledWith(5)
+    fireEvent.click(screen.getByRole('button', { name:'Trang cuối' })); expect(changePage).toHaveBeenCalledWith(9)
+    fireEvent.change(screen.getByLabelText('Số dòng mỗi trang'), { target:{ value:'20' } }); expect(changeSize).toHaveBeenCalledWith(20)
+  })
+
+  it('vô hiệu hóa đúng nút biên và tạo token trang ổn định', () => {
+    const noop = vi.fn(); render(<Pagination page={0} pageSize={10} total={71} onPageChange={noop} onPageSizeChange={noop} />)
+    expect(screen.getByRole('button', { name:'Trang đầu' })).toBeDisabled(); expect(screen.getByRole('button', { name:'Trang trước' })).toBeDisabled()
+    expect(screen.getByRole('button', { name:'Trang 1' })).toHaveAttribute('aria-current', 'page'); expect(screen.getByText('…')).toBeVisible()
   })
 
   it('giữ toàn bộ nội dung dài trong tooltip hover', () => {
