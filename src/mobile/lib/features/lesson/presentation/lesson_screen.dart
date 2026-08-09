@@ -425,10 +425,12 @@ class _DictionarySheetState extends State<_DictionarySheet> {
                 style: const TextStyle(color: AppColors.error))
           else ...[
             Text((_definition ?? '').replaceAll('*', ''),
+                key: const Key('dictionary_definition'),
                 style: Theme.of(context).textTheme.bodyLarge),
             SizedBox(height: AppSpacing.lg.h),
             if (_wordSaved)
               Row(
+                key: const Key('dictionary_word_saved'),
                 children: [
                   const Icon(Icons.check_circle, color: AppColors.success),
                   SizedBox(width: AppSpacing.sm.w),
@@ -437,6 +439,7 @@ class _DictionarySheetState extends State<_DictionarySheet> {
               )
             else
               FilledButton.icon(
+                key: const Key('dictionary_save_word'),
                 onPressed: _saving ? null : _saveWord,
                 icon: _saving
                     ? const SizedBox(

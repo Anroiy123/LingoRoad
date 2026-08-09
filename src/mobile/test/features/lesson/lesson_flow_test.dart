@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
+import 'package:lingoroad_mobile/features/dictionary/data/saved_word_repository.dart';
 import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/features/lesson/domain/lesson_models.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
@@ -85,6 +87,36 @@ class FakeLessonRepository implements LessonRepository {
   }
 }
 
+class FakeDictionaryRepository implements DictionaryRepository {
+  String? nextDefinition;
+  Object? lookupError;
+  final lookedUpWords = <String>[];
+
+  @override
+  Future<String> lookup(String word) async {
+    lookedUpWords.add(word);
+    if (lookupError != null) throw lookupError!;
+    return nextDefinition ?? 'định nghĩa mẫu';
+  }
+}
+
+class FakeSavedWordRepository implements SavedWordRepository {
+  Object? saveError;
+  int saveCalls = 0;
+  String? lastSkillCode;
+  String? lastWord;
+  String? lastDefinition;
+
+  @override
+  Future<void> save(String skillCode, String word, String definition) async {
+    saveCalls++;
+    lastSkillCode = skillCode;
+    lastWord = word;
+    lastDefinition = definition;
+    if (saveError != null) throw saveError!;
+  }
+}
+
 AppLanguageProvider languageProvider() {
   final vi = json.decode(File('assets/translations/vi.json').readAsStringSync())
       as Map<String, dynamic>;
@@ -95,13 +127,24 @@ AppLanguageProvider languageProvider() {
   );
 }
 
-Widget lessonApp(FakeLessonRepository repository) => MultiProvider(
+Widget lessonApp(
+  FakeLessonRepository repository, {
+  DictionaryRepository? dictionaryRepository,
+  SavedWordRepository? savedWordRepository,
+}) =>
+    MultiProvider(
       providers: [
         ChangeNotifierProvider<AppLanguageProvider>.value(
           value: languageProvider(),
         ),
         ChangeNotifierProvider<LessonViewModel>(
           create: (_) => LessonViewModel(repository),
+        ),
+        Provider<DictionaryRepository>.value(
+          value: dictionaryRepository ?? FakeDictionaryRepository(),
+        ),
+        Provider<SavedWordRepository>.value(
+          value: savedWordRepository ?? FakeSavedWordRepository(),
         ),
       ],
       child: MaterialApp(
@@ -173,5 +216,65 @@ void main() {
       find.byKey(const Key('lesson_stem')),
       'Lan ___ English every day.',
     );
+  });
+
+  testWidgets('giữ tay vào từ để tra nghĩa rồi lưu từ vào danh sách xem lại',
+      (tester) async {
+    final repository = FakeLessonRepository();
+    final dictionaryRepository = FakeDictionaryRepository()
+      ..nextDefinition = 'một cái tên tiếng Việt';
+    final savedWordRepository = FakeSavedWordRepository();
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(
+        repository,
+        dictionaryRepository: dictionaryRepository,
+        savedWordRepository: savedWordRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Lan'));
+    await tester.pumpAndSettle();
+
+    expect(dictionaryRepository.lookedUpWords, ['Lan']);
+    expect(find.byKey(const Key('dictionary_definition')), findsOneWidget);
+    expect(find.text('một cái tên tiếng Việt'), findsOneWidget);
+    expect(find.byKey(const Key('dictionary_save_word')), findsOneWidget);
+    expect(find.byKey(const Key('dictionary_word_saved')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('dictionary_save_word')));
+    await tester.pumpAndSettle();
+
+    expect(savedWordRepository.saveCalls, 1);
+    expect(savedWordRepository.lastSkillCode, 'grammar.present-simple');
+    expect(savedWordRepository.lastWord, 'Lan');
+    expect(savedWordRepository.lastDefinition, 'một cái tên tiếng Việt');
+    expect(find.byKey(const Key('dictionary_word_saved')), findsOneWidget);
+    expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
+  });
+
+  testWidgets('lỗi tra từ điển hiển thị thông báo lỗi, không có nút lưu',
+      (tester) async {
+    final repository = FakeLessonRepository();
+    final dictionaryRepository = FakeDictionaryRepository()
+      ..lookupError = const ApiException(
+        code: 'network_unavailable',
+        message: 'offline',
+      );
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(repository, dictionaryRepository: dictionaryRepository),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('English'));
+    await tester.pumpAndSettle();
+
+    expect(dictionaryRepository.lookedUpWords, ['English']);
+    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'),
+        findsOneWidget);
+    expect(find.byKey(const Key('dictionary_definition')), findsNothing);
+    expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
   });
 }
