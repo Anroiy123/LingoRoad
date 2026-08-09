@@ -29,6 +29,21 @@ public static class SavedWordEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/words/{word.Id}", Snapshot(word));
         });
+
+        g.MapGet("/", async (System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+            await db.SavedWords
+                .Where(w => w.UserId == user.UserId())
+                .OrderByDescending(w => w.CreatedAt)
+                .Select(w => new
+                {
+                    w.Id,
+                    w.Word,
+                    w.Definition,
+                    w.Note,
+                    w.CreatedAt,
+                    w.UpdatedAt,
+                })
+                .ToListAsync());
     }
 
     private static object Snapshot(SavedWord word) => new

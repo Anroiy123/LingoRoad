@@ -60,4 +60,38 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("unknown_skill", await response.Content.ReadAsStringAsync());
     }
+
+    [Fact]
+    public async Task List_returns_only_caller_words_newest_first()
+    {
+        await AuthenticateAsync(_client);
+        (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "first", definition = "d1" }))
+            .EnsureSuccessStatusCode();
+        await Task.Delay(5);
+        (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "second", definition = "d2" }))
+            .EnsureSuccessStatusCode();
+
+        var list = await _client.GetFromJsonAsync<List<SavedWordDto>>("/words");
+
+        Assert.Equal(2, list!.Count);
+        Assert.Equal("second", list[0].Word);
+        Assert.Equal("first", list[1].Word);
+    }
+
+    [Fact]
+    public async Task List_excludes_other_users_words()
+    {
+        await AuthenticateAsync(_client);
+        (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mine", definition = "d" }))
+            .EnsureSuccessStatusCode();
+
+        using var otherClient = _factory.CreateClient();
+        await AuthenticateAsync(otherClient);
+
+        var list = await otherClient.GetFromJsonAsync<List<SavedWordDto>>("/words");
+        Assert.Empty(list!);
+    }
 }
