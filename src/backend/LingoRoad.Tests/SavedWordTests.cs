@@ -139,4 +139,38 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Delete_removes_word_and_second_delete_returns_not_found()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "gone", definition = "def" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        var deleted = await _client.DeleteAsync($"/words/{created!.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+
+        var list = await _client.GetFromJsonAsync<List<SavedWordDto>>("/words");
+        Assert.Empty(list!);
+
+        var again = await _client.DeleteAsync($"/words/{created.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_cannot_remove_another_users_word()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mine", definition = "def" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        using var otherClient = _factory.CreateClient();
+        await AuthenticateAsync(otherClient);
+
+        var response = await otherClient.DeleteAsync($"/words/{created!.Id}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

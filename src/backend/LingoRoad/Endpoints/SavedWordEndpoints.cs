@@ -57,6 +57,17 @@ public static class SavedWordEndpoints
             await db.SaveChangesAsync();
             return Results.Ok(Snapshot(word));
         });
+
+        g.MapDelete("/{id:guid}", async (Guid id,
+            System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var word = await db.SavedWords.SingleOrDefaultAsync(
+                w => w.Id == id && w.UserId == user.UserId());
+            if (word is null) return Results.NotFound();
+            db.SavedWords.Remove(word);
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
     }
 
     private static object Snapshot(SavedWord word) => new
