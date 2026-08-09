@@ -1,7 +1,69 @@
 using System.Net;
 using System.Net.Http.Json;
+using LingoRoad.Data;
+using LingoRoad.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LingoRoad.Tests;
+
+public class SavedWordScheduleTests
+{
+    private static SavedWord NewWord(DateTime createdAt) => new()
+    {
+        UserId = Guid.NewGuid(),
+        SkillId = 1,
+        Word = "w",
+        Definition = "d",
+        CreatedAt = createdAt,
+    };
+
+    [Fact]
+    public void Initial_due_is_one_day_after_creation()
+    {
+        var createdAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        Assert.Equal(createdAt.AddDays(1), SavedWordSchedule.InitialDue(createdAt));
+    }
+
+    [Fact]
+    public void Advance_moves_through_stages_with_rolling_gaps_from_review_time()
+    {
+        var createdAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var word = NewWord(createdAt);
+        word.ReviewStage = 1;
+        word.NextReviewAt = SavedWordSchedule.InitialDue(createdAt);
+
+        var reviewedAt1 = createdAt.AddDays(1);
+        Assert.False(SavedWordSchedule.Advance(word, reviewedAt1));
+        Assert.Equal(2, word.ReviewStage);
+        Assert.Equal(reviewedAt1.AddDays(2), word.NextReviewAt);
+
+        var reviewedAt2 = reviewedAt1.AddDays(2);
+        Assert.False(SavedWordSchedule.Advance(word, reviewedAt2));
+        Assert.Equal(3, word.ReviewStage);
+        Assert.Equal(reviewedAt2.AddDays(4), word.NextReviewAt);
+
+        var reviewedAt3 = reviewedAt2.AddDays(4);
+        Assert.False(SavedWordSchedule.Advance(word, reviewedAt3));
+        Assert.Equal(4, word.ReviewStage);
+        Assert.Equal(reviewedAt3.AddDays(7), word.NextReviewAt);
+    }
+
+    [Fact]
+    public void Advance_on_final_stage_returns_true_and_leaves_word_untouched()
+    {
+        var createdAt = DateTime.UtcNow;
+        var word = NewWord(createdAt);
+        word.ReviewStage = 4;
+        var dueBefore = word.NextReviewAt;
+
+        var mastered = SavedWordSchedule.Advance(word, createdAt.AddDays(30));
+
+        Assert.True(mastered);
+        Assert.Equal(4, word.ReviewStage);
+        Assert.Equal(dueBefore, word.NextReviewAt);
+    }
+}
 
 public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
 {
