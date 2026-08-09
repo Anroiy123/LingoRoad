@@ -39,6 +39,13 @@ public static class ReviewEndpoints
                 .Select(c => new { c.Id, c.Front, c.Back, c.Due, c.State, c.Reps })
                 .ToListAsync());
 
+        g.MapGet("/mistakes", async (System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+            await db.ReviewCards
+                .Where(c => c.UserId == user.UserId() && c.SourceExerciseId != null)
+                .OrderBy(c => c.Due)
+                .Select(c => new { c.Id, c.Front, c.Back, c.Due, c.State, c.Reps })
+                .ToListAsync());
+
         g.MapPost("/{cardId:guid}/grade", async (Guid cardId, GradeRequest req,
             System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
         {

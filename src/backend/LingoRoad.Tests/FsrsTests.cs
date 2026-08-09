@@ -91,6 +91,45 @@ public class ReviewEndpointTests : IClassFixture<TestAppFactory>
     private record RewardsDto(int Xp, int Coins);
 
     [Fact]
+    public async Task Mistakes_endpoint_returns_only_wrong_answer_cards_regardless_of_due_date()
+    {
+        var reg = await _client.PostAsJsonAsync("/auth/register",
+            new { email = $"{Guid.NewGuid():N}@t.com", password = "secret123", name = "R" });
+        var token = (await reg.Content.ReadFromJsonAsync<Dictionary<string, string>>())!["token"];
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var manualCreated = await _client.PostAsJsonAsync("/reviews/cards",
+            new { skillCode = "vocabulary.everyday", front = "manual", back = "manual-back" });
+        manualCreated.EnsureSuccessStatusCode();
+
+        Guid mistakeCardId;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var manualCard = await db.ReviewCards.SingleAsync(c => c.Front == "manual");
+            var mistakeCard = new ReviewCard
+            {
+                UserId = manualCard.UserId,
+                SkillId = manualCard.SkillId,
+                SourceExerciseId = Guid.NewGuid(),
+                Front = "mistake question",
+                Back = "mistake answer",
+                Due = DateTime.UtcNow.AddDays(10), // far in the future, not "due"
+            };
+            db.ReviewCards.Add(mistakeCard);
+            await db.SaveChangesAsync();
+            mistakeCardId = mistakeCard.Id;
+        }
+
+        var mistakes = await _client.GetFromJsonAsync<List<CardDto>>("/reviews/mistakes");
+
+        var mistake = Assert.Single(mistakes!);
+        Assert.Equal(mistakeCardId, mistake.Id);
+        Assert.Equal("mistake question", mistake.Front);
+    }
+
+    [Fact]
     public async Task Create_grade_and_requeue_flow()
     {
         var reg = await _client.PostAsJsonAsync("/auth/register",
