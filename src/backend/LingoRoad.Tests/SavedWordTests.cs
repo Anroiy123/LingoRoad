@@ -290,4 +290,59 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Review_advances_stage_and_next_review_date()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "advance", definition = "d" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+        var before = DateTime.UtcNow;
+
+        var response = await _client.PostAsync($"/words/{created!.Id}/review", null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<SavedWordDto>();
+        Assert.Equal(2, body!.ReviewStage);
+        Assert.InRange(body.NextReviewAt,
+            before.AddDays(2).AddSeconds(-5), before.AddDays(2).AddSeconds(5));
+    }
+
+    [Fact]
+    public async Task Review_deletes_word_after_the_final_stage()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mastered", definition = "d" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        for (var i = 0; i < 3; i++)
+        {
+            (await _client.PostAsync($"/words/{created!.Id}/review", null)).EnsureSuccessStatusCode();
+        }
+        var final = await _client.PostAsync($"/words/{created!.Id}/review", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, final.StatusCode);
+        var list = await _client.GetFromJsonAsync<List<SavedWordDto>>("/words");
+        Assert.Empty(list!);
+    }
+
+    [Fact]
+    public async Task Review_on_missing_or_other_users_word_returns_not_found()
+    {
+        await AuthenticateAsync(_client);
+
+        var missing = await _client.PostAsync($"/words/{Guid.NewGuid()}/review", null);
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mine", definition = "d" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+        using var otherClient = _factory.CreateClient();
+        await AuthenticateAsync(otherClient);
+
+        var response = await otherClient.PostAsync($"/words/{created!.Id}/review", null);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

@@ -78,6 +78,23 @@ public static class SavedWordEndpoints
             await db.SaveChangesAsync();
             return Results.NoContent();
         });
+
+        g.MapPost("/{id:guid}/review", async (Guid id,
+            System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var word = await db.SavedWords.SingleOrDefaultAsync(
+                w => w.Id == id && w.UserId == user.UserId());
+            if (word is null) return Results.NotFound();
+            var mastered = SavedWordSchedule.Advance(word, DateTime.UtcNow);
+            if (mastered)
+            {
+                db.SavedWords.Remove(word);
+                await db.SaveChangesAsync();
+                return Results.NoContent();
+            }
+            await db.SaveChangesAsync();
+            return Results.Ok(Snapshot(word));
+        });
     }
 
     private static object Snapshot(SavedWord word) => new
