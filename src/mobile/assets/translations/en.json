@@ -49,8 +49,8 @@
     }
   },
   "dictionary": {
-    "create_flashcard": "Create Flashcard",
-    "flashcard_created": "Flashcard Created"
+    "save_word": "Save word to review",
+    "word_saved": "Word saved"
   },
   "common": {
     "fallback_error": "An error occurred. Please try again.",

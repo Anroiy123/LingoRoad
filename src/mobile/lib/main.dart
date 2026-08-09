@@ -23,6 +23,7 @@ import 'package:lingoroad_mobile/features/practice/data/practice_repository.dart
 import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
+import 'package:lingoroad_mobile/features/dictionary/data/saved_word_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +49,7 @@ void main() async {
   final dashboardRepository = ApiDashboardRepository(apiClient);
   final aiPracticeRepository = ApiAiPracticeRepository(apiClient);
   final dictionaryRepository = ApiDictionaryRepository(apiClient);
+  final savedWordRepository = ApiSavedWordRepository(apiClient);
 
   final viJson = await rootBundle.loadString('assets/translations/vi.json');
   final enJson = await rootBundle.loadString('assets/translations/en.json');
@@ -84,6 +86,7 @@ void main() async {
       dashboardRepository: dashboardRepository,
       aiPracticeRepository: aiPracticeRepository,
       dictionaryRepository: dictionaryRepository,
+      savedWordRepository: savedWordRepository,
       languageProvider: languageProvider,
     ),
   );
@@ -106,6 +109,7 @@ class LingoRoadApp extends StatelessWidget {
     this.dashboardRepository,
     this.aiPracticeRepository,
     this.dictionaryRepository,
+    this.savedWordRepository,
     super.key,
   });
 
@@ -122,6 +126,7 @@ class LingoRoadApp extends StatelessWidget {
   final DashboardRepository? dashboardRepository;
   final AiPracticeRepository? aiPracticeRepository;
   final DictionaryRepository? dictionaryRepository;
+  final SavedWordRepository? savedWordRepository;
   final AppLanguageProvider languageProvider;
 
   @override
@@ -253,6 +258,17 @@ class LingoRoadApp extends StatelessWidget {
         else
           Provider<DictionaryRepository>(
             create: (context) => ApiDictionaryRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
+        if (savedWordRepository != null)
+          Provider<SavedWordRepository>.value(value: savedWordRepository!)
+        else
+          Provider<SavedWordRepository>(
+            create: (context) => ApiSavedWordRepository(
               ApiClient(
                 config: AppConfig(),
                 session: context.read<SessionController>(),

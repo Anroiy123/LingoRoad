@@ -49,8 +49,8 @@
     }
   },
   "dictionary": {
-    "create_flashcard": "Tạo thẻ ôn tập",
-    "flashcard_created": "Đã tạo thẻ"
+    "save_word": "Lưu từ để xem lại",
+    "word_saved": "Đã lưu từ"
   },
   "common": {
     "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
