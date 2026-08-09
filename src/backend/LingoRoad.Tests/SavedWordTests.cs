@@ -94,4 +94,49 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
         var list = await otherClient.GetFromJsonAsync<List<SavedWordDto>>("/words");
         Assert.Empty(list!);
     }
+
+    [Fact]
+    public async Task Patch_updates_note_and_leaves_word_and_definition_unchanged()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mnemonic", definition = "def" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        var patched = await _client.PatchAsJsonAsync($"/words/{created!.Id}",
+            new { note = "sounds like 'ephemeral butterfly'" });
+
+        Assert.Equal(HttpStatusCode.OK, patched.StatusCode);
+        var body = await patched.Content.ReadFromJsonAsync<SavedWordDto>();
+        Assert.Equal("sounds like 'ephemeral butterfly'", body!.Note);
+        Assert.Equal("mnemonic", body.Word);
+        Assert.Equal("def", body.Definition);
+        Assert.NotNull(body.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task Patch_on_missing_word_returns_not_found()
+    {
+        await AuthenticateAsync(_client);
+
+        var missing = await _client.PatchAsJsonAsync($"/words/{Guid.NewGuid()}", new { note = "x" });
+
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+    }
+
+    [Fact]
+    public async Task Patch_cannot_touch_another_users_word()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "mine", definition = "def" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        using var otherClient = _factory.CreateClient();
+        await AuthenticateAsync(otherClient);
+
+        var response = await otherClient.PatchAsJsonAsync($"/words/{created!.Id}", new { note = "x" });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

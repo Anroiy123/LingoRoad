@@ -6,6 +6,7 @@ using LingoRoad.Services;
 namespace LingoRoad.Endpoints;
 
 public record CreateSavedWordRequest(string SkillCode, string Word, string Definition);
+public record UpdateSavedWordNoteRequest(string? Note);
 
 public static class SavedWordEndpoints
 {
@@ -44,6 +45,18 @@ public static class SavedWordEndpoints
                     w.UpdatedAt,
                 })
                 .ToListAsync());
+
+        g.MapPatch("/{id:guid}", async (Guid id, UpdateSavedWordNoteRequest req,
+            System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var word = await db.SavedWords.SingleOrDefaultAsync(
+                w => w.Id == id && w.UserId == user.UserId());
+            if (word is null) return Results.NotFound();
+            word.Note = req.Note;
+            word.UpdatedAt = DateTime.UtcNow;
+            await db.SaveChangesAsync();
+            return Results.Ok(Snapshot(word));
+        });
     }
 
     private static object Snapshot(SavedWord word) => new
