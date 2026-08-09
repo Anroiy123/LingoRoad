@@ -124,6 +124,7 @@ class _LessonScreenState extends State<LessonScreen> {
         ),
         SizedBox(height: AppSpacing.xl.h),
         Wrap(
+          key: const Key('lesson_stem'),
           children: exercise.stem.split(' ').map((word) {
             final cleanWord =
                 word.replaceAll(RegExp(r'[^\p{L}]', unicode: true), '');

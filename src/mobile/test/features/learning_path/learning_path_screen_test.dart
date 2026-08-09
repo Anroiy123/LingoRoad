@@ -252,9 +252,9 @@ void main() {
     expect(lessonRepository.todayCalls, 1);
     expect(lessonRepository.startedLessonIds, ['lesson-a1-articles']);
     expect(find.byType(LessonScreen), findsOneWidget);
-    expect(
-      find.text('Choose the correct article: ___ apple.'),
-      findsOneWidget,
+    expectRenderedTextSequence(
+      find.byKey(const Key('lesson_stem')),
+      'Choose the correct article: ___ apple.',
     );
   });
 
