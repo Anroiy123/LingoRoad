@@ -7,14 +7,28 @@ All configuration is Fluent API in `AppDbContext.OnModelCreating` — no
 
 | File | Type(s) | Shape / notes |
 |---|---|---|
-| `User.cs` | `User` | `Id` (Guid, `NewGuid()` default), `Email` (unique), `PasswordHash`, `Name?`, `TargetCefr` (default `"B2"`), `CreatedAt` |
-| `Skill.cs` | `Skill`, `SkillEdge` | `Skill`: `Id` (int, DB-generated), `Code` (unique, dotted e.g. `grammar.tenses.present_perfect`), `Name`, `NameVi`, `Category` (`grammar\|vocabulary\|reading\|listening\|writing`), `ParentId?` (self-referencing container hierarchy), `CefrLevel`. `SkillEdge`: `PrerequisiteId`, `SkillId` — directed prerequisite edge, composite PK `(PrerequisiteId, SkillId)` |
-| `Item.cs` | `Item` | `Id`, `SkillId`, `CefrLevel`, `Type` (`mcq\|cloze\|listening_mcq`), `Stem`, `OptionsJson` (JSON-serialized `string[]`), `CorrectAnswer`, IRT params `A`,`B`,`C` (double), `AudioUrl?`, `Source`, `CreatedAt` |
-| `TestSession.cs` | `TestSession`, `Response` | `TestSession`: `Status` state machine `"active"→"completed"`, `Theta`, `ThetaSe` (default 1.0), `StartedAt`, `CompletedAt?`, `ResultCefr?`. `Response`: per-answer IRT trace — `ItemId`, `Answer?`, `Correct`, `ThetaAfter`, `SeAfter`, `AnsweredAt` |
+| `User.cs` | `User`, `UserRoles`, `UserFocusSkill` | `User`: `Id` (Guid, `NewGuid()` default), `Email` (unique, canonicalized lower/trim via check constraint), `PasswordHash`, `Name?`, `TargetCefr` (default `"B2"`), `TargetCefrConfirmed` (bool), `DailyGoalMinutes` (default 30, DB check `BETWEEN 10 AND 120`), `LearningPurpose?`, `StudyReminderEnabled` (default true), `ReminderTime?`, `TimeZone` (default `"Asia/Ho_Chi_Minh"`), `EmailNotifications`, `AppUpdates` (default true), `Role` (default `UserRoles.Learner`), `CreatedAt`. `UserRoles`: `Learner`/`Admin` string consts. `UserFocusSkill`: composite key `(UserId, SkillId)` — learner-selected focus skills, written from `AuthEndpoints` |
+| `Skill.cs` | `Skill`, `SkillEdge` | `Skill`: `Id` (int, DB-generated), `Code` (unique, dotted e.g. `grammar.tenses.present_perfect`), `Name`, `NameVi`, `Category` (`grammar\|vocabulary\|reading\|listening\|writing`), `ParentId?` (self-referencing container hierarchy), `CefrLevel`, `IsDeleted` (soft-delete, query-filtered). `SkillEdge`: `PrerequisiteId`, `SkillId` — directed prerequisite edge, composite PK `(PrerequisiteId, SkillId)` |
+| `Item.cs` | `Item` | `Id`, `StableId?` (content-bundle natural key), `SkillId`, `CefrLevel`, `Type` (`mcq\|cloze\|listening_mcq`, content bundles also add `reorder`), `Stem`, `OptionsJson` (JSON-serialized `string[]`), `CorrectAnswer`, `ExplanationVi?`, IRT params `A`,`B`,`C` (double), `AudioUrl?`, `Source`, `License?`, `Reviewer?`, `ContentVersion?`, `CreatedAt`, `IsDeleted` (soft-delete, query-filtered) |
+| `TestSession.cs` | `TestSession`, `Response` | `TestSession`: `Status` state machine `"active"→"completed"`, `Theta`, `ThetaSe` (default 1.0), `StartedAt`, `CompletedAt?`, `ResultCefr?`, `CurrentItemId?` (FK to `Item`, `Restrict` delete). `Response`: per-answer IRT trace — `SessionId`, `ItemId`, `Answer?`, `Correct`, `ThetaAfter`, `SeAfter`, `NextItemId?`, `CompletedAfter`, `ResultCefrAfter?`, `AnsweredAt` |
 | `Mastery.cs` | `Mastery` | Composite PK `(UserId, SkillId)`, `PCorrect` (default 0.5 — uninformed prior), `UpdatedAt` |
-| `ReviewCard.cs` | `Grade` enum, `ReviewCard` | `Grade { Again=1, Hard=2, Good=3, Easy=4 }` — also the wire contract for `GradeRequest.Rating` (`(Grade)req.Rating`). `ReviewCard`: `Stability`, `Difficulty`, `Due`, `LastReview?`, `Reps`, `State` (`"new"→"review"`, or `→"relearning"` on `Again`) |
-| `Exercise.cs` | `Exercise` | `AnsweredAt?` null until first submit — drives the submit-idempotency check in `ExerciseEndpoints` |
-| `SpeakingAttempt.cs` | `SpeakingAttempt` | `AudioPath` (relative, e.g. `uploads/{guid}.webm`), `Transcript?`, `Total`, `ScoresJson?` (full ML response serialized) |
+| `ReviewCard.cs` | `Grade` enum, `ReviewCard` | `Grade { Again=1, Hard=2, Good=3, Easy=4 }` — also the wire contract for `GradeRequest.Rating` (`(Grade)req.Rating`). `ReviewCard`: `UserId`, `SkillId`, `SourceExerciseId?`/`SourceItemId?` (Guid?, each unique per user — a card traces back to at most one exercise or one placement item), `Front`, `Back`, `Stability`, `Difficulty`, `Due`, `LastReview?`, `Reps`, `State` (`"new"→"review"`, or `→"relearning"` on `Again`) |
+| `Exercise.cs` | `Exercise` | `UserId`, `LessonAttemptId?`, `SourceItemId?` (FK `Item`, `Restrict`), `Sequence`, `SkillId`, `CefrLevel`, `Type`, `Stem`, `OptionsJson`, `CorrectAnswer`, `ModelVersion?`, `ExplanationVi?`, `SubmittedAnswer?`, `IsCorrect?`, `CreatedAt`, `AnsweredAt?` — null until first submit, drives the submit-idempotency check in `ExerciseEndpoints` |
+| `SpeakingAttempt.cs` | `SpeakingAttempt` | `UserId`, `PromptText`, `Transcript?`, `Total`, `DurationSeconds`, `ModelVersion`, `FeedbackVi?`, `ScoresJson?` (full ML response serialized), `CreatedAt` |
+| `RefreshSession.cs` | `RefreshSession`, `SecurityAuditEvent` | `RefreshSession`: `UserId`, `TokenHash` (unique), `FamilyId` (rotation family), `CreatedAt`, `ExpiresAt`, `RevokedAt?` (concurrency token), `ReplacedById?` — refresh-token rotation/reuse-detection record. `SecurityAuditEvent`: `Id` (long), `UserId?` (nullable — anonymized on account deletion), `EventType`, `Detail?`, `CreatedAt` — auth/security event log (e.g. `account_deletion_requested`) |
+| `SavedWord.cs` | `SavedWord` | `UserId`, `SkillId`, `Word`, `Definition`, `Note?`, `CreatedAt`, `UpdatedAt?`, `ReviewStage` (default 1), `NextReviewAt` — dictionary "save word" card, scheduled by `SavedWordSchedule` (see below), not FSRS |
+| `SavedWordSchedule.cs` | *(algorithm, see below)* | — |
+| `ReviewGradeOperation.cs` | `ReviewGradeOperation` | Immutable response snapshot for an idempotent `POST /reviews/cards/{id}/grade` request: `UserId`, `CardId`, `OperationId` (unique per user), `Rating`, `ExpectedReps`, `Due`, `State`, `Stability`, `Difficulty`, `Reps` — replayed verbatim if the same `OperationId` is resubmitted |
+| `Lesson.cs` | `LessonStatuses`, `Lesson`, `LessonItem`, `LessonAttempt`, `UserLessonProgress`, `ExerciseAnswerOperation`, `LessonCompletionOperation`, `ContentBundleImport`, `AdminAuditEvent` | `Lesson`: `StableId`/`Slug` (both unique), `Title`, `TitleVi`, `DescriptionVi?`, `SkillId` (FK `Skill`, `Restrict`), `CefrLevel`, `Order`, `ContentVersion`, `ContentChecksum`, `Source`, `License`, `Reviewer`, `IsPublished` (default true), `IsDeleted` (soft-delete, query-filtered), `UpdatedAt`. `LessonItem`: composite PK `(LessonId, ItemId)`, `Order` (unique per lesson). `LessonAttempt`: `UserId`, `LessonId`, `StartOperationId` (unique per user — start idempotency), `Status` (`LessonStatuses.InProgress\|Completed`, concurrency token), `StartedAt`, `CompletedAt?` — DB-enforced single active attempt per `(UserId, LessonId)` via filtered unique index. `UserLessonProgress`: composite PK `(UserId, LessonId)`, `CompletionCount`, `CorrectAnswers`, `TotalAnswers`, `LastCompletedAt?`. `ExerciseAnswerOperation`/`LessonCompletionOperation`: idempotent-response snapshots (same pattern as `ReviewGradeOperation`), keyed unique on `(UserId, OperationId)`. `ContentBundleImport`: `Version` (unique), `Checksum`, `AppliedAt` — one row per applied `content.vN.json` bundle, enforces bundle immutability (see `ContentBundleSeeder.cs` below). `AdminAuditEvent`: `AdminUserId` (FK `User`, `Restrict`), `Action`, `EntityType`, `EntityId`, `Detail?`, `CreatedAt` — written by `AdminEndpoints`' `Audit()` helper on every admin CRUD action, read back via `GET /admin/audit` |
+| `Gamification.cs` | `RewardSources`, `RewardLedgerEntry` | `RewardSources`: `LessonCompletion`/`ReviewGrade` string consts (values used as `RewardLedgerEntry.SourceType`/`QuestCode` inputs). `RewardLedgerEntry`: `UserId`, `SourceOperationId` (idempotency key — one ledger row per originating operation), `SourceType`, `SourceEntityId`, `Xp`, `Coins`, `StreakQualified` (bool — counts toward the daily-streak calendar), `QuestCode`, `CreatedAt`. Appended alongside a `LearningEvent` whenever a lesson/review op completes (`LessonEndpoints`); read back by `GamificationService` |
+| `Privacy.cs` | `LearningEventTypes`, `LearningEvent`, `ConsentRecord`, `AccountDeletionStatuses`, `AccountDeletionRequest` | `LearningEventTypes`: `AnswerSubmitted\|LessonCompleted\|ReviewGraded\|SpeakingScored` consts. `LearningEvent`: `Id` (long), `EventId` (Guid, unique — external/export identity), `UserId`, `OperationId`, `EventType`, plus nullable context fields (`LessonId`,`LessonAttemptId`,`ExerciseId`,`ItemId`,`SkillId`,`Correct`,`PredictedCorrectness`,`Rating`,`Score`,`LatencyMs`,`CefrLevel`,`ModelVersion`,`ContentVersion`), `OccurredAt` — append-only ML/analytics event stream, unique on `(UserId, OperationId, EventType)`. `ConsentRecord`: `UserId`, `ConsentType`, `PolicyVersion`, `Source`, `Granted`, `RecordedAt` — append-only consent ledger (`POST/GET /privacy/consents`), never updated in place, one new row per consent change. `AccountDeletionRequest`: `UserId` (unique — one active request per user), `UserEmailHash` (SHA-256, survives after `User` row is gone), `RequestedAt`, `ScheduledFor` (grace period, `Privacy:DeletionGraceDays` config, default 7d), `Status` (`Pending\|Completed\|Failed`), `CompletedAt?`, `FailureCode?` |
+
+> **Append-only invariant**: `AppDbContext.SaveChanges*` calls
+> `ProtectAppendOnlyRecords()`, which throws `InvalidOperationException`
+> if any `LearningEvent` or `ConsentRecord` is `Modified`/`Deleted` in the
+> change tracker. This is enforced in code, not just convention — a future
+> change that tries to correct/backfill either table in place will throw at
+> `SaveChanges` time, not just violate a norm.
 
 ## Business-rule algorithms (pure static classes — no EF/HTTP deps)
 
@@ -41,6 +55,26 @@ Hardcoded 17-weight array `W[]`. Key functions:
 > The weights are compile-time constants — retuning FSRS requires a code
 > change + redeploy, not a config change. Don't add a "quick" runtime
 > override without updating this note.
+
+Used only for `ReviewCard` (skill-level review queue). `SavedWord`
+(dictionary vocabulary) uses the separate, much simpler
+`SavedWordSchedule.cs` below — the two card types are deliberately not
+unified.
+
+### `SavedWordSchedule.cs` — fixed-interval schedule for saved words
+Pure static class; gap-based spaced repetition for `SavedWord`, not FSRS
+(no grading input). `GapDays = [1, 2, 4, 7]` — represents day 1/3/7/14
+checkpoints since first save.
+- `InitialDue(createdAt) = createdAt.AddDays(GapDays[0])`.
+- `Advance(word, now)`: mutates `word` in place. If `word.ReviewStage` is
+  already the final stage (`4`, "day 14"), returns `true` without mutating
+  — caller deletes the row (word considered mastered) instead of persisting
+  further changes. Otherwise sets `NextReviewAt = now.AddDays(GapDays[stage])`,
+  increments `ReviewStage`, returns `false`.
+
+> The anchor for each gap is the actual review moment (rolling `now`), not
+> the original `CreatedAt` (absolute) — a late review pushes all subsequent
+> checkpoints back rather than the schedule staying fixed to the save date.
 
 ### `PathBuilder.cs` — learning-path generation
 `PathStep(Skill, Mastery, Reason)`. `MasteryThreshold = 0.8` (const).
@@ -81,26 +115,81 @@ elsewhere would silently rank below everything.
 Fluent config:
 | Entity | Config |
 |---|---|
-| `User` | unique index on `Email` |
-| `Skill` | unique index on `Code` |
+| `User` | unique index on `Email`; check constraint `Email` = canonical lower/trim form; check constraint `DailyGoalMinutes BETWEEN 10 AND 120` |
+| `UserFocusSkill` | composite PK `(UserId, SkillId)`; FKs to `User`/`Skill`, both `Cascade` |
+| `RefreshSession` | unique index on `TokenHash`; index `(UserId, FamilyId)`; `RevokedAt` is a concurrency token; FK to `User`, `Cascade` |
+| `SecurityAuditEvent` | index on `CreatedAt` |
+| `Skill` | unique index on `Code`; query filter `!IsDeleted` |
 | `SkillEdge` | composite PK `(PrerequisiteId, SkillId)` |
-| `Item` | composite index `(SkillId, CefrLevel)` |
-| `Response` | index on `SessionId` |
+| `Item` | composite index `(SkillId, CefrLevel)`; unique index on `StableId`; query filter `!IsDeleted` |
+| `Response` | index on `SessionId`; unique composite index `(SessionId, ItemId)` |
+| `TestSession` | FK `CurrentItemId → Item`, `Restrict` |
 | `Mastery` | composite PK `(UserId, SkillId)` |
-| `ReviewCard` | composite index `(UserId, Due)` |
+| `ReviewCard` | composite index `(UserId, Due)`; unique index on `SourceExerciseId`; unique composite index `(UserId, SourceItemId)`; `Reps` is a concurrency token |
+| `SavedWord` | composite index `(UserId, CreatedAt)`; composite index `(UserId, NextReviewAt)` |
+| `ReviewGradeOperation` | unique composite index `(UserId, OperationId)` |
+| `Lesson` | unique index on `StableId`; unique index on `Slug`; query filter `!IsDeleted`; composite index `(SkillId, Order)`; FK `SkillId → Skill`, `Restrict` |
+| `LessonItem` | composite PK `(LessonId, ItemId)`; unique composite index `(LessonId, Order)`; FK `LessonId → Lesson`, `Cascade`; FK `ItemId → Item`, `Restrict` |
+| `LessonAttempt` | unique composite index `(UserId, StartOperationId)`; unique composite index `(UserId, LessonId, Status)` filtered to `Status = 'in_progress'` (enforces single active attempt); FK `UserId → User`, `Cascade`; FK `LessonId → Lesson`, `Restrict`; `Status` is a concurrency token |
+| `UserLessonProgress` | composite PK `(UserId, LessonId)`; FK `UserId → User`, `Cascade`; FK `LessonId → Lesson`, `Cascade` |
+| `Exercise` | unique composite index `(LessonAttemptId, SourceItemId)`; unique composite index `(LessonAttemptId, Sequence)`; `AnsweredAt` is a concurrency token; FK `LessonAttemptId → LessonAttempt`, `Cascade`; FK `SourceItemId → Item`, `Restrict` |
+| `ExerciseAnswerOperation` | unique composite index `(UserId, OperationId)` |
+| `LessonCompletionOperation` | unique composite index `(UserId, OperationId)` |
+| `ContentBundleImport` | unique index on `Version` |
+| `RewardLedgerEntry` | unique composite index `(UserId, SourceOperationId)`; composite index `(UserId, CreatedAt)`; FK `UserId → User`, `Cascade` |
+| `AdminAuditEvent` | composite index `(AdminUserId, CreatedAt)`; FK `AdminUserId → User`, `Restrict` |
+| `LearningEvent` | unique composite index `(UserId, OperationId, EventType)`; unique index on `EventId`; composite index `(UserId, OccurredAt)`; composite index `(SkillId, OccurredAt)`; `EventType` max length 50, `CefrLevel` max length 10, `ModelVersion` max length 200, `ContentVersion` max length 100; FK `UserId → User`, `Cascade` |
+| `ConsentRecord` | composite index `(UserId, ConsentType, RecordedAt)`; `ConsentType` max length 50, `PolicyVersion` max length 100, `Source` max length 50; FK `UserId → User`, `Cascade` |
+| `AccountDeletionRequest` | unique index on `UserId`; composite index `(Status, ScheduledFor)`; `UserEmailHash` max length 64, `Status` max length 20, `FailureCode` max length 100 |
 
-`Exercise` and `SpeakingAttempt` use convention-only single-column PK
-(`Id`), no explicit Fluent config.
+`Exercise` (beyond the above), `SpeakingAttempt`, and a few others use
+convention-only single-column PK (`Id`), no further explicit Fluent config.
+
+> **Append-only invariant**: see the callout under `## Entities` —
+> `LearningEvent`/`ConsentRecord` rows can only be inserted, never
+> `Modified`/`Deleted`, enforced by `AppDbContext.ProtectAppendOnlyRecords()`
+> on every `SaveChanges*` override.
 
 ### `DbSeeder.cs`
-`SeedAsync(db)` is idempotent (`if (await db.Skills.AnyAsync()) return;`).
-Reads `Data/Seed/skills.json` from `AppContext.BaseDirectory` (deployed via
-`<Content Update="Data\Seed\**" .../>` in the `.csproj`). Two-pass insert:
-insert all `Skill` rows → `SaveChangesAsync` (to get generated `Id`s) →
-wire `ParentId`/`SkillEdge` by code lookup → `SaveChangesAsync` again →
-calls `SkillGraph.TopologicalOrder` purely to fail fast on a seed-data
-cycle. Runs on startup only `if (app.Environment.IsDevelopment())`, and
-from `TestAppFactory` for every test class.
+`SeedAsync(db, includeContent = true)` is an **upsert**, not a one-shot
+insert — `if (await db.Skills.AnyAsync()) return;` is stale/gone. It loads
+`Data/Seed/skills.json` (deployed via `<Content Update="Data\Seed\**" .../>`
+in the `.csproj`), builds a `byCode` dictionary from existing `Skill` rows,
+and for each seed row either adds a new `Skill` or updates the existing
+one's `Name`/`NameVi`/`Category`/`CefrLevel` in place — safe to re-run
+against a populated DB. Two-pass: upsert all `Skill` rows → `SaveChangesAsync`
+(to get generated `Id`s) → wire `ParentId`/`SkillEdge` by code lookup →
+`SaveChangesAsync` again → calls `SkillGraph.TopologicalOrder` purely to
+fail fast on a seed-data cycle. If `includeContent`, also calls
+`ContentBundleSeeder.SeedAsync(db)`. Runs on startup only
+`if (app.Environment.IsDevelopment() && ContentSeed:Enabled != false)` (see
+`Program.cs`), or via the `--seed-only` one-shot CLI flag; `TestAppFactory`
+calls it for every test class with `includeContent = SeedContent` (a
+`protected virtual bool`, default `false` — most tests skip content
+seeding for speed).
+
+### `ContentBundleSeeder.cs`
+`SeedAsync(db)` reads `Data/Seed/content.v1.json` into a `Bundle` (version,
+source, license, reviewer, lessons→items). `Validate(bundle)` enforces
+minimums before touching the DB: ≥20 lessons, ≥100 items total, unique
+lesson IDs/slugs/orders, CEFR ∈ `{A1,A2,B1,B2}`, item types ⊆
+`{mcq,cloze,reorder}` but must cover all three, MCQ options ≥2 and include
+the correct answer, reorder options ≥2.
+
+Immutability check: looks up `ContentBundleImport` by `bundle.Version`. If
+a prior import exists with a **different** checksum (SHA-256 of the file
+with CRLF normalized to LF), **throws** — a given version string can never
+change content once applied. If the checksum matches, no-ops (already
+applied).
+
+Otherwise upserts `Lesson`/`Item`/`LessonItem` rows keyed by `StableId`
+(lesson/item natural key from the JSON) inside one DB transaction. IDs are
+deterministic: `StableGuid(naturalId) = Guid(SHA256("lingoroad:" + naturalId)[0..16])`
+— the same content file always produces the same entity `Id`s across
+environments. Seeded `Item.B` (IRT difficulty) is a fixed CEFR-band lookup
+(`A1→-1.5 … B2→1.5`, else `0`), not calibrated. Finishes by inserting a
+`ContentBundleImport { Version, Checksum }` row so the next run's
+immutability check has something to compare against.
 
 ### Migrations (`Migrations/`), in order
 1. `InitialCreate` — empty placeholder (no-op `Up`/`Down`)
@@ -112,6 +201,20 @@ from `TestAppFactory` for every test class.
 7. `AddReviewCards`
 8. `AddExercises`
 9. `AddSpeakingAttempts`
+10. `HardenPlacementIntegrity`
+11. `AddReviewGradeOperations`
+12. `AddIdentityProfileSecurity`
+13. `AddTargetCefrConfirmation`
+14. `AddLessonContentLoop`
+15. `EnforceSingleActiveLessonAttempt`
+16. `AddDashboardGamification`
+17. `AddAdminContentManagement`
+18. `HardenSpeakingAudioRetention`
+19. `AddPrivacyLearningLifecycle`
+20. `AddVocabCardsAndReviewExplanation`
+21. `AddSavedWords`
+22. `AddReviewCardSourceItem`
+23. `AddSavedWordReviewSchedule`
 
 One migration per feature area, added incrementally as endpoints were
 built — matches the `Endpoints/`/entity list exactly.
