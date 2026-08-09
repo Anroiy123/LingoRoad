@@ -224,6 +224,7 @@ app.MapSpeaking();
 app.MapAdmin();
 app.MapPrivacy();
 app.MapDictionary();
+app.MapSavedWords();
 
 app.Run();
 

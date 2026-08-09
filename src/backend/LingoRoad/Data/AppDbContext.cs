@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Response> Responses => Set<Response>();
     public DbSet<Mastery> Masteries => Set<Mastery>();
     public DbSet<ReviewCard> ReviewCards => Set<ReviewCard>();
+    public DbSet<SavedWord> SavedWords => Set<SavedWord>();
     public DbSet<ReviewGradeOperation> ReviewGradeOperations => Set<ReviewGradeOperation>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<SpeakingAttempt> SpeakingAttempts => Set<SpeakingAttempt>();
@@ -68,6 +69,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<ReviewCard>().HasIndex(c => new { c.UserId, c.Due });
         mb.Entity<ReviewCard>().HasIndex(c => c.SourceExerciseId).IsUnique();
         mb.Entity<ReviewCard>().Property(c => c.Reps).IsConcurrencyToken();
+        mb.Entity<SavedWord>().HasIndex(w => new { w.UserId, w.CreatedAt });
         mb.Entity<ReviewGradeOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.StableId).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.Slug).IsUnique();
