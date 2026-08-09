@@ -26,14 +26,20 @@ public static class SavedWordEndpoints
                 Word = req.Word,
                 Definition = req.Definition,
             };
+            word.NextReviewAt = SavedWordSchedule.InitialDue(word.CreatedAt);
             db.SavedWords.Add(word);
             await db.SaveChangesAsync();
             return Results.Created($"/words/{word.Id}", Snapshot(word));
         });
 
-        g.MapGet("/", async (System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
-            await db.SavedWords
-                .Where(w => w.UserId == user.UserId())
+        g.MapGet("/", async (bool? due,
+            System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
+        {
+            var now = DateTime.UtcNow;
+            var userId = user.UserId();
+            var query = db.SavedWords.Where(w => w.UserId == userId);
+            if (due == true) query = query.Where(w => w.NextReviewAt <= now);
+            return await query
                 .OrderByDescending(w => w.CreatedAt)
                 .Select(w => new
                 {
@@ -43,8 +49,12 @@ public static class SavedWordEndpoints
                     w.Note,
                     w.CreatedAt,
                     w.UpdatedAt,
+                    w.ReviewStage,
+                    w.NextReviewAt,
+                    IsDue = w.NextReviewAt <= now,
                 })
-                .ToListAsync());
+                .ToListAsync();
+        });
 
         g.MapPatch("/{id:guid}", async (Guid id, UpdateSavedWordNoteRequest req,
             System.Security.Claims.ClaimsPrincipal user, AppDbContext db) =>
@@ -78,5 +88,7 @@ public static class SavedWordEndpoints
         word.Note,
         word.CreatedAt,
         word.UpdatedAt,
+        word.ReviewStage,
+        word.NextReviewAt,
     };
 }

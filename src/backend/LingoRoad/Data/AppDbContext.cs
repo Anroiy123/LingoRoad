@@ -71,6 +71,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         mb.Entity<ReviewCard>().HasIndex(c => new { c.UserId, c.SourceItemId }).IsUnique();
         mb.Entity<ReviewCard>().Property(c => c.Reps).IsConcurrencyToken();
         mb.Entity<SavedWord>().HasIndex(w => new { w.UserId, w.CreatedAt });
+        mb.Entity<SavedWord>().HasIndex(w => new { w.UserId, w.NextReviewAt });
         mb.Entity<ReviewGradeOperation>().HasIndex(o => new { o.UserId, o.OperationId }).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.StableId).IsUnique();
         mb.Entity<Lesson>().HasIndex(l => l.Slug).IsUnique();

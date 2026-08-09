@@ -77,7 +77,10 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
     }
 
     private record SavedWordDto(Guid Id, string Word, string Definition, string? Note,
-        DateTime CreatedAt, DateTime? UpdatedAt);
+        DateTime CreatedAt, DateTime? UpdatedAt, int ReviewStage, DateTime NextReviewAt);
+
+    private record SavedWordListDto(Guid Id, string Word, string Definition, string? Note,
+        DateTime CreatedAt, DateTime? UpdatedAt, int ReviewStage, DateTime NextReviewAt, bool IsDue);
 
     private async Task AuthenticateAsync(HttpClient client)
     {
@@ -155,6 +158,58 @@ public class SavedWordEndpointTests : IClassFixture<TestAppFactory>
 
         var list = await otherClient.GetFromJsonAsync<List<SavedWordDto>>("/words");
         Assert.Empty(list!);
+    }
+
+    [Fact]
+    public async Task Create_sets_review_stage_one_and_next_review_in_one_day()
+    {
+        await AuthenticateAsync(_client);
+        var before = DateTime.UtcNow;
+
+        var response = await _client.PostAsJsonAsync("/words", new
+        {
+            skillCode = "vocabulary.everyday",
+            word = "ephemeral",
+            definition = "tồn tại trong thời gian ngắn",
+        });
+
+        var body = await response.Content.ReadFromJsonAsync<SavedWordDto>();
+        Assert.Equal(1, body!.ReviewStage);
+        Assert.InRange(body.NextReviewAt,
+            before.AddDays(1).AddSeconds(-5), before.AddDays(1).AddSeconds(5));
+    }
+
+    [Fact]
+    public async Task List_annotates_items_and_due_filter_excludes_not_yet_due_words()
+    {
+        await AuthenticateAsync(_client);
+        var created = await (await _client.PostAsJsonAsync("/words",
+            new { skillCode = "vocabulary.everyday", word = "future", definition = "d" }))
+            .Content.ReadFromJsonAsync<SavedWordDto>();
+
+        var fullList = await _client.GetFromJsonAsync<List<SavedWordListDto>>("/words");
+        var item = Assert.Single(fullList!);
+        Assert.Equal(1, item.ReviewStage);
+        Assert.False(item.IsDue);
+
+        var dueList = await _client.GetFromJsonAsync<List<SavedWordListDto>>("/words?due=true");
+        Assert.Empty(dueList!);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var word = await db.SavedWords.SingleAsync(w => w.Id == created!.Id);
+            word.NextReviewAt = DateTime.UtcNow.AddMinutes(-1);
+            await db.SaveChangesAsync();
+        }
+
+        var dueListAfter = await _client.GetFromJsonAsync<List<SavedWordListDto>>("/words?due=true");
+        var due = Assert.Single(dueListAfter!);
+        Assert.Equal(created!.Id, due.Id);
+        Assert.True(due.IsDue);
+
+        var fullListAfter = await _client.GetFromJsonAsync<List<SavedWordListDto>>("/words");
+        Assert.Single(fullListAfter!);
     }
 
     [Fact]
