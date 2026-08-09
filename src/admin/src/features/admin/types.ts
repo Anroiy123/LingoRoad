@@ -110,3 +110,13 @@ export interface ImportPreview {
   counts: { skills: number; items: number; lessons: number }
   errors: string[]
 }
+
+export interface AdminImportRequest {
+  version: string
+  source: string
+  license: string
+  reviewer: string
+  skills: { code: string; name: string; nameVi: string; category: string; parentCode: string | null; cefrLevel: string }[]
+  items: { stableId: string; skillCode: string; cefrLevel: string; type: string; stem: string; options: string[]; correctAnswer: string; explanationVi: string | null }[]
+  lessons: { stableId: string; slug: string; title: string; titleVi: string; descriptionVi: string | null; skillCode: string; cefrLevel: string; order: number; isPublished: boolean; itemStableIds: string[] }[]
+}

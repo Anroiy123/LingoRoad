@@ -46,6 +46,7 @@ describe('Admin app guard và trạng thái API', () => {
     await waitFor(() => expect(screen.getByText('75%')).toBeTruthy())
     expect(screen.getByRole('img', { name: 'LingoRoad' })).toBeTruthy()
     expect(screen.getByText('Chưa có dữ liệu mastery.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name:'Tổng quan nội dung' })).toBeTruthy()
     expect(screen.getByText('Vùng bảo vệ')).toBeTruthy()
   })
 

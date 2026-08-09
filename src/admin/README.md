@@ -19,13 +19,51 @@ Các route hiện có:
   chế độ read-only.
 - `/skills`, `/items`, `/lessons`: quản lý taxonomy và học liệu qua API thật.
 - `/analytics`: analytics tổng quan và learning-quality.
-- `/imports`: validate, preview, xác nhận rồi mới apply content bundle.
+- `/imports`: nhập bundle JSON hoặc CSV, validate, preview, xác nhận rồi mới
+  apply.
 - `/audit`: tra cứu audit log.
 
 Route `/` và route không hợp lệ chuyển về `/overview`. Item editor hỗ trợ tạo
 item bằng AI với loại `mcq` hoặc `cloze`, CEFR và số lượng từ 1 đến 20. Trạng
 thái `insufficient_sample` trong learning-quality là dữ liệu hợp lệ, không phải
 lỗi.
+
+Các bảng Users, Skills, Items, Lessons và Audit mặc định hiển thị 10 dòng. Bộ
+phân trang cho phép chọn 10/20/50 dòng, chuyển tới trang đầu/trước/số
+trang/sau/cuối và tự đặt lại trang khi tìm kiếm, lọc hoặc đổi số dòng. Users gửi
+`limit`/`offset` tương ứng tới server; các bảng nội dung còn lại phân trang trên
+dữ liệu API hiện có.
+
+## Import CSV
+
+CSV được chuyển thành cùng JSON contract với `/admin/imports/validate` và
+`/admin/imports`; backend, checksum và cơ chế idempotency không thay đổi. File
+phải có đủ header theo đúng tên sau (thứ tự có thể khác):
+
+```text
+kind,version,source,license,reviewer,code,name,nameVi,category,parentCode,cefrLevel,stableId,skillCode,type,stem,options,correctAnswer,explanationVi,slug,title,titleVi,descriptionVi,order,isPublished,itemStableIds
+```
+
+- `kind`: `skill`, `item` hoặc `lesson`.
+- Dòng dữ liệu đầu tiên phải có `version`, `source`, `license`, `reviewer`; các
+  dòng sau có thể để trống metadata hoặc lặp lại đúng cùng giá trị.
+- Dòng `skill` dùng `code,name,nameVi,category,parentCode,cefrLevel`.
+- Dòng `item` dùng `stableId,skillCode,cefrLevel,type,stem,options,correctAnswer,explanationVi`.
+- Dòng `lesson` dùng `stableId,slug,title,titleVi,descriptionVi,skillCode,cefrLevel,order,isPublished,itemStableIds`.
+- `options` và `itemStableIds` là mảng chuỗi JSON; trong CSV, dấu nháy kép JSON
+  phải được escape thành hai dấu nháy kép.
+
+Ví dụ rút gọn:
+
+```csv
+kind,version,source,license,reviewer,code,name,nameVi,category,parentCode,cefrLevel,stableId,skillCode,type,stem,options,correctAnswer,explanationVi,slug,title,titleVi,descriptionVi,order,isPublished,itemStableIds
+skill,2026.08.09-csv-v1,LingoRoad Admin CSV,Proprietary,Content reviewer,grammar.example,Example skill,Kỹ năng mẫu,grammar,,A1,,,,,,,,,,,,,,
+item,,,,,,,,,,A1,item-example-01,grammar.example,mcq,"Choose the correct answer, please.","[""Answer A"",""Answer B""]",Answer A,Giải thích mẫu,,,,,,,
+lesson,,,,,,,,,,A1,lesson-example-01,grammar.example,,,,,,example-lesson,Example lesson,Bài học mẫu,Mô tả mẫu,1,true,"[""item-example-01""]"
+```
+
+Trang Import có nút tải CSV mẫu. Chỉnh sửa nội dung hoặc đổi định dạng sau khi
+preview sẽ vô hiệu hóa Apply cho tới khi validate lại.
 
 Layout dùng sidebar 256px trên desktop và drawer có scrim trên mobile. Drawer
 đóng sau khi điều hướng, hỗ trợ phím `Escape`, trả focus về nút mở và khóa focus
@@ -83,7 +121,7 @@ qua secret hoặc environment store.
 Trạng thái quality gate hiện tại:
 
 - `npm run lint`: đạt.
-- `npm test -- --run`: 19/19 unit tests đạt.
+- `npm test -- --run`: 33/33 unit tests đạt.
 - `npm run build`: đạt.
 - `npm run test:e2e`: 10/10 Playwright E2E đạt.
 
@@ -114,8 +152,5 @@ Origin của Admin phải nằm trong CORS allowlist của backend.
 
 ## Trạng thái dependency audit
 
-Tại lần kiểm tra ngày 2026-08-08, `npm audit` không còn báo advisory React Router
-được ghi trước đây. Audit hiện báo 1 vulnerability mức high ở dependency gián
-tiếp `nanoid@3.3.16` theo chuỗi `vite -> postcss -> nanoid` và cho biết có bản
-sửa. Chạy lại `npm audit` trước khi release vì kết quả này thay đổi theo lockfile
-và advisory upstream.
+Tại lần kiểm tra ngày 2026-08-09, `npm audit` báo `0 vulnerabilities`. Chạy lại
+trước khi release vì kết quả có thể thay đổi theo lockfile và advisory upstream.
