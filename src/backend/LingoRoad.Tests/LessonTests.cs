@@ -272,6 +272,54 @@ public class LessonEndpointTests : IClassFixture<ContentFactory>
         Assert.True(lessonQuest.Completed);
     }
 
+    [Fact]
+    public async Task Retrying_a_lesson_and_failing_the_same_item_does_not_duplicate_the_mistake_card()
+    {
+        await AuthenticateAsync();
+        var lesson = (await _client.GetFromJsonAsync<List<TodayLesson>>("/path/today"))![0];
+
+        async Task<AttemptDto> StartAndFailFirstExerciseAsync()
+        {
+            var start = await _client.PostAsJsonAsync($"/lessons/{lesson.Id}/attempts",
+                new { operationId = Guid.NewGuid() });
+            var attempt = (await start.Content.ReadFromJsonAsync<AttemptDto>())!;
+
+            Dictionary<Guid, string> answers;
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                answers = await db.Exercises.Where(e => e.LessonAttemptId == attempt.Id)
+                    .ToDictionaryAsync(e => e.Id, e => e.CorrectAnswer);
+            }
+
+            for (var index = 0; index < attempt.Exercises.Count; index++)
+            {
+                var exercise = attempt.Exercises[index];
+                var answer = index == 0 ? "definitely wrong" : answers[exercise.Id];
+                (await _client.PostAsJsonAsync($"/exercises/{exercise.Id}/submit",
+                    new { answer, operationId = Guid.NewGuid() })).EnsureSuccessStatusCode();
+            }
+
+            var complete = await _client.PostAsJsonAsync($"/lesson-attempts/{attempt.Id}/complete",
+                new { operationId = Guid.NewGuid() });
+            complete.EnsureSuccessStatusCode();
+            return attempt;
+        }
+
+        var firstAttempt = await StartAndFailFirstExerciseAsync();
+        var secondAttempt = await StartAndFailFirstExerciseAsync();
+
+        using var scope = _factory.Services.CreateScope();
+        var verifyDb = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var firstExercise = (await verifyDb.Exercises.FindAsync(firstAttempt.Exercises[0].Id))!;
+        var secondItemId = (await verifyDb.Exercises.FindAsync(secondAttempt.Exercises[0].Id))!.SourceItemId;
+        Assert.Equal(firstExercise.SourceItemId, secondItemId); // same lesson, same position -> same underlying item
+
+        var cardsForItem = await verifyDb.ReviewCards.CountAsync(c =>
+            c.UserId == firstExercise.UserId && c.SourceItemId == firstExercise.SourceItemId);
+        Assert.Equal(1, cardsForItem);
+    }
+
     private record TodayLesson(Guid Id, string Slug, string Title, string TitleVi,
         string SkillCode, string Cefr, int ItemCount, bool Completed, double Mastery);
     private record ExerciseDto(Guid Id, int Sequence, string Type, string Stem,

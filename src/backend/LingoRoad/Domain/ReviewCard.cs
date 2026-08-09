@@ -8,6 +8,7 @@ public class ReviewCard
     public Guid UserId { get; set; }
     public int SkillId { get; set; }
     public Guid? SourceExerciseId { get; set; }
+    public Guid? SourceItemId { get; set; }
     public required string Front { get; set; }
     public required string Back { get; set; }
     public double Stability { get; set; }

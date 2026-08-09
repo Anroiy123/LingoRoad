@@ -183,12 +183,16 @@ public static class LessonEndpoints
             var reviewCardsCreated = 0;
             foreach (var exercise in exercises.Where(e => e.IsCorrect == false))
             {
-                if (await db.ReviewCards.AnyAsync(c => c.SourceExerciseId == exercise.Id)) continue;
+                var alreadyTracked = exercise.SourceItemId is Guid itemId
+                    ? await db.ReviewCards.AnyAsync(c => c.UserId == userId && c.SourceItemId == itemId)
+                    : await db.ReviewCards.AnyAsync(c => c.SourceExerciseId == exercise.Id);
+                if (alreadyTracked) continue;
                 db.ReviewCards.Add(new ReviewCard
                 {
                     UserId = userId,
                     SkillId = exercise.SkillId,
                     SourceExerciseId = exercise.Id,
+                    SourceItemId = exercise.SourceItemId,
                     Front = exercise.Stem,
                     Back = exercise.CorrectAnswer,
                 });
