@@ -12,6 +12,7 @@
 !/CLAUDE.md
 context.md
 /docs/superpowers/
+/.worktrees/
 
 # Android signing material
 src/mobile/android/key.properties
