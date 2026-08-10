@@ -255,6 +255,7 @@
     "groups": {
       "account": "Account",
       "goals": "Learning Goals",
+      "goals_and_schedule": "Goals & Schedule",
       "notifications": "Notifications",
       "schedule": "Study Schedule"
     },
@@ -276,12 +277,23 @@
       "daily_goal_val": "30 minutes / day",
       "email_notif": "Email Notifications",
       "focus_skills": "Focus skills",
+      "goals_and_schedule_subtitle": "Configure study goals and reminder schedule",
+      "language": "Language",
+      "language_en": "English",
+      "language_vi": "Vietnamese",
       "learning_purpose": "Learning purpose",
       "logout": "Log out",
+      "notifications_subtitle": "Configure notifications, language, and theme",
+      "preferences": "App Preferences",
       "reminder_time": "Reminder time settings",
       "study_reminder": "Study reminder",
       "target_level": "Target level",
-      "target_level_val": "B2 - Upper Intermediate"
+      "target_level_val": "B2 - Upper Intermediate",
+      "theme": "Theme",
+      "theme_dark": "Dark",
+      "theme_default": "System default",
+      "theme_light": "Light",
+      "theme_system": "System default"
     },
     "skills_selected": "{} skills selected",
     "status": "Level {} · {} · {} badges"
@@ -369,6 +381,7 @@
     "flip_card_semantics": "Flip review card",
     "grade_error": "Could not save this grade. Please try again.",
     "hint": "Remember the meaning before flipping",
+    "mark_learned": "Learned",
     "rating": {
       "easy": "Easy",
       "forgot": "Forgot",

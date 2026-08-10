@@ -8,7 +8,7 @@ class AppConfig {
           apiBaseUrl ??
               const String.fromEnvironment(
                 'API_BASE_URL',
-                defaultValue: 'http://192.168.2.90:5000',
+                defaultValue: 'http://192.168.1.8:5000',
               ),
         ) {
     if (!{'dev', 'staging', 'prod'}.contains(this.environment)) {

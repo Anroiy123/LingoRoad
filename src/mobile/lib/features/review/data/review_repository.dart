@@ -14,9 +14,10 @@ abstract interface class ReviewRepository {
 class ApiReviewRepository implements ReviewRepository {
   const ApiReviewRepository(this._apiClient);
   final ApiClient _apiClient;
+
   @override
   Future<List<ReviewCard>> fetchDue() async {
-    final response = await _apiClient.get('/reviews/due');
+    final response = await _apiClient.get('/words?due=true');
     if (response is! List) {
       throw const ApiException(
           code: 'malformed_response', message: 'Phản hồi ôn tập không hợp lệ');
@@ -29,19 +30,15 @@ class ApiReviewRepository implements ReviewRepository {
       {required ReviewCard card,
       required int rating,
       required String operationId}) async {
-    await _apiClient.postJson('/reviews/${card.id}/grade', body: {
-      'rating': rating,
-      'operationId': operationId,
-      'expectedReps': card.reps
-    });
+    await _apiClient.postJson('/words/${card.id}/review', body: {});
   }
 
   @override
   Future<void> createCard(String skillCode, String front, String back) async {
-    await _apiClient.postJson('/reviews/cards', body: {
+    await _apiClient.postJson('/words', body: {
       'skillCode': skillCode,
-      'front': front,
-      'back': back,
+      'word': front,
+      'definition': back,
     });
   }
 }

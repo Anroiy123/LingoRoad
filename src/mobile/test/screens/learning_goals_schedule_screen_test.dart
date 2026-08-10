@@ -11,12 +11,12 @@ import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
 import 'package:lingoroad_mobile/features/progress/domain/progress_models.dart';
-import 'package:lingoroad_mobile/screens/profile_screen.dart';
+import 'package:lingoroad_mobile/screens/learning_goals_schedule_screen.dart';
 import 'package:provider/provider.dart';
 
-import '../../helpers/widget_test_harness.dart';
+import '../helpers/widget_test_harness.dart';
 
-class _ProfileRepository implements AuthRepository {
+class _TestAuthRepository implements AuthRepository {
   var failUpdate = false;
   var updateCalls = 0;
   final profile = const UserProfile(
@@ -38,6 +38,7 @@ class _ProfileRepository implements AuthRepository {
 
   @override
   Future<UserProfile> getProfile() async => profile;
+
   @override
   Future<UserProfile> updateProfile(Map<String, Object?> values) async {
     updateCalls++;
@@ -50,29 +51,35 @@ class _ProfileRepository implements AuthRepository {
   @override
   Future<void> changePassword(
       {required String currentPassword, required String newPassword}) async {}
+
   @override
   Future<void> logout(String? refreshToken) async {}
+
   @override
-  Future<AuthTokens> login({required String email, required String password}) =>
+  Future<AuthTokens> login(
+          {required String email, required String password}) =>
       throw UnimplementedError();
+
   @override
   Future<AuthTokens> register(
           {required String email, required String password, String? name}) =>
       throw UnimplementedError();
 }
 
-class _ProgressRepository implements ProgressRepository {
+class _TestProgressRepository implements ProgressRepository {
   @override
   Future<List<MasteryRow>> mastery() async => const [];
+
   @override
   Future<List<SkillCatalogItem>> skills() async => const [
         SkillCatalogItem(
-            id: 1,
-            code: 'grammar.present',
-            name: 'Present tense',
-            nameVi: 'Thì hiện tại',
-            category: 'grammar',
-            parentId: 10),
+          id: 1,
+          code: 'grammar.present',
+          name: 'Present tense',
+          nameVi: 'Thì hiện tại',
+          category: 'grammar',
+          parentId: 10,
+        ),
       ];
 }
 
@@ -86,26 +93,46 @@ AppLanguageProvider _language() {
 }
 
 void main() {
-  testWidgets('profile hiển thị ô Mục tiêu & Lịch học và chuyển tới màn hình mới',
+  testWidgets(
+      'LearningGoalsScheduleScreen displays goals & schedule data and handles error rollback',
       (tester) async {
-    final repository = _ProfileRepository()..failUpdate = true;
+    final repository = _TestAuthRepository()..failUpdate = true;
     final session = SessionController(MemorySessionStore('access', 'refresh'));
     await session.restore();
+
     await pumpWidgetWithLingoRoadScreenUtil(
       tester,
       MultiProvider(
         providers: [
           Provider<AuthRepository>.value(value: repository),
-          Provider<ProgressRepository>.value(value: _ProgressRepository()),
+          Provider<ProgressRepository>.value(value: _TestProgressRepository()),
           ChangeNotifierProvider<SessionController>.value(value: session),
-          ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+          ChangeNotifierProvider<AppLanguageProvider>.value(
+              value: _language()),
         ],
-        child: const MaterialApp(home: Scaffold(body: ProfileScreen())),
+        child: const MaterialApp(
+          home: LearningGoalsScheduleScreen(),
+        ),
       ),
     );
+
     await tester.pumpAndSettle();
-    expect(find.text('Mục tiêu & Lịch học'), findsWidgets);
-    expect(find.text('45 phút / ngày • B1'), findsOneWidget);
-    expect(find.text('Thông báo'), findsWidgets);
+
+    expect(find.text('Mục tiêu & Lịch học'), findsOneWidget);
+    expect(find.text('45 phút / ngày'), findsOneWidget);
+    expect(find.text('B1'), findsOneWidget);
+    expect(find.text('Work'), findsOneWidget);
+    expect(find.text('19:30'), findsOneWidget);
+
+    final reminder = find.byType(Switch).first;
+    expect(tester.widget<Switch>(reminder).value, isTrue);
+
+    await tester.tap(reminder);
+    await tester.pumpAndSettle();
+
+    expect(repository.updateCalls, 1);
+    expect(tester.widget<Switch>(find.byType(Switch).first).value, isTrue);
+    expect(
+        find.text('Không thể lưu thay đổi. Vui lòng thử lại.'), findsOneWidget);
   });
 }

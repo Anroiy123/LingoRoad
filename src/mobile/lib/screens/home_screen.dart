@@ -127,11 +127,13 @@ class _HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => CircleAvatar(
               radius: 18.r,
-              backgroundColor: AppColors.surfaceLow,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColorsDark.surfaceLow
+                  : AppColors.surfaceLow,
               child: Icon(
                 Icons.person_outline_rounded,
                 size: 20.sp,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -154,9 +156,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // CEFR badge
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceLow,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColorsDark.surfaceLow
+                : AppColors.surfaceLow,
             borderRadius: BorderRadius.circular(999.r),
-            border: Border.all(color: AppColors.surfaceHigh),
+            border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColorsDark.surfaceHigh
+                    : AppColors.surfaceHigh),
           ),
           padding: EdgeInsets.symmetric(
               horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
@@ -223,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           l10n.translate('home.subtitle'),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
         SizedBox(height: AppSpacing.sm.h),
@@ -297,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? 'TỔNG QUAN HOẠT ĐỘNG'
                       : 'ACTIVITY OVERVIEW',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
@@ -315,7 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.md.h),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceLow,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColorsDark.surfaceLow
+                        : AppColors.surfaceLow,
                     borderRadius: BorderRadius.circular(AppRadius.xl.r),
                   ),
                   child: Column(
@@ -329,7 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: CircularProgressIndicator(
                               value: 1.0,
                               strokeWidth: 6.r,
-                              color: AppColors.surfaceHigh,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColorsDark.surfaceHigh
+                                  : AppColors.surfaceHigh,
                               backgroundColor: Colors.transparent,
                             ),
                           ),
@@ -361,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         l10n.translate('home.metrics.daily_goal'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
                       ),
@@ -375,7 +386,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.md.h),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceLow,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColorsDark.surfaceLow
+                        : AppColors.surfaceLow,
                     borderRadius: BorderRadius.circular(AppRadius.xl.r),
                   ),
                   child: Column(
@@ -389,7 +402,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: CircularProgressIndicator(
                               value: 1.0,
                               strokeWidth: 6.r,
-                              color: AppColors.surfaceHigh,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColorsDark.surfaceHigh
+                                  : AppColors.surfaceHigh,
                               backgroundColor: Colors.transparent,
                             ),
                           ),
@@ -421,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         l10n.translate('home.metrics.weekly_goal'),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontWeight: FontWeight.w600,
                             ),
                       ),
@@ -445,15 +460,21 @@ class _HomeScreenState extends State<HomeScreen> {
         key: const Key('home_today_lesson'),
         padding: EdgeInsets.all(AppSpacing.lg.w),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLow,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColorsDark.surfaceLow
+              : AppColors.surfaceLow,
           borderRadius: BorderRadius.circular(AppRadius.xl.r),
-          border: Border.all(color: AppColors.surfaceHigh),
+          border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColorsDark.surfaceHigh
+                  : AppColors.surfaceHigh),
         ),
         child: SizedBox(
           width: double.infinity,
           child: Text(
             l10n.translate('home.today_lesson.empty'),
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -641,12 +662,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: quest.completed
                           ? AppColors.primaryContainer.withValues(alpha: 0.2)
-                          : AppColors.surfaceLow,
+                          : (Theme.of(context).brightness == Brightness.dark
+                              ? AppColorsDark.surfaceLow
+                              : AppColors.surfaceLow),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: quest.completed
                             ? AppColors.primaryContainer.withValues(alpha: 0.3)
-                            : AppColors.surfaceHigh,
+                            : (Theme.of(context).brightness == Brightness.dark
+                                ? AppColorsDark.surfaceHigh
+                                : AppColors.surfaceHigh),
                       ),
                     ),
                     child: Icon(
@@ -654,7 +679,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 20.sp,
                       color: quest.completed
                           ? AppColors.primaryContainer
-                          : AppColors.text,
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(width: AppSpacing.md.w),
@@ -718,13 +743,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: quest.completed
                               ? AppColors.primaryContainer
                                   .withValues(alpha: 0.2)
-                              : AppColors.surfaceLow,
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? AppColorsDark.surfaceLow
+                                  : AppColors.surfaceLow),
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: quest.completed
                                 ? AppColors.primaryContainer
                                     .withValues(alpha: 0.3)
-                                : AppColors.surfaceHigh,
+                                : (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColorsDark.surfaceHigh
+                                    : AppColors.surfaceHigh),
                           ),
                         ),
                         child: Icon(
@@ -732,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 20.sp,
                           color: quest.completed
                               ? AppColors.primaryContainer
-                              : AppColors.text,
+                              : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       Container(
@@ -880,13 +909,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       width: 44.w,
                       height: 44.w,
-                      decoration: const BoxDecoration(
-                        color: AppColors.surfaceLow,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColorsDark.surfaceLow
+                            : AppColors.surfaceLow,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.record_voice_over_rounded,
-                        color: AppColors.text,
+                        color: Theme.of(context).colorScheme.onSurface,
                         size: 24.sp,
                       ),
                     ),
@@ -906,7 +937,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           l10n.translate('home.quick_actions.practice_desc'),
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: AppColors.textSecondary,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                         ),
                       ],
@@ -962,13 +995,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             width: 44.w,
                             height: 44.w,
-                            decoration: const BoxDecoration(
-                              color: AppColors.surfaceLow,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColorsDark.surfaceLow
+                                  : AppColors.surfaceLow,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.menu_book_rounded,
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               size: 22.sp,
                             ),
                           ),
@@ -998,7 +1033,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       .textTheme
                                       .labelSmall
                                       ?.copyWith(
-                                        color: AppColors.textSecondary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
                                         fontSize: 10.sp,
                                       ),
                                 ),

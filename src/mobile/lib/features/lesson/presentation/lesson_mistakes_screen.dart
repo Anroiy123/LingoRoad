@@ -15,12 +15,13 @@ class LessonMistakesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background.withValues(alpha: 0.8),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.text),
+          icon: Icon(Icons.arrow_back_rounded,
+              color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -78,21 +79,24 @@ class LessonMistakesScreen extends StatelessWidget {
 
   Widget _buildSummaryHeader(
       BuildContext context, AppLanguageProvider l10n, int mistakeCount) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.all(AppSpacing.md.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: isDark ? AppColorsDark.surface : AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: theme.colorScheme.primary, width: 1.5.w),
       ),
       child: Row(
         children: [
           Container(
             width: 48.w,
             height: 48.w,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.errorSoft,
+              color: isDark ? AppColorsDark.errorSoft : AppColors.errorSoft,
             ),
             child: const Icon(
               Icons.error_rounded,
@@ -106,15 +110,15 @@ class LessonMistakesScreen extends StatelessWidget {
               children: [
                 Text(
                   l10n.translate('lesson.mistakes.completed'),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                         letterSpacing: 1.2,
                       ),
                 ),
                 Text(
                   l10n.translate('lesson.mistakes.summary', [mistakeCount]),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.text,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
                       ),
                 ),
               ],
@@ -177,17 +181,20 @@ class _MistakeCardLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.all(AppSpacing.md.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: isDark ? AppColorsDark.surface : AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        border: Border.all(color: AppColors.border),
-        boxShadow: const [
+        border: Border.all(color: theme.colorScheme.primary, width: 1.5.w),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: isDark ? AppColorsDark.shadow : AppColors.shadow,
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -202,29 +209,29 @@ class _MistakeCardLayout extends StatelessWidget {
                 padding: EdgeInsets.symmetric(
                     horizontal: AppSpacing.sm.w, vertical: AppSpacing.xxs.h),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceHigh,
+                  color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
                   borderRadius: BorderRadius.circular(AppRadius.xl.r),
                 ),
                 child: Text(
                   tag,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.textSecondary,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                 ),
               ),
               if (hasAudio)
                 InkWell(
                   onTap: () {},
-                  child: const Icon(Icons.volume_up_rounded,
-                      color: AppColors.textSecondary),
+                  child: Icon(Icons.volume_up_rounded,
+                      color: theme.colorScheme.onSurfaceVariant),
                 ),
             ],
           ),
           SizedBox(height: AppSpacing.sm.h),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.text,
+            style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
           ),
@@ -243,17 +250,22 @@ class _IncorrectAnswer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColorsDark.errorSoft : AppColors.errorSoft;
+    final titleColor = isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D);
+    final textColor = isDark ? Colors.white : const Color(0xFF7F1D1D);
+
     return Container(
       padding: EdgeInsets.all(AppSpacing.sm.w),
       decoration: BoxDecoration(
-        color: AppColors.errorSoft,
+        color: cardBg,
         borderRadius: BorderRadius.circular(AppRadius.md.r),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.close_rounded, color: AppColors.error, size: 20.sp),
+          Icon(Icons.close_rounded, color: titleColor, size: 20.sp),
           SizedBox(width: AppSpacing.sm.w),
           Expanded(
             child: Column(
@@ -264,14 +276,14 @@ class _IncorrectAnswer extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: AppColors.error),
+                      ?.copyWith(color: titleColor, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 2.h),
                 Text(
                   text,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.normal,
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
               ],
@@ -290,18 +302,23 @@ class _CorrectAnswer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColorsDark.successSoft : AppColors.successSoft;
+    final titleColor = isDark ? const Color(0xFF86EFAC) : const Color(0xFF14532D);
+    final textColor = isDark ? Colors.white : const Color(0xFF14532D);
+
     return Container(
       padding: EdgeInsets.all(AppSpacing.sm.w),
       decoration: BoxDecoration(
-        color: AppColors.successSoft,
+        color: cardBg,
         borderRadius: BorderRadius.circular(AppRadius.md.r),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.check_circle_rounded,
-              color: AppColors.success, size: 20.sp),
+              color: titleColor, size: 20.sp),
           SizedBox(width: AppSpacing.sm.w),
           Expanded(
             child: Column(
@@ -312,14 +329,14 @@ class _CorrectAnswer extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelSmall
-                      ?.copyWith(color: AppColors.success),
+                      ?.copyWith(color: titleColor, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 2.h),
                 Text(
                   text,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.normal,
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
               ],
@@ -338,10 +355,15 @@ class _Explanation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.only(top: AppSpacing.md.h),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        border: Border(
+            top: BorderSide(
+                color: isDark
+                    ? AppColorsDark.surfaceHigh
+                    : AppColors.surfaceHigh)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +371,7 @@ class _Explanation extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),
           ),
@@ -357,7 +379,7 @@ class _Explanation extends StatelessWidget {
           Text(
             text,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.normal,
                 ),
           ),
@@ -373,12 +395,18 @@ class _BottomActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.symmetric(
           horizontal: AppSpacing.margin.w, vertical: AppSpacing.md.h),
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.9),
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        color: (isDark ? AppColorsDark.surface : AppColors.surface)
+            .withValues(alpha: 0.9),
+        border: Border(
+            top: BorderSide(
+                color: isDark
+                    ? AppColorsDark.surfaceHigh
+                    : AppColors.surfaceHigh)),
       ),
       child: SafeArea(
         top: false,
@@ -423,7 +451,7 @@ class _BottomActionBar extends StatelessWidget {
                     ? 'Bỏ qua lúc này'
                     : 'Skip for now',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
             ),

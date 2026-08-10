@@ -16,7 +16,9 @@ import 'package:lingoroad_mobile/features/practice/presentation/practice_view_mo
 import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
+import 'package:lingoroad_mobile/screens/learning_goals_schedule_screen.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
+import 'package:lingoroad_mobile/screens/notification_settings_screen.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
 import 'package:lingoroad_mobile/screens/vocabulary_review_screen.dart';
@@ -112,6 +114,14 @@ GoRouter createAppRouter({
         builder: (context, state) => const Scaffold(
           body: ProfileScreen(onboarding: true),
         ),
+      ),
+      GoRoute(
+        path: '/learning-goals-schedule',
+        builder: (context, state) => const LearningGoalsScheduleScreen(),
+      ),
+      GoRoute(
+        path: '/notification-settings',
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
       GoRoute(
         path: '/streak-details',

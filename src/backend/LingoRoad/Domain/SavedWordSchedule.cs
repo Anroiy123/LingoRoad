@@ -8,8 +8,7 @@ public static class SavedWordSchedule
 {
     private static readonly int[] GapDays = [1, 2, 4, 7];
 
-    public static DateTime InitialDue(DateTime createdAt) =>
-        createdAt.AddDays(GapDays[0]);
+    public static DateTime InitialDue(DateTime createdAt) => createdAt;
 
     /// Mutates word in place. Returns true if word.ReviewStage was already
     /// the final stage (4, "day 14") — caller should delete the row
