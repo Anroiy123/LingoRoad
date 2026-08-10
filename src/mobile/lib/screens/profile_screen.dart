@@ -5,8 +5,6 @@ import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
-import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
-import 'package:lingoroad_mobile/features/progress/domain/progress_models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
@@ -21,11 +19,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _reminder = true;
-  bool _email = false;
-  bool _updates = true;
-  bool _isSaving = false;
-
   UserProfile? _profile;
   bool _isLoading = true;
   String? _error;
@@ -47,9 +40,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() {
           _profile = profile;
-          _reminder = profile.studyReminderEnabled;
-          _email = profile.emailNotifications;
-          _updates = profile.appUpdates;
           _isLoading = false;
         });
       }
@@ -60,188 +50,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  Future<bool> _persist(Map<String, Object?> values) async {
-    if (_isSaving) return false;
-    setState(() => _isSaving = true);
-    try {
-      final profile =
-          await context.read<AuthRepository>().updateProfile(values);
-      if (!mounted) return true;
-      setState(() {
-        _profile = profile;
-        _reminder = profile.studyReminderEnabled;
-        _email = profile.emailNotifications;
-        _updates = profile.appUpdates;
-      });
-      return true;
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.save_failed'))),
-        );
-      }
-      return false;
-    } finally {
-      if (mounted) setState(() => _isSaving = false);
-    }
-  }
-
-  Future<void> _toggle(String field, bool value, bool oldValue,
-      void Function(bool) apply) async {
-    setState(() => apply(value));
-    if (!await _persist({field: value}) && mounted) {
-      setState(() => apply(oldValue));
-    }
-  }
-
-  Future<void> _chooseDailyGoal() async {
-    final value = await showDialog<int>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(context
-            .read<AppLanguageProvider>()
-            .translate('profile.settings.daily_goal')),
-        children: [15, 30, 45, 60, 90]
-            .map((minutes) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context, minutes),
-                  child: Text(
-                      '$minutes ${context.read<AppLanguageProvider>().currentLanguage == AppLanguage.vi ? 'phút / ngày' : 'minutes / day'}'),
-                ))
-            .toList(),
-      ),
-    );
-    if (value != null) await _persist({'dailyGoalMinutes': value});
-  }
-
-  Future<void> _chooseTarget() async {
-    final value = await showDialog<String>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(context
-            .read<AppLanguageProvider>()
-            .translate('profile.settings.target_level')),
-        children: ['A1', 'A2', 'B1', 'B2']
-            .map((level) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(context, level),
-                  child: Text(level),
-                ))
-            .toList(),
-      ),
-    );
-    if (value != null) await _persist({'targetCefr': value});
-  }
-
-  Future<void> _editPurpose() async {
-    final controller = TextEditingController(text: _profile?.learningPurpose);
-    final value = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context
-            .read<AppLanguageProvider>()
-            .translate('profile.settings.learning_purpose')),
-        content:
-            TextField(controller: controller, maxLength: 100, autofocus: true),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.logout_dialog.cancel'))),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.save'))),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (value != null) await _persist({'learningPurpose': value});
-  }
-
-  Future<void> _chooseFocusSkills() async {
-    List<SkillCatalogItem> skills;
-    try {
-      skills = await context.read<ProgressRepository>().skills();
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(context
-                .read<AppLanguageProvider>()
-                .translate('profile.save_failed'))));
-      }
-      return;
-    }
-    if (!mounted) return;
-    final selected = <int>{...?_profile?.focusSkillIds};
-    final value = await showDialog<List<int>>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-                title: Text(context
-                    .read<AppLanguageProvider>()
-                    .translate('profile.settings.focus_skills')),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  height: 360.h,
-                  child: ListView(
-                    children: skills
-                        .where((skill) => skill.parentId != null)
-                        .map<Widget>((skill) => CheckboxListTile(
-                              value: selected.contains(skill.id),
-                              title: Text(context
-                                          .read<AppLanguageProvider>()
-                                          .currentLanguage ==
-                                      AppLanguage.vi
-                                  ? skill.nameVi
-                                  : skill.name),
-                              onChanged: (checked) => setDialogState(() {
-                                if (checked == true) {
-                                  selected.add(skill.id);
-                                } else {
-                                  selected.remove(skill.id);
-                                }
-                              }),
-                            ))
-                        .toList(),
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(context
-                          .read<AppLanguageProvider>()
-                          .translate('profile.logout_dialog.cancel'))),
-                  FilledButton(
-                      onPressed: () =>
-                          Navigator.pop(context, selected.toList()),
-                      child: Text(context
-                          .read<AppLanguageProvider>()
-                          .translate('profile.save'))),
-                ],
-              )),
-    );
-    if (value != null) await _persist({'focusSkillIds': value});
-  }
-
-  Future<void> _chooseReminderTime() async {
-    final parts = _profile?.reminderTime?.split(':');
-    final initial = parts?.length == 2
-        ? TimeOfDay(
-            hour: int.tryParse(parts![0]) ?? 19,
-            minute: int.tryParse(parts[1]) ?? 0)
-        : const TimeOfDay(hour: 19, minute: 0);
-    final value = await showTimePicker(context: context, initialTime: initial);
-    if (value != null) {
-      final formatted =
-          '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-      await _persist({'reminderTime': formatted});
     }
   }
 
@@ -487,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (widget.onboarding)
           FilledButton.icon(
             key: const Key('profile_setup_complete'),
-            onPressed: _isSaving || !profile.targetCefrConfirmed
+            onPressed: !profile.targetCefrConfirmed
                 ? null
                 : () => context.go('/home'),
             icon: const Icon(Icons.check_rounded),
@@ -537,15 +345,11 @@ class _SettingTile extends StatelessWidget {
   const _SettingTile({
     required this.title,
     this.subtitle,
-    this.value,
-    this.onChanged,
     this.onTap,
     this.danger = false,
   });
   final String title;
   final String? subtitle;
-  final bool? value;
-  final ValueChanged<bool>? onChanged;
   final VoidCallback? onTap;
   final bool danger;
   @override
@@ -598,16 +402,13 @@ class _SettingTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (value != null && onChanged != null)
-              Switch(value: value!, onChanged: onChanged)
-            else
-              Icon(
-                danger ? Icons.logout_rounded : Icons.chevron_right_rounded,
-                color: danger
-                    ? AppColors.error
-                    : theme.colorScheme.onSurfaceVariant,
-                size: 24.sp,
-              ),
+            Icon(
+              danger ? Icons.logout_rounded : Icons.chevron_right_rounded,
+              color: danger
+                  ? AppColors.error
+                  : theme.colorScheme.onSurfaceVariant,
+              size: 24.sp,
+            ),
           ],
         ),
       ),
