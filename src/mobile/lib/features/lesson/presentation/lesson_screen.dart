@@ -246,27 +246,65 @@ class _LessonScreenState extends State<LessonScreen> {
     LessonViewModel viewModel,
   ) {
     final feedback = viewModel.feedback!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = feedback.correct
+        ? (isDark ? AppColorsDark.successSoft : AppColors.successSoft)
+        : (isDark ? AppColorsDark.errorSoft : AppColors.errorSoft);
+    final titleColor = feedback.correct
+        ? (isDark ? const Color(0xFF86EFAC) : const Color(0xFF14532D))
+        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D));
+    final textColor = feedback.correct
+        ? (isDark ? Colors.white : const Color(0xFF14532D))
+        : (isDark ? Colors.white : const Color(0xFF7F1D1D));
+
     return AppCard(
-      color: feedback.correct ? AppColors.successSoft : AppColors.errorSoft,
+      color: cardBg,
+      borderColor: feedback.correct ? AppColors.success : AppColors.error,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            feedback.correct ? Icons.check_circle_rounded : Icons.info_rounded,
-            color: feedback.correct ? AppColors.success : AppColors.error,
+          Row(
+            children: [
+              Icon(
+                feedback.correct
+                    ? Icons.check_circle_rounded
+                    : Icons.info_rounded,
+                color: titleColor,
+              ),
+              SizedBox(width: AppSpacing.xs.w),
+              Expanded(
+                child: Text(
+                  l10n.translate(
+                    feedback.correct
+                        ? 'lesson.feedback.correct'
+                        : 'lesson.feedback.wrong',
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: titleColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: AppSpacing.sm.h),
-          Text(l10n.translate(
-            feedback.correct
-                ? 'lesson.feedback.correct'
-                : 'lesson.feedback.wrong',
-          )),
           if (!feedback.correct)
-            Text(l10n
-                .translate('lesson.feedback.answer', [feedback.correctAnswer])),
+            Text(
+              l10n.translate(
+                  'lesson.feedback.answer', [feedback.correctAnswer]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
           if (feedback.explanationVi?.isNotEmpty == true) ...[
-            SizedBox(height: AppSpacing.sm.h),
-            Text(feedback.explanationVi!),
+            SizedBox(height: AppSpacing.xs.h),
+            Text(
+              feedback.explanationVi!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: textColor,
+                  ),
+            ),
           ],
           SizedBox(height: AppSpacing.lg.h),
           FilledButton(

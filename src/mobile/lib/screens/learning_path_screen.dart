@@ -82,7 +82,7 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
               ),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 14.sp,
                   ),
             ),
@@ -187,7 +187,6 @@ class _PathList extends StatelessWidget {
             selected: selectedCode == steps[index].code,
             onTap: () => onSelected(steps[index].code),
           ),
-        const _GoalItem(),
       ],
     );
   }
@@ -224,25 +223,28 @@ class _PathItem extends StatelessWidget {
     final bool isCompleted = step.mastery >= 1.0;
     final String statusText = l10n.translate(reasonKey);
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     Color progressColor = AppColors.primary;
     IconData iconData = Icons.play_arrow_rounded;
     Color iconBg = AppColors.primary;
     Color iconColor = Colors.white;
-    Color cardColor = AppColors.surface;
+    Color cardColor = theme.scaffoldBackgroundColor;
     BorderSide borderSide =
-        BorderSide(color: AppColors.surfaceHigh, width: 1.w);
-    List<BoxShadow> shadow = const [
+        BorderSide(color: theme.colorScheme.primary, width: 1.5.w);
+    List<BoxShadow> shadow = [
       BoxShadow(
-        color: AppColors.shadow,
+        color: isDark ? AppColorsDark.shadow : AppColors.shadow,
         blurRadius: 12,
-        offset: Offset(0, 4),
+        offset: const Offset(0, 4),
       ),
     ];
 
     if (isCompleted) {
       progressColor = AppColors.success;
       iconData = Icons.check_rounded;
-      iconBg = AppColors.successSoft;
+      iconBg = isDark ? AppColorsDark.successSoft : AppColors.successSoft;
       iconColor = AppColors.success;
     } else if (current) {
       progressColor = AppColors.cta;
@@ -260,46 +262,24 @@ class _PathItem extends StatelessWidget {
     } else if (step.reason == 'below_threshold') {
       progressColor = AppColors.primaryContainer;
       iconData = Icons.psychology_rounded;
-      iconBg = AppColors.primaryFixed;
+      iconBg = isDark ? AppColorsDark.primaryFixed : AppColors.primaryFixed;
       iconColor = AppColors.primary;
     } else {
       iconData = Icons.lock_rounded;
-      iconBg = AppColors.surfaceHigh;
-      iconColor = AppColors.textSecondary;
-      cardColor = AppColors.surfaceLow;
+      iconBg = isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh;
+      iconColor = isDark ? AppColorsDark.textSecondary : AppColors.textSecondary;
+      cardColor = isDark ? AppColorsDark.surfaceLow : AppColors.surfaceLow;
+      borderSide = BorderSide(
+          color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
+          width: 1.w);
     }
 
-    final bool isLineActive =
-        index == 0 || isCompleted || step.reason == 'below_threshold';
-    final Color lineSegmentColor =
-        isLineActive ? AppColors.cta : AppColors.surfaceHigh;
-
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          top: 0,
-          bottom: 0,
-          child: Container(
-            width: 6.w,
-            color: lineSegmentColor,
-          ),
-        ),
-        Positioned(
-          bottom: -8.h,
-          child: Icon(
-            Icons.arrow_drop_down_rounded,
-            color: lineSegmentColor,
-            size: 24.sp,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
-          child: Align(
-            alignment: side,
-            child: FractionallySizedBox(
-              widthFactor: 0.76,
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      child: Align(
+        alignment: side,
+        child: FractionallySizedBox(
+          widthFactor: 0.76,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -350,7 +330,9 @@ class _PathItem extends StatelessWidget {
                                               ?.copyWith(
                                                 fontSize: 14.sp,
                                                 fontWeight: FontWeight.bold,
-                                                color: AppColors.text,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                         ),
                                         SizedBox(height: 2.h),
@@ -360,7 +342,9 @@ class _PathItem extends StatelessWidget {
                                               .textTheme
                                               .labelSmall
                                               ?.copyWith(
-                                                color: AppColors.textSecondary,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
                                                 fontSize: 12.sp,
                                               ),
                                         ),
@@ -454,58 +438,10 @@ class _PathItem extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ],
-    );
+        );
   }
 }
 
-class _GoalItem extends StatelessWidget {
-  const _GoalItem();
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          top: 0,
-          bottom: 42.h,
-          child: Container(
-            width: 6.w,
-            color: AppColors.surfaceHigh,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: 16.h, bottom: 24.h),
-          child: Container(
-            width: 84.w,
-            height: 84.h,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceLow,
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(AppRadius.lg.r),
-              border: Border.all(color: AppColors.surfaceHigh, width: 4.w),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.emoji_events_rounded,
-              color: AppColors.success,
-              size: 36.sp,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _MessageCard extends StatelessWidget {
   const _MessageCard({

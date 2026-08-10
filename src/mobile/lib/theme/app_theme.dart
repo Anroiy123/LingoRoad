@@ -52,8 +52,39 @@ abstract final class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         primary: AppColors.primary,
+        onPrimary: Colors.white,
         surface: AppColors.surface,
+        onSurface: AppColors.text,
+        onSurfaceVariant: AppColors.textSecondary,
         error: AppColors.error,
+        onError: Colors.white,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.text,
+        elevation: 0,
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: AppColors.text,
+        iconColor: AppColors.primary,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.surface,
+        titleTextStyle: TextStyle(
+          fontFamily: 'HankenGrotesk',
+          color: AppColors.text,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: TextStyle(
+          fontFamily: 'HankenGrotesk',
+          color: AppColors.textSecondary,
+          fontSize: 16,
+        ),
       ),
       textTheme: TextTheme(
         displaySmall: baseText.copyWith(
@@ -113,4 +144,134 @@ abstract final class AppTheme {
       ),
     );
   }
+
+  static ThemeData get dark {
+    const baseText = TextStyle(
+      fontFamily: 'HankenGrotesk',
+      color: AppColorsDark.text,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColorsDark.background,
+      colorScheme: ColorScheme.fromSeed(
+        brightness: Brightness.dark,
+        seedColor: AppColorsDark.primary,
+        primary: AppColorsDark.primary,
+        onPrimary: Colors.white,
+        surface: AppColorsDark.surface,
+        onSurface: AppColorsDark.text,
+        onSurfaceVariant: AppColorsDark.textSecondary,
+        error: AppColorsDark.error,
+        onError: Colors.white,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColorsDark.background,
+        foregroundColor: AppColorsDark.text,
+        elevation: 0,
+      ),
+      listTileTheme: const ListTileThemeData(
+        textColor: AppColorsDark.text,
+        iconColor: AppColorsDark.primary,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColorsDark.surface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColorsDark.surface,
+        titleTextStyle: TextStyle(
+          fontFamily: 'HankenGrotesk',
+          color: AppColorsDark.text,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: TextStyle(
+          fontFamily: 'HankenGrotesk',
+          color: AppColorsDark.textSecondary,
+          fontSize: 16,
+        ),
+      ),
+      textTheme: TextTheme(
+        displaySmall: baseText.copyWith(
+          fontSize: 32,
+          height: 1.25,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.64,
+        ),
+        headlineMedium: baseText.copyWith(
+          fontSize: 24,
+          height: 1.33,
+          fontWeight: FontWeight.w700,
+        ),
+        headlineSmall: baseText.copyWith(
+          fontSize: 22,
+          height: 1.27,
+          fontWeight: FontWeight.w700,
+        ),
+        titleLarge: baseText.copyWith(
+          fontSize: 20,
+          height: 1.4,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: baseText.copyWith(fontSize: 18, height: 1.55),
+        bodyMedium: baseText.copyWith(fontSize: 16, height: 1.5),
+        labelLarge: baseText.copyWith(
+          fontSize: 14,
+          height: 1.42,
+          fontWeight: FontWeight.w600,
+          letterSpacing: .14,
+        ),
+        labelSmall: baseText.copyWith(
+          fontSize: 12,
+          height: 1.33,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        height: 72,
+        backgroundColor: AppColorsDark.surface,
+        indicatorColor: AppColorsDark.primaryContainer,
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(
+            fontFamily: 'HankenGrotesk',
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: const WidgetStatePropertyAll(AppColorsDark.text),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? AppColorsDark.primary
+              : AppColorsDark.surfaceHigh,
+        ),
+      ),
+    );
+  }
+}
+
+abstract final class AppColorsDark {
+  static const cta = Color(0xFFFF5733);
+  static const primary = Color(0xFFFF5733);
+  static const primaryContainer = Color(0xFF8B1A00);
+  static const pressed = Color(0xFFE03E1A);
+  static const primaryFixed = Color(0xFF4A1205);
+  static const background = Color(0xFF121212);
+  static const surface = Color(0xFF1E1E1E);
+  static const surfaceLow = Color(0xFF242424);
+  static const surfaceDisabled = Color(0xFF2C2C2C);
+  static const surfaceHigh = Color(0xFF383838);
+  static const text = Color(0xFFF3F4F6);
+  static const textSecondary = Color(0xFFD1D5DB);
+  static const border = Color(0xFF4B5563);
+  static const success = Color(0xFF22C55E);
+  static const successSoft = Color(0xFF14532D);
+  static const error = Color(0xFFEF4444);
+  static const errorSoft = Color(0xFF7F1D1D);
+  static const muted = Color(0xFF9CA3AF);
+  static const warning = Color(0xFFF59E0B);
+  static const shadow = Color(0x33000000);
+  static const primaryShadow = Color(0x55FF5733);
 }

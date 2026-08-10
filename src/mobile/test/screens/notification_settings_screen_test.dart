@@ -11,12 +11,13 @@ import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
 import 'package:lingoroad_mobile/features/progress/domain/progress_models.dart';
-import 'package:lingoroad_mobile/screens/profile_screen.dart';
+import 'package:lingoroad_mobile/core/theme/app_theme_provider.dart';
+import 'package:lingoroad_mobile/screens/notification_settings_screen.dart';
 import 'package:provider/provider.dart';
 
-import '../../helpers/widget_test_harness.dart';
+import '../helpers/widget_test_harness.dart';
 
-class _ProfileRepository implements AuthRepository {
+class _TestAuthRepository implements AuthRepository {
   var failUpdate = false;
   var updateCalls = 0;
   final profile = const UserProfile(
@@ -32,12 +33,13 @@ class _ProfileRepository implements AuthRepository {
     focusSkillIds: [1],
     studyReminderEnabled: true,
     reminderTime: '19:30',
-    emailNotifications: false,
+    emailNotifications: true,
     appUpdates: true,
   );
 
   @override
   Future<UserProfile> getProfile() async => profile;
+
   @override
   Future<UserProfile> updateProfile(Map<String, Object?> values) async {
     updateCalls++;
@@ -50,30 +52,27 @@ class _ProfileRepository implements AuthRepository {
   @override
   Future<void> changePassword(
       {required String currentPassword, required String newPassword}) async {}
+
   @override
   Future<void> logout(String? refreshToken) async {}
+
   @override
-  Future<AuthTokens> login({required String email, required String password}) =>
+  Future<AuthTokens> login(
+          {required String email, required String password}) =>
       throw UnimplementedError();
+
   @override
   Future<AuthTokens> register(
           {required String email, required String password, String? name}) =>
       throw UnimplementedError();
 }
 
-class _ProgressRepository implements ProgressRepository {
+class _TestProgressRepository implements ProgressRepository {
   @override
   Future<List<MasteryRow>> mastery() async => const [];
+
   @override
-  Future<List<SkillCatalogItem>> skills() async => const [
-        SkillCatalogItem(
-            id: 1,
-            code: 'grammar.present',
-            name: 'Present tense',
-            nameVi: 'Thì hiện tại',
-            category: 'grammar',
-            parentId: 10),
-      ];
+  Future<List<SkillCatalogItem>> skills() async => const [];
 }
 
 AppLanguageProvider _language() {
@@ -86,26 +85,60 @@ AppLanguageProvider _language() {
 }
 
 void main() {
-  testWidgets('profile hiển thị ô Mục tiêu & Lịch học và chuyển tới màn hình mới',
+  testWidgets(
+      'NotificationSettingsScreen displays notifications, language and theme options',
       (tester) async {
-    final repository = _ProfileRepository()..failUpdate = true;
+    final repository = _TestAuthRepository();
     final session = SessionController(MemorySessionStore('access', 'refresh'));
     await session.restore();
+    final themeProvider = AppThemeProvider();
+
     await pumpWidgetWithLingoRoadScreenUtil(
       tester,
       MultiProvider(
         providers: [
           Provider<AuthRepository>.value(value: repository),
-          Provider<ProgressRepository>.value(value: _ProgressRepository()),
+          Provider<ProgressRepository>.value(value: _TestProgressRepository()),
           ChangeNotifierProvider<SessionController>.value(value: session),
-          ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+          ChangeNotifierProvider<AppLanguageProvider>.value(
+              value: _language()),
+          ChangeNotifierProvider<AppThemeProvider>.value(
+              value: themeProvider),
         ],
-        child: const MaterialApp(home: Scaffold(body: ProfileScreen())),
+        child: const MaterialApp(
+          home: NotificationSettingsScreen(),
+        ),
       ),
     );
+
     await tester.pumpAndSettle();
-    expect(find.text('Mục tiêu & Lịch học'), findsWidgets);
-    expect(find.text('45 phút / ngày • B1'), findsOneWidget);
-    expect(find.text('Thông báo'), findsWidgets);
+
+    expect(find.text('Thông báo qua Email'), findsOneWidget);
+    expect(find.text('Cập nhật ứng dụng'), findsOneWidget);
+    expect(find.text('Ngôn ngữ'), findsOneWidget);
+    expect(find.text('Tiếng Việt'), findsOneWidget);
+    expect(find.text('Giao diện'), findsOneWidget);
+    expect(find.text('Mặc định hệ thống'), findsOneWidget);
+
+    // Open language bottom sheet
+    await tester.tap(find.text('Ngôn ngữ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('English'), findsOneWidget);
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Language'), findsOneWidget);
+
+    // Open theme bottom sheet
+    await tester.tap(find.text('Theme'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dark'), findsOneWidget);
+    await tester.tap(find.text('Dark'));
+    await tester.pumpAndSettle();
+
+    expect(themeProvider.themeMode, ThemeMode.dark);
+    expect(find.text('Dark'), findsWidgets);
   });
 }

@@ -20,7 +20,6 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
   bool _loadScheduled = false;
   bool _showBack = false;
   final CardSwiperController _swiperController = CardSwiperController();
-  int? _pendingRating;
 
   @override
   void didChangeDependencies() {
@@ -179,13 +178,21 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
         if (!_showBack)
           Text(l.translate('review.tap_to_reveal'))
         else
-          Row(
-            children: [
-              _grade(l, 'forgot', 1, AppColors.error, vm),
-              _grade(l, 'hard', 2, AppColors.warning, vm),
-              _grade(l, 'good', 3, AppColors.success, vm),
-              _grade(l, 'easy', 4, AppColors.cta, vm),
-            ],
+          SizedBox(
+            width: double.infinity,
+            height: 48.h,
+            child: FilledButton.icon(
+              key: const Key('review_mark_learned_button'),
+              onPressed: vm.gradePending ? null : () => _markLearned(vm),
+              icon: const Icon(Icons.check_circle_rounded),
+              label: Text(
+                l.translate('review.mark_learned'),
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+            ),
           ),
         if (vm.gradePending)
           const Padding(
@@ -207,11 +214,7 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
     CardSwiperDirection direction,
     ReviewViewModel vm,
   ) {
-    final rating =
-        _pendingRating ?? (direction == CardSwiperDirection.left ? 1 : 3);
-    _pendingRating = null;
-
-    vm.grade(rating).then((_) {
+    vm.grade().then((_) {
       if (mounted) {
         setState(() {
           _showBack = false;
@@ -224,38 +227,8 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
     return true;
   }
 
-  Widget _grade(
-    AppLanguageProvider l,
-    String key,
-    int value,
-    Color color,
-    ReviewViewModel vm,
-  ) =>
-      Expanded(
-        child: Padding(
-          padding: EdgeInsets.all(2.w),
-          child: OutlinedButton(
-            key: Key('review_rating_$key'),
-            onPressed: vm.gradePending ? null : () => _gradeCard(vm, value),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: color,
-              side: BorderSide(color: color),
-            ),
-            child: Text(
-              l.translate('review.rating.$key'),
-              style: TextStyle(fontSize: 12.sp),
-            ),
-          ),
-        ),
-      );
-
-  void _gradeCard(ReviewViewModel vm, int rating) {
-    _pendingRating = rating;
-    if (rating == 1 || rating == 2) {
-      _swiperController.swipe(CardSwiperDirection.left);
-    } else {
-      _swiperController.swipe(CardSwiperDirection.right);
-    }
+  void _markLearned(ReviewViewModel vm) {
+    _swiperController.swipe(CardSwiperDirection.right);
   }
 
   Widget _message({

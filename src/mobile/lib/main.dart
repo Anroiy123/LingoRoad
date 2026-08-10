@@ -28,11 +28,13 @@ import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:lingoroad_mobile/core/theme/app_theme_provider.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final sharedPreferences = await SharedPreferences.getInstance();
+  final themeProvider = await AppThemeProvider.create();
   final session = SessionController(const SecureSessionStore());
   final apiClient = ApiClient(
     config: AppConfig(),
@@ -88,6 +90,7 @@ void main() async {
       dictionaryRepository: dictionaryRepository,
       savedWordRepository: savedWordRepository,
       languageProvider: languageProvider,
+      themeProvider: themeProvider,
     ),
   );
   unawaited(session.restore());
@@ -97,6 +100,7 @@ class LingoRoadApp extends StatelessWidget {
   const LingoRoadApp({
     required this.routerConfig,
     required this.languageProvider,
+    this.themeProvider,
     this.sessionController,
     this.authRepository,
     this.placementRepository,
@@ -128,6 +132,7 @@ class LingoRoadApp extends StatelessWidget {
   final DictionaryRepository? dictionaryRepository;
   final SavedWordRepository? savedWordRepository;
   final AppLanguageProvider languageProvider;
+  final AppThemeProvider? themeProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +140,9 @@ class LingoRoadApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<AppLanguageProvider>.value(
           value: languageProvider,
+        ),
+        ChangeNotifierProvider<AppThemeProvider>.value(
+          value: themeProvider ?? AppThemeProvider(),
         ),
         if (sessionController != null)
           ChangeNotifierProvider<SessionController>.value(
@@ -286,10 +294,13 @@ class LingoRoadApp extends StatelessWidget {
             minTextAdapt: true,
             splitScreenMode: true,
             builder: (context, child) {
+              final themeProvider = context.watch<AppThemeProvider>();
               return MaterialApp.router(
                 title: 'lingoRoad',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: themeProvider.themeMode,
                 routerConfig: routerConfig,
               );
             },

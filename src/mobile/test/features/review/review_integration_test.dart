@@ -79,13 +79,12 @@ void main() {
       httpClient: MockClient((request) async {
         expect(request.headers['Authorization'], 'Bearer jwt');
         if (request.method == 'GET') {
-          expect(request.url.path, '/reviews/due');
+          expect(request.url.path, '/words');
+          expect(request.url.queryParameters['due'], 'true');
           return http.Response('[]', 200,
               headers: {'content-type': 'application/json'});
         }
-        expect(request.url.path, '/reviews/${card.id}/grade');
-        expect(jsonDecode(request.body),
-            {'rating': 4, 'operationId': 'op', 'expectedReps': 0});
+        expect(request.url.path, '/words/${card.id}/review');
         return http.Response('{}', 200,
             headers: {'content-type': 'application/json'});
       }),

@@ -255,6 +255,7 @@
     "groups": {
       "account": "Tài khoản",
       "goals": "Mục tiêu học tập",
+      "goals_and_schedule": "Mục tiêu & Lịch học",
       "notifications": "Thông báo",
       "schedule": "Lịch học"
     },
@@ -276,12 +277,23 @@
       "daily_goal_val": "30 phút / ngày",
       "email_notif": "Thông báo qua Email",
       "focus_skills": "Kỹ năng ưu tiên",
+      "goals_and_schedule_subtitle": "Cấu hình mục tiêu học tập và thời gian nhắc nhở",
+      "language": "Ngôn ngữ",
+      "language_en": "English",
+      "language_vi": "Tiếng Việt",
       "learning_purpose": "Mục đích học tập",
       "logout": "Đăng xuất",
+      "notifications_subtitle": "Cấu hình thông báo, ngôn ngữ và giao diện",
+      "preferences": "Tùy chọn ứng dụng",
       "reminder_time": "Cài đặt thời gian nhắc nhở",
       "study_reminder": "Nhắc nhở học tập",
       "target_level": "Trình độ mục tiêu",
-      "target_level_val": "B2 - Trung cao cấp"
+      "target_level_val": "B2 - Trung cao cấp",
+      "theme": "Giao diện",
+      "theme_dark": "Tối",
+      "theme_default": "Mặc định hệ thống",
+      "theme_light": "Sáng",
+      "theme_system": "Mặc định hệ thống"
     },
     "skills_selected": "Đã chọn {} kỹ năng",
     "status": "Cấp {} · {} · {} huy hiệu"
@@ -369,6 +381,7 @@
     "flip_card_semantics": "Lật thẻ ôn tập",
     "grade_error": "Không thể ghi nhận đánh giá. Hãy thử lại.",
     "hint": "Hãy nhớ nghĩa của từ trước khi lật thẻ",
+    "mark_learned": "Đã thuộc",
     "rating": {
       "easy": "Dễ",
       "forgot": "Quên",

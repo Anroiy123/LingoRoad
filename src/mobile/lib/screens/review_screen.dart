@@ -79,7 +79,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: AppColors.surface,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: SafeArea(
         bottom: false,
@@ -162,16 +162,22 @@ class _ReviewSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = theme.scaffoldBackgroundColor;
+    final cardBorderColor = theme.colorScheme.primary;
+    final shadowColor = isDark ? AppColorsDark.shadow : AppColors.shadow;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: cardColor,
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        border: Border.all(color: AppColors.surfaceHigh),
-        boxShadow: const [
+        border: Border.all(color: cardBorderColor, width: 1.5.w),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: shadowColor,
             blurRadius: 12,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),

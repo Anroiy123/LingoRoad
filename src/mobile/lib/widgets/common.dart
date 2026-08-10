@@ -101,28 +101,36 @@ class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
     this.padding,
-    this.color = AppColors.surface,
+    this.color,
+    this.borderColor,
     super.key,
   });
   final Widget child;
   final EdgeInsets? padding;
-  final Color color;
+  final Color? color;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = color ?? theme.scaffoldBackgroundColor;
+    final cardBorderColor = borderColor ?? theme.colorScheme.primary;
+    final shadowColor = isDark ? AppColorsDark.shadow : AppColors.shadow;
+
     return Container(
       padding: padding ??
           EdgeInsets.symmetric(
               horizontal: AppSpacing.lg.w, vertical: AppSpacing.lg.h),
       decoration: BoxDecoration(
-        color: color,
+        color: cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xl.r),
-        border: Border.all(color: AppColors.surfaceHigh),
-        boxShadow: const [
+        border: Border.all(color: cardBorderColor, width: 1.5.w),
+        boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: shadowColor,
             blurRadius: 12,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),

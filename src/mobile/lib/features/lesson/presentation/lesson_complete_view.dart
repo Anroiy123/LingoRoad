@@ -21,12 +21,13 @@ class LessonCompleteView extends StatelessWidget {
         : 0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+          icon: Icon(Icons.close_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant),
           onPressed: () => context.go('/home'),
         ),
         title: Text(
@@ -125,7 +126,7 @@ class _HeroIllustration extends StatelessWidget {
           l10n.translate('lesson.complete.subtitle'),
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
       ],
@@ -183,9 +184,12 @@ class _StatsGrid extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(AppSpacing.md.w),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColorsDark.surface
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadius.lg.r),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+                color: Theme.of(context).colorScheme.primary, width: 1.5.w),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -215,7 +219,9 @@ class _StatsGrid extends StatelessWidget {
                                 .textTheme
                                 .labelSmall
                                 ?.copyWith(
-                                  color: Colors.white70,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                   letterSpacing: 1.2,
                                 ),
                           ),
@@ -225,7 +231,9 @@ class _StatsGrid extends StatelessWidget {
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                  color: Colors.white,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -265,9 +273,12 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(AppSpacing.md.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColorsDark.surface
+            : AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+            color: Theme.of(context).colorScheme.primary, width: 1.5.w),
       ),
       child: Column(
         children: [
@@ -276,14 +287,14 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.text,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
           ),
           SizedBox(height: 2.h),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   letterSpacing: 1.2,
                 ),
           ),

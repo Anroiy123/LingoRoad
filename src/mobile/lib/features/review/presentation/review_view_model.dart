@@ -41,9 +41,9 @@ class ReviewViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> grade(int rating) async {
+  Future<void> grade([int rating = 1]) async {
     final card = current;
-    if (card == null || _gradePending || rating < 1 || rating > 4) return;
+    if (card == null || _gradePending) return;
     _gradePending = true;
     _errorCode = null;
     _operationId ??= _uuid.v4();

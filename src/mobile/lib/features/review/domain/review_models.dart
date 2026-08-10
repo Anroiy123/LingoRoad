@@ -16,23 +16,28 @@ class ReviewCard {
   final int reps;
 
   factory ReviewCard.fromJson(Object? value) {
-    if (value is! Map<String, dynamic> ||
-        value['id'] is! String ||
-        value['front'] is! String ||
-        value['back'] is! String ||
-        value['state'] is! String ||
-        value['reps'] is! int) {
+    if (value is! Map<String, dynamic> || value['id'] is! String) {
       throw _malformed();
     }
-    final due = DateTime.tryParse(value['due'] as String);
-    if (due == null || (value['reps'] as int) < 0) throw _malformed();
+    final id = value['id'] as String;
+    final front = (value['front'] ?? value['word']) as String?;
+    final back = (value['back'] ?? value['definition']) as String?;
+    final dueStr = (value['due'] ?? value['nextReviewAt']) as String?;
+    final state = (value['state'] ?? 'new') as String;
+    final reps = (value['reps'] ?? value['reviewStage'] ?? 0) as int;
+
+    if (front == null || back == null || reps < 0) throw _malformed();
+    final due = dueStr != null ? DateTime.tryParse(dueStr) : DateTime.now();
+    if (due == null) throw _malformed();
+
     return ReviewCard(
-        id: value['id'] as String,
-        front: value['front'] as String,
-        back: value['back'] as String,
-        due: due,
-        state: value['state'] as String,
-        reps: value['reps'] as int);
+      id: id,
+      front: front,
+      back: back,
+      due: due,
+      state: state,
+      reps: reps,
+    );
   }
 }
 
