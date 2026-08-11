@@ -57,6 +57,30 @@ class _ProfileSetupRepository implements AuthRepository {
       throw UnimplementedError();
 }
 
+class _FailingClearSessionStore extends MemorySessionStore {
+  _FailingClearSessionStore(super.token);
+
+  @override
+  Future<void> clearToken() => Future<void>.error(StateError('locked'));
+}
+
+Future<void> _pumpStatusError(WidgetTester tester, SessionController session) =>
+    pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<SessionController>.value(value: session),
+          ChangeNotifierProvider<AppLanguageProvider>.value(
+            value: AppLanguageProvider.empty(),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const ProfileSetupStatusErrorScreen(),
+        ),
+      ),
+    );
+
 void main() {
   testWidgets('giữ giá trị sau lỗi và cho phép thử lại', (tester) async {
     final repository = _ProfileSetupRepository();
@@ -92,5 +116,97 @@ void main() {
     await tester.pumpAndSettle();
     expect(repository.calls, 2);
     expect(session.profileSetupStatus, ProfileSetupStatus.completed);
+  });
+
+  testWidgets('status error retry reloads profile setup completion', (
+    tester,
+  ) async {
+    var fail = true;
+    final session = SessionController(MemorySessionStore());
+    await session.authenticate('token', checkPlacement: false);
+    session.configureProfileSetupStatusLoader(() async {
+      if (fail) throw StateError('offline');
+      return true;
+    });
+    await session.markPlacementCompleted();
+    expect(session.profileSetupStatus, ProfileSetupStatus.error);
+
+    await _pumpStatusError(tester, session);
+    fail = false;
+    await tester.tap(find.byKey(const Key('profile_setup_status_retry')));
+    await tester.pumpAndSettle();
+
+    expect(session.profileSetupStatus, ProfileSetupStatus.completed);
+  });
+
+  testWidgets('status error reports logout failure and keeps session', (
+    tester,
+  ) async {
+    final session = SessionController(
+      _FailingClearSessionStore('token'),
+      storeOperationTimeout: const Duration(milliseconds: 50),
+    );
+    session.configurePlacementStatusLoader(() async => true);
+    session.configureProfileSetupStatusLoader(
+      () => Future<bool>.error(StateError('offline')),
+    );
+    await session.restore();
+    expect(session.profileSetupStatus, ProfileSetupStatus.error);
+
+    await _pumpStatusError(tester, session);
+    await tester.tap(find.byKey(const Key('profile_setup_status_logout')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(session.status, SessionStatus.authenticated);
+    expect(session.profileSetupStatus, ProfileSetupStatus.error);
+  });
+
+  testWidgets('completed profile setup resumes as completed after restart', (
+    tester,
+  ) async {
+    final store = MemorySessionStore('token');
+    final repository = _ProfileSetupRepository()..fail = false;
+    final firstSession = SessionController(store);
+    await firstSession.authenticate('token', checkPlacement: false);
+    firstSession.configureProfileSetupStatusLoader(() async => false);
+    await firstSession.markPlacementCompleted();
+    expect(firstSession.profileSetupStatus, ProfileSetupStatus.required);
+
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      MultiProvider(
+        providers: [
+          Provider<AuthRepository>.value(value: repository),
+          ChangeNotifierProvider<SessionController>.value(value: firstSession),
+          ChangeNotifierProvider<AppLanguageProvider>.value(
+            value: AppLanguageProvider.empty(),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const ProfileSetupScreen(),
+        ),
+      ),
+    );
+    await tester.enterText(
+      find.byKey(const Key('profile_setup_name')),
+      'Learner',
+    );
+    await tester.tap(find.byKey(const Key('profile_setup_submit')));
+    await tester.pumpAndSettle();
+    expect(firstSession.profileSetupStatus, ProfileSetupStatus.completed);
+
+    final restartedSession = SessionController(store);
+    restartedSession.configurePlacementStatusLoader(() async => true);
+    restartedSession.configureProfileSetupStatusLoader(() async => true);
+    await restartedSession.restore();
+
+    expect(restartedSession.status, SessionStatus.authenticated);
+    expect(
+      restartedSession.placementStatus,
+      PlacementOnboardingStatus.completed,
+    );
+    expect(restartedSession.profileSetupStatus, ProfileSetupStatus.completed);
   });
 }

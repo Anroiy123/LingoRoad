@@ -172,7 +172,7 @@ String? onboardingRedirect({
         }
         if (location == '/splash' ||
             isAuthRoute ||
-            location == '/placement' ||
+            isPlacementFlowRoute(location) ||
             location == '/placement/status-error' ||
             location == '/profile-setup' ||
             location == '/profile-setup/status-error') {
