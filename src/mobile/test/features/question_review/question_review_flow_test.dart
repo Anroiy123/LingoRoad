@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:lingoroad_mobile/core/config/app_config.dart';
@@ -117,6 +118,23 @@ Widget _app(_FakeQuestionReviewRepository repository) => MultiProvider(
       ],
       child: MaterialApp(theme: AppTheme.light, home: const QuestionReviewScreen()),
     );
+
+Widget _routedApp(_FakeQuestionReviewRepository repository) {
+  final router = GoRouter(
+    initialLocation: '/question-review',
+    routes: [
+      GoRoute(path: '/question-review', builder: (_, _) => const QuestionReviewScreen()),
+      GoRoute(path: '/review', builder: (_, _) => const Scaffold(body: Text('review destination'))),
+    ],
+  );
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+      ChangeNotifierProvider(create: (_) => QuestionReviewViewModel(repository)),
+    ],
+    child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
+  );
+}
 
 void main() {
   test('question-review parses due payload separately from saved-word cards', () {
@@ -386,6 +404,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('question_review_complete')), findsOneWidget);
     expect(find.text('Ôn thêm'), findsOneWidget);
+  });
+
+  testWidgets('completion returns to the Review screen', (tester) async {
+    final repository = _FakeQuestionReviewRepository()
+      ..session = const QuestionReviewSession(items: [_first], totalDue: 1);
+    await pumpWidgetWithLingoRoadScreenUtil(tester, _routedApp(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('answer_option_red')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('question_review_check')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('question_review_next')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Về Ôn tập'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('question_review_return')));
+    await tester.pumpAndSettle();
+    expect(find.text('review destination'), findsOneWidget);
   });
 
   testWidgets('MCQ, cloze and reorder accept answers without exposing feedback before check', (tester) async {

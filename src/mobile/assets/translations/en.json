@@ -372,7 +372,7 @@
       "title": "Review session complete",
       "summary": "Correct: {} · Incorrect: {}\nEarned {} XP and {} coins",
       "more": "Review more",
-      "return": "Back home"
+      "return": "Back to Review"
     }
   },
   "review": {
