@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -38,10 +39,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final vm = context.read<ReviewViewModel>();
+      final questionVm = context.read<QuestionReviewViewModel?>();
       if (vm.state == ReviewState.initial ||
           vm.state == ReviewState.complete ||
           vm.state == ReviewState.empty) {
         vm.load();
+      }
+      if (questionVm != null &&
+          (questionVm.state == QuestionReviewState.initial ||
+              questionVm.state == QuestionReviewState.empty ||
+              questionVm.state == QuestionReviewState.complete)) {
+        questionVm.load();
       }
     });
   }
@@ -52,6 +60,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final vm = context.watch<ReviewViewModel>();
     final l = context.watch<AppLanguageProvider>();
 
+    final questionVm = context.watch<QuestionReviewViewModel?>();
     final vocabCountText = vm.state == ReviewState.loading
         ? '...'
         : l.translate('review.selection.vocab_due_badge', [vm.remaining]);
@@ -97,23 +106,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 _ReviewSelectionCard(
                   key: const Key('question_review_card'),
                   icon: Icons.quiz_outlined,
-                  badgeText: l.translate(
-                    'review.selection.question_completed_badge',
-                    [80],
-                  ),
-                  badgeIcon: Icons.check_circle_outline_rounded,
-                  badgeTextColor: AppColors.success,
-                  badgeBgColor: AppColors.successSoft,
+                  badgeText: questionVm?.state == QuestionReviewState.loading
+                      ? '...'
+                      : l.translate('review.selection.vocab_due_badge', [questionVm?.dueCount ?? 0]),
+                  badgeIcon: Icons.schedule_rounded,
+                  badgeTextColor: AppColors.primary,
+                  badgeBgColor: AppColors.primaryFixed,
                   title: l.translate('review.selection.question_title'),
                   description: l.translate('review.selection.question_desc'),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l.translate('common.not_implemented')),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
+                  onTap: () => context.push('/question-review'),
                 ),
                 SizedBox(height: AppSpacing.lg.h),
                 _ReviewSelectionCard(

@@ -12,6 +12,7 @@ import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/saved_word_repository.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
+import 'package:lingoroad_mobile/widgets/exercise_answer_input.dart';
 import 'package:provider/provider.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -24,8 +25,6 @@ class LessonScreen extends StatefulWidget {
 }
 
 class _LessonScreenState extends State<LessonScreen> {
-  final _answerController = TextEditingController();
-  final _selectedWords = <String>[];
   String? _exerciseId;
   bool _refreshScheduled = false;
 
@@ -38,20 +37,12 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   @override
-  void dispose() {
-    _answerController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<LessonViewModel>();
     final l10n = context.watch<AppLanguageProvider>();
     final current = viewModel.current;
     if (current?.id != _exerciseId) {
       _exerciseId = current?.id;
-      _answerController.clear();
-      _selectedWords.clear();
     }
     if (viewModel.state == LessonState.completed) {
       _scheduleRefresh();
@@ -160,84 +151,27 @@ class _LessonScreenState extends State<LessonScreen> {
     LessonExercise exercise,
   ) {
     final disabled = viewModel.state == LessonState.submitting;
-    final children = <Widget>[];
-    if (exercise.type == 'mcq') {
-      children.addAll(exercise.options.map(
-        (option) => Padding(
-          padding: EdgeInsets.only(bottom: AppSpacing.sm.h),
-          child: OutlinedButton(
-            key: Key('lesson_option_$option'),
-            onPressed: disabled ? null : () => viewModel.submit(option),
-            child: Text(option),
-          ),
-        ),
-      ));
-    } else if (exercise.type == 'reorder') {
-      children.add(Wrap(
-        spacing: AppSpacing.xs.w,
-        runSpacing: AppSpacing.xs.h,
-        children: exercise.options.map((word) {
-          final selected = _selectedWords.contains(word);
-          return FilterChip(
-            label: Text(word),
-            selected: selected,
-            onSelected: disabled
-                ? null
-                : (value) => setState(() {
-                      if (value) {
-                        _selectedWords.add(word);
-                      } else {
-                        _selectedWords.remove(word);
-                      }
-                    }),
-          );
-        }).toList(),
-      ));
-      children.add(SizedBox(height: AppSpacing.md.h));
-      children.add(Text(_selectedWords.join(' ')));
-    } else {
-      children.add(TextField(
-        key: const Key('lesson_text_answer'),
-        controller: _answerController,
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      ExerciseAnswerInput(
+        key: ValueKey(exercise.id),
+        type: exercise.type,
+        options: exercise.options,
+        answer: '',
         enabled: !disabled,
-        decoration: InputDecoration(
-          hintText: l10n.translate('lesson.answer_hint'),
-        ),
-        onSubmitted: disabled ? null : viewModel.submit,
-      ));
-    }
-    if (viewModel.errorCode != null) {
-      children.addAll([
+        onAnswerChanged: (_) {},
+        onSubmit: viewModel.submit,
+        textFieldKey: const Key('lesson_text_answer'),
+        submitKey: const Key('lesson_submit'),
+        submitLabel: l10n.translate('lesson.submit'),
+        submitOnOptionTap: exercise.type == 'mcq',
+        optionKeyBuilder: (option) => Key('lesson_option_$option'),
+        hintText: l10n.translate('lesson.answer_hint'),
+      ),
+      if (viewModel.errorCode != null) ...[
         SizedBox(height: AppSpacing.sm.h),
-        Text(
-          l10n.translate('lesson.submit_error'),
-          key: const Key('lesson_submit_error'),
-          style: const TextStyle(color: AppColors.error),
-        ),
-      ]);
-    }
-    if (exercise.type != 'mcq') {
-      children.addAll([
-        SizedBox(height: AppSpacing.lg.h),
-        FilledButton(
-          key: const Key('lesson_submit'),
-          onPressed: disabled
-              ? null
-              : () => viewModel.submit(
-                    exercise.type == 'reorder'
-                        ? _selectedWords.join(' ')
-                        : _answerController.text,
-                  ),
-          child: disabled
-              ? const CircularProgressIndicator()
-              : Text(l10n.translate('lesson.submit')),
-        ),
-      ]);
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
-    );
+        Text(l10n.translate('lesson.submit_error'), key: const Key('lesson_submit_error'), style: const TextStyle(color: AppColors.error)),
+      ],
+    ]);
   }
 
   Widget _feedback(

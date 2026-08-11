@@ -22,6 +22,8 @@ import 'package:lingoroad_mobile/features/progress/presentation/progress_view_mo
 import 'package:lingoroad_mobile/features/practice/data/practice_repository.dart';
 import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/data/question_review_repository.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/saved_word_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
@@ -46,6 +48,7 @@ void main() async {
   final learningPathRepository = ApiLearningPathRepository(apiClient);
   final learningPathViewModel = LearningPathViewModel(learningPathRepository);
   final reviewRepository = ApiReviewRepository(apiClient);
+  final questionReviewRepository = ApiQuestionReviewRepository(apiClient);
   final progressRepository = ApiProgressRepository(apiClient);
   final lessonRepository = ApiLessonRepository(apiClient);
   final dashboardRepository = ApiDashboardRepository(apiClient);
@@ -83,6 +86,7 @@ void main() async {
       learningPathRepository: learningPathRepository,
       learningPathViewModel: learningPathViewModel,
       reviewRepository: reviewRepository,
+      questionReviewRepository: questionReviewRepository,
       progressRepository: progressRepository,
       lessonRepository: lessonRepository,
       dashboardRepository: dashboardRepository,
@@ -108,6 +112,7 @@ class LingoRoadApp extends StatelessWidget {
     this.learningPathRepository,
     this.learningPathViewModel,
     this.reviewRepository,
+    this.questionReviewRepository,
     this.progressRepository,
     this.lessonRepository,
     this.dashboardRepository,
@@ -125,6 +130,7 @@ class LingoRoadApp extends StatelessWidget {
   final LearningPathRepository? learningPathRepository;
   final LearningPathViewModel? learningPathViewModel;
   final ReviewRepository? reviewRepository;
+  final QuestionReviewRepository? questionReviewRepository;
   final ProgressRepository? progressRepository;
   final LessonRepository? lessonRepository;
   final DashboardRepository? dashboardRepository;
@@ -215,6 +221,19 @@ class LingoRoadApp extends StatelessWidget {
         ChangeNotifierProvider<ReviewViewModel>(
           create: (context) =>
               ReviewViewModel(context.read<ReviewRepository>()),
+        ),
+        if (questionReviewRepository != null)
+          Provider<QuestionReviewRepository>.value(value: questionReviewRepository!)
+        else
+          Provider<QuestionReviewRepository>(
+            create: (context) => ApiQuestionReviewRepository(ApiClient(
+              config: AppConfig(), session: context.read<SessionController>(),
+            )),
+          ),
+        ChangeNotifierProvider<QuestionReviewViewModel>(
+          create: (context) => QuestionReviewViewModel(
+            context.read<QuestionReviewRepository>(),
+          ),
         ),
         if (progressRepository != null)
           Provider<ProgressRepository>.value(value: progressRepository!)

@@ -349,6 +349,28 @@
     },
     "title": "Tiến độ học tập"
   },
+  "question_review": {
+    "title": "Ôn tập câu hỏi",
+    "answer_hint": "Nhập câu trả lời",
+    "check": "Kiểm tra",
+    "progress": "Câu {} · còn {} câu trong lượt này",
+    "next": "Tiếp tục",
+    "rating": { "2": "Khó", "3": "Tốt", "4": "Dễ" },
+    "feedback": {
+      "correct": "Chính xác! Hãy tự đánh giá mức độ nhớ.",
+      "wrong": "Chưa đúng",
+      "answer": "Đáp án đúng: {}",
+      "semantics": "Kết quả câu trả lời"
+    },
+    "empty": { "title": "Chưa có câu hỏi cần ôn", "message": "Các câu làm sai đến hạn sẽ xuất hiện ở đây." },
+    "error": { "title": "Không thể tiếp tục ôn tập", "message": "Câu trả lời của bạn vẫn được giữ. Hãy thử lại." },
+    "complete": {
+      "title": "Đã hoàn thành lượt ôn tập",
+      "summary": "Đúng: {} · Sai: {}\nNhận được {} XP và {} xu",
+      "more": "Ôn thêm",
+      "return": "Về trang chủ"
+    }
+  },
   "review": {
     "selection": {
       "title": "Lựa chọn ôn tập",

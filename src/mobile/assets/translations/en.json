@@ -349,6 +349,28 @@
     },
     "title": "Learning Progress"
   },
+  "question_review": {
+    "title": "Question Review",
+    "answer_hint": "Enter your answer",
+    "check": "Check",
+    "progress": "Question {} · {} left this session",
+    "next": "Continue",
+    "rating": { "2": "Hard", "3": "Good", "4": "Easy" },
+    "feedback": {
+      "correct": "Correct! Rate how well you remembered.",
+      "wrong": "Not quite",
+      "answer": "Correct answer: {}",
+      "semantics": "Answer feedback"
+    },
+    "empty": { "title": "No questions due", "message": "Due lesson mistakes will appear here." },
+    "error": { "title": "Could not continue review", "message": "Your answer is kept. Please try again." },
+    "complete": {
+      "title": "Review session complete",
+      "summary": "Correct: {} · Incorrect: {}\nEarned {} XP and {} coins",
+      "more": "Review more",
+      "return": "Back home"
+    }
+  },
   "review": {
     "selection": {
       "title": "Review Mode Selection",
