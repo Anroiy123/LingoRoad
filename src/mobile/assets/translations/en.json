@@ -349,12 +349,39 @@
     },
     "title": "Learning Progress"
   },
+  "question_review": {
+    "title": "Question Review",
+    "answer_hint": "Enter your answer",
+    "check": "Check",
+    "progress": "Question {} · {} left this session",
+    "next": "Continue",
+    "rating": { "2": "Hard", "3": "Good", "4": "Easy" },
+    "feedback": {
+      "correct": "Correct! Rate how well you remembered.",
+      "wrong": "Not quite",
+      "answer": "Correct answer: {}",
+      "semantics": "Answer feedback"
+    },
+    "empty": { "title": "No questions due", "message": "Due lesson mistakes will appear here." },
+    "error": {
+      "title": "Could not continue review",
+      "load_message": "Could not load due questions.",
+      "operation_message": "Your answer is kept. Please try again."
+    },
+    "complete": {
+      "title": "Review session complete",
+      "summary": "Correct: {} · Incorrect: {}\nEarned {} XP and {} coins",
+      "more": "Review more",
+      "return": "Back to Review"
+    }
+  },
   "review": {
     "selection": {
       "title": "Review Mode Selection",
       "question_title": "Question Review",
       "question_desc": "Practice with multiple choice and fill-in-the-blank questions to reinforce sentence structures.",
       "question_completed_badge": "{}% completed",
+      "question_due_badge": "{} questions due",
       "vocab_title": "Vocabulary Review",
       "vocab_desc": "Use spaced repetition system (SRS) to memorize vocabulary more effectively.",
       "vocab_due_badge": "{} words need review"

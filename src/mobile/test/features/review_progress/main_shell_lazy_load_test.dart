@@ -84,4 +84,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(progress.skillCalls, 1);
   });
+
+  testWidgets('MainShell can open directly on the Review tab', (tester) async {
+    final session = SessionController(MemorySessionStore('token'));
+    await session.restore();
+    final review = CountingReviewRepository();
+    final progress = CountingProgressRepository();
+    await pumpWidgetWithLingoRoadScreenUtil(
+        tester,
+        MultiProvider(providers: [
+          ChangeNotifierProvider<SessionController>.value(value: session),
+          ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+          ChangeNotifierProvider(create: (_) => ReviewViewModel(review)),
+          ChangeNotifierProvider(create: (_) => ProgressViewModel(progress)),
+        ], child: MaterialApp(theme: AppTheme.light, home: const MainShell(initialIndex: 2))));
+    await tester.pumpAndSettle();
+
+    final navigation = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(navigation.selectedIndex, 2);
+    expect(find.text('Lựa chọn ôn tập'), findsOneWidget);
+    expect(review.calls, 1);
+    expect(progress.skillCalls, 0);
+  });
 }

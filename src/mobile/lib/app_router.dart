@@ -16,6 +16,7 @@ import 'package:lingoroad_mobile/features/practice/presentation/practice_view_mo
 import 'package:lingoroad_mobile/features/lesson/data/lesson_repository.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_screen.dart';
 import 'package:lingoroad_mobile/features/lesson/presentation/lesson_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_screen.dart';
 import 'package:lingoroad_mobile/screens/learning_goals_schedule_screen.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 import 'package:lingoroad_mobile/screens/notification_settings_screen.dart';
@@ -60,7 +61,7 @@ GoRouter createAppRouter({
             }
           } else if (location == '/splash' ||
               isAuthRoute ||
-              location == '/home' ||
+              (location == '/home' || location == '/review') ||
               location.startsWith('/lesson/') ||
               location == '/placement/status-error') {
             return '/placement';
@@ -110,6 +111,10 @@ GoRouter createAppRouter({
         builder: (context, state) => const MainShell(),
       ),
       GoRoute(
+        path: '/review',
+        builder: (context, state) => const MainShell(initialIndex: 2),
+      ),
+      GoRoute(
         path: '/profile-setup',
         builder: (context, state) => const Scaffold(
           body: ProfileScreen(onboarding: true),
@@ -147,6 +152,10 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/vocabulary-review',
         builder: (context, state) => const VocabularyReviewScreen(),
+      ),
+      GoRoute(
+        path: '/question-review',
+        builder: (context, state) => const QuestionReviewScreen(),
       ),
     ],
   );

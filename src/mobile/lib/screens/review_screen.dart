@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,7 @@ class ReviewScreen extends StatefulWidget {
 
 class _ReviewScreenState extends State<ReviewScreen> {
   bool _scheduled = false;
+  int? _questionSessionGeneration;
 
   @override
   void initState() {
@@ -38,10 +40,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final vm = context.read<ReviewViewModel>();
+      final questionVm = context.read<QuestionReviewViewModel?>();
       if (vm.state == ReviewState.initial ||
           vm.state == ReviewState.complete ||
           vm.state == ReviewState.empty) {
         vm.load();
+      }
+      if (questionVm != null &&
+          (questionVm.state == QuestionReviewState.initial ||
+              questionVm.state == QuestionReviewState.empty ||
+              questionVm.state == QuestionReviewState.complete)) {
+        questionVm.load();
       }
     });
   }
@@ -52,6 +61,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final vm = context.watch<ReviewViewModel>();
     final l = context.watch<AppLanguageProvider>();
 
+    final questionVm = context.watch<QuestionReviewViewModel?>();
+    if (questionVm != null &&
+        _questionSessionGeneration != questionVm.sessionGeneration) {
+      _questionSessionGeneration = questionVm.sessionGeneration;
+      _scheduled = false;
+      _schedule();
+    }
     final vocabCountText = vm.state == ReviewState.loading
         ? '...'
         : l.translate('review.selection.vocab_due_badge', [vm.remaining]);
@@ -97,22 +113,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 _ReviewSelectionCard(
                   key: const Key('question_review_card'),
                   icon: Icons.quiz_outlined,
-                  badgeText: l.translate(
-                    'review.selection.question_completed_badge',
-                    [80],
-                  ),
-                  badgeIcon: Icons.check_circle_outline_rounded,
-                  badgeTextColor: AppColors.success,
-                  badgeBgColor: AppColors.successSoft,
+                  badgeText: questionVm?.state == QuestionReviewState.loading
+                      ? '...'
+                      : l.translate('review.selection.question_due_badge', [questionVm?.dueCount ?? 0]),
+                  badgeIcon: Icons.schedule_rounded,
+                  badgeTextColor: AppColors.primary,
+                  badgeBgColor: AppColors.primaryFixed,
                   title: l.translate('review.selection.question_title'),
                   description: l.translate('review.selection.question_desc'),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l.translate('common.not_implemented')),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                  onTap: () async {
+                    final routerContext = context;
+                    await routerContext.push('/question-review');
+                    if (!routerContext.mounted) return;
+                    final freshQuestionVm = routerContext.read<QuestionReviewViewModel?>();
+                    if (freshQuestionVm != null) await freshQuestionVm.load();
                   },
                 ),
                 SizedBox(height: AppSpacing.lg.h),
@@ -206,35 +220,40 @@ class _ReviewSelectionCard extends StatelessWidget {
                         size: 32.sp,
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm.w,
-                        vertical: AppSpacing.xxs.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeBgColor,
-                        borderRadius: BorderRadius.circular(999.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            badgeIcon,
-                            color: badgeTextColor,
-                            size: 16.sp,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            badgeText,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: badgeTextColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
+                    Flexible(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm.w,
+                          vertical: AppSpacing.xxs.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeBgColor,
+                          borderRadius: BorderRadius.circular(999.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              badgeIcon,
+                              color: badgeTextColor,
+                              size: 16.sp,
+                            ),
+                            SizedBox(width: 4.w),
+                            Flexible(
+                              child: Text(
+                                badgeText,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: badgeTextColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

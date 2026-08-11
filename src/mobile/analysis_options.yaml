@@ -4,3 +4,5 @@ linter:
   rules:
     prefer_single_quotes: true
     use_super_parameters: true
+    # Public constructor arguments intentionally map to private fields.
+    prefer_initializing_formals: false

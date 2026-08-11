@@ -3,12 +3,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/features/review/domain/review_models.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/data/question_review_repository.dart';
+import 'package:lingoroad_mobile/features/question_review/domain/question_review_models.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/screens/review_screen.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +26,23 @@ class FakeReviewRepository implements ReviewRepository {
   Future<void> grade({required ReviewCard card, required int rating, required String operationId}) async {}
   @override
   Future<void> createCard(String skillCode, String front, String back) async {}
+}
+
+class FakeQuestionReviewRepository implements QuestionReviewRepository {
+  QuestionReviewSession session = const QuestionReviewSession(items: [], totalDue: 3);
+  int calls = 0;
+
+  @override
+  Future<QuestionReviewSession> fetchDue({int limit = 10}) async {
+    calls++;
+    return session;
+  }
+
+  @override
+  Future<QuestionReviewCheck> check({required QuestionReviewItem item, required String answer}) => throw UnimplementedError();
+
+  @override
+  Future<QuestionReviewGrade> grade({required QuestionReviewItem item, required int rating, required String operationId, required int expectedReps, required String answer}) => throw UnimplementedError();
 }
 
 AppLanguageProvider _language() {
@@ -62,5 +83,53 @@ void main() {
     expect(find.text('Lựa chọn ôn tập'), findsOneWidget);
     expect(find.text('Ôn tập câu hỏi'), findsOneWidget);
     expect(find.text('Ôn tập từ vựng'), findsOneWidget);
+  });
+
+  testWidgets('question badge is localized and reloads the server count after returning from question review', (tester) async {
+    final session = SessionController(MemorySessionStore('token'));
+    await session.restore();
+    final words = FakeReviewRepository();
+    final questions = FakeQuestionReviewRepository();
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const ReviewScreen()),
+        GoRoute(
+          path: '/question-review',
+          builder: (context, state) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                key: const Key('return_from_question_review'),
+                onPressed: () => context.pop(),
+                child: const Text('return'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<SessionController>.value(value: session),
+          ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+          ChangeNotifierProvider(create: (_) => ReviewViewModel(words)),
+          ChangeNotifierProvider(create: (_) => QuestionReviewViewModel(questions)),
+        ],
+        child: MaterialApp.router(theme: AppTheme.light, routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('3 câu hỏi cần ôn'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('question_review_card')));
+    await tester.pumpAndSettle();
+    questions.session = const QuestionReviewSession(items: [], totalDue: 1);
+    await tester.tap(find.byKey(const Key('return_from_question_review')));
+    await tester.pumpAndSettle();
+
+    expect(questions.calls, 2);
+    expect(find.text('1 câu hỏi cần ôn'), findsOneWidget);
   });
 }
