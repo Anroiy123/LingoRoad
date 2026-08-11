@@ -1,7 +1,7 @@
 {
   "fileKey": "Vd24yzXHCW2dujlZPLq1sg",
   "exportedAt": "2026-08-11",
-  "notes": "Figma MCP exposed the System Desgin page only in this session. These exported references are the source for foundation token mapping; route/golden rows are ready for the screen-frame exports when Page 1 is available.",
+  "notes": "Page 1 reference exports use Figma MCP node IDs; HTML Body 2085:1545 is intentionally excluded.",
   "references": [
     {
       "nodeId": "2030:392",
@@ -24,5 +24,9 @@
       "routes": ["/profile-setup", "/placement/status-error", "/profile-setup/status-error"],
       "golden": "foundation_components"
     }
-  ]
+  ],
+  "page1Frames": {
+    "2030:716": ["/splash", "default", "splash_light"], "2030:732": ["/login", "default", "login_light"], "2030:724": ["/register", "default", "register_light"], "2030:717": ["/placement", "intro", "placement_intro_light"], "2030:719": ["/placement/question", "question", "placement_question_light"], "2030:718": ["/placement/result", "result", "placement_result_light"], "2030:726": ["/profile-setup", "required", "profile_setup_light"], "2030:727": ["/home", "default", "main_shell_light"], "2030:728": ["/home", "loading", "home_loading_light"], "2030:729": ["/home", "error", "home_error_light"], "2030:730": ["/review", "default", "review_light"], "2085:1685": ["/question-review", "default", "question_review_light"], "2030:731": ["/profile", "default", "profile_light"], "2030:725": ["/progress", "default", "progress_light"], "2045:756": ["/learning-goals-schedule", "default", "goals_light"], "2069:99": ["/notification-settings", "default", "notifications_light"], "2070:99": ["/streak-details", "default", "streak_light"], "2070:136": ["/vocabulary-review", "default", "vocabulary_review_light"], "2071:99": ["/practice", "default", "practice_light"], "2079:792": ["/lesson/:id", "exercise", "lesson_exercise_light"], "2079:915": ["/lesson/:id", "complete", "lesson_complete_light"], "2079:1015": ["/lesson/:id", "mistakes", "lesson_mistakes_light"], "2079:1172": ["/placement/status-error", "error", "placement_status_error_light"],
+    "2145:98": ["/home", "empty", "home_empty_light"], "2145:132": ["/profile-setup/status-error", "error", "profile_setup_error_light"], "2145:166": ["/placement", "loading", "placement_loading_light"], "2146:96": ["/review", "empty", "review_empty_light"], "2146:97": ["/review", "error", "review_error_light"], "2146:145": ["/progress", "empty", "progress_empty_light"], "2146:146": ["/progress", "error", "progress_error_light"], "2146:246": ["/learning-goals-schedule", "error", "goals_error_light"], "2146:346": ["/notification-settings", "error", "notifications_error_light"], "2146:446": ["/streak-details", "empty", "streak_empty_light"], "2146:531": ["/question-review", "empty", "question_review_empty_light"], "2153:96": ["/practice", "error", "practice_error_light"]
+  }
 }

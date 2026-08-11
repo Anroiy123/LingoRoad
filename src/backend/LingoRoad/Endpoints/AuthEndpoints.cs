@@ -217,14 +217,18 @@ public static class AuthEndpoints
             if (req.DailyGoalMinutes is not (>= 10 and <= 120))
                 return ApiResults.Error("invalid_daily_goal");
 
-            var user = await db.Users.FindAsync(principal.UserId());
+            var now = DateTime.UtcNow;
+            var userId = principal.UserId();
+            var changed = await db.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(setters =>
+                setters.SetProperty(u => u.Name, name)
+                    .SetProperty(u => u.TargetCefr, req.TargetCefr)
+                    .SetProperty(u => u.TargetCefrConfirmed, true)
+                    .SetProperty(u => u.DailyGoalMinutes, req.DailyGoalMinutes.Value)
+                    .SetProperty(u => u.ProfileSetupCompletedAt,
+                        u => u.ProfileSetupCompletedAt ?? now));
+            if (changed == 0) return Results.NotFound();
+            var user = await db.Users.FindAsync(userId);
             if (user is null) return Results.NotFound();
-            user.Name = name;
-            user.TargetCefr = req.TargetCefr;
-            user.TargetCefrConfirmed = true;
-            user.DailyGoalMinutes = req.DailyGoalMinutes.Value;
-            user.ProfileSetupCompletedAt ??= DateTime.UtcNow;
-            await db.SaveChangesAsync();
             return Results.Ok(await Profile(user, db));
         }).RequireAuthorization();
 

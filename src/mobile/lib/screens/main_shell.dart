@@ -41,36 +41,27 @@ class _MainShellState extends State<MainShell> {
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
-            selectedIcon:
-                const Icon(Icons.home_rounded, color: AppColors.primary),
+            selectedIcon: const Icon(Icons.home_rounded),
             label: l10n.translate('nav.learn'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.map_outlined),
-            selectedIcon:
-                const Icon(Icons.map_rounded, color: AppColors.primary),
+            selectedIcon: const Icon(Icons.map_rounded),
             label: l10n.translate('nav.path'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.menu_book_outlined),
-            selectedIcon: const Icon(
-              Icons.menu_book_rounded,
-              color: AppColors.primary,
-            ),
+            selectedIcon: const Icon(Icons.menu_book_rounded),
             label: l10n.translate('nav.review'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.bar_chart_outlined),
-            selectedIcon: const Icon(
-              Icons.bar_chart_rounded,
-              color: AppColors.primary,
-            ),
+            selectedIcon: const Icon(Icons.bar_chart_rounded),
             label: l10n.translate('nav.progress'),
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline_rounded),
-            selectedIcon:
-                const Icon(Icons.person_rounded, color: AppColors.primary),
+            selectedIcon: const Icon(Icons.person_rounded),
             label: l10n.translate('nav.profile'),
           ),
         ],

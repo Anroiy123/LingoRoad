@@ -74,9 +74,7 @@ GoRouter createAppRouter({
             }
           } else if (location == '/splash' ||
               isAuthRoute ||
-              (location == '/home' || location == '/review') ||
-              location.startsWith('/lesson/') ||
-              location == '/placement/status-error') {
+              !_isPlacementFlowRoute(location)) {
             return '/placement';
           }
           if (location == '/placement/question' &&
@@ -169,3 +167,8 @@ GoRouter createAppRouter({
     ],
   );
 }
+
+bool _isPlacementFlowRoute(String location) =>
+    location == '/placement' ||
+    location == '/placement/question' ||
+    location == '/placement/result';

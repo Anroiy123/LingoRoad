@@ -224,7 +224,20 @@ class ProfileSetupStatusErrorScreen extends StatelessWidget {
                   ),
                   TextButton.icon(
                     key: const Key('profile_setup_status_logout'),
-                    onPressed: session.logout,
+                    onPressed: () async {
+                      try {
+                        await session.logout();
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              l10n.translate('placement.error.logout_failed'),
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     icon: const Icon(Icons.logout_rounded),
                     label: Text(l10n.translate('placement.error.logout')),
                   ),

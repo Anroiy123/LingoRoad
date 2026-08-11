@@ -215,6 +215,30 @@ void main() {
     expect(controller.placementStatus, PlacementOnboardingStatus.required);
   });
 
+  test('profile setup lookup cũ không ghi đè phiên mới hoặc retry mới',
+      () async {
+    final oldProfileLookup = Completer<bool>();
+    var profileCalls = 0;
+    final controller = SessionController(MemorySessionStore('old-token'));
+    controller.configurePlacementStatusLoader(() async => true);
+    controller.configureProfileSetupStatusLoader(() {
+      profileCalls++;
+      return profileCalls == 1 ? oldProfileLookup.future : Future.value(false);
+    });
+
+    final restoring = controller.restore();
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.profileSetupStatus, ProfileSetupStatus.checking);
+
+    await controller.authenticate('new-token');
+    expect(controller.profileSetupStatus, ProfileSetupStatus.required);
+    oldProfileLookup.complete(true);
+    await restoring;
+
+    expect(controller.token, 'new-token');
+    expect(controller.profileSetupStatus, ProfileSetupStatus.required);
+  });
+
   test('restore không giữ Splash vô hạn khi secure storage bị treo', () async {
     final store = HangingReadSessionStore();
     final controller = SessionController(

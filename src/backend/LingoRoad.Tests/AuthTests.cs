@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
+using LingoRoad.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace LingoRoad.Tests;
 
@@ -142,6 +145,54 @@ public class AuthTests : IClassFixture<TestAppFactory>
         Assert.Equal("Updated", updated.GetProperty("name").GetString());
         Assert.Equal(60, updated.GetProperty("dailyGoalMinutes").GetInt32());
         Assert.True(updated.GetProperty("profileSetupCompleted").GetBoolean());
+    }
+
+    [Theory]
+    [InlineData("", "B1", 30)]
+    [InlineData("Learner", "b1", 30)]
+    [InlineData("Learner", "B1", 9)]
+    [InlineData("Learner", "B1", 121)]
+    public async Task Complete_profile_setup_rejects_each_boundary(string name, string cefr, int goal)
+    {
+        var auth = await Register($"{Guid.NewGuid():N}@example.com");
+        Authorize(auth.GetProperty("accessToken").GetString()!);
+        var response = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name, targetCefr = cefr, dailyGoalMinutes = goal });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Complete_profile_setup_requires_authentication()
+    {
+        _client.DefaultRequestHeaders.Authorization = null;
+        var response = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = "Learner", targetCefr = "B1", dailyGoalMinutes = 30 });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Complete_profile_setup_keeps_first_database_timestamp_on_repeat()
+    {
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var auth = await Register(email);
+        Authorize(auth.GetProperty("accessToken").GetString()!);
+        (await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = "First", targetCefr = "B1", dailyGoalMinutes = 30 }))
+            .EnsureSuccessStatusCode();
+        DateTime first;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            first = (await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users
+                .AsNoTracking().SingleAsync(u => u.Email == email)).ProfileSetupCompletedAt!.Value;
+        }
+        (await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = "Second", targetCefr = "B2", dailyGoalMinutes = 60 }))
+            .EnsureSuccessStatusCode();
+        using var verifyScope = _factory.Services.CreateScope();
+        var user = await verifyScope.ServiceProvider.GetRequiredService<AppDbContext>().Users
+            .AsNoTracking().SingleAsync(u => u.Email == email);
+        Assert.Equal(first, user.ProfileSetupCompletedAt);
+        Assert.Equal("Second", user.Name);
     }
 
     [Fact]
