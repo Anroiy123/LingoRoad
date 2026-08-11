@@ -196,7 +196,7 @@ models, `openai` SDK pointed at Gemini's OpenAI-compatible endpoint
 (`gemini-2.5-flash` chat, `gemini-embedding-001` embeddings), faster-whisper
 (speech-to-text), pytest.
 
-**Flutter mobile:** Dart SDK `>=3.6.0 <4.0.0`, Material 3, `go_router`,
+**Flutter mobile:** Flutter `>=3.44` / Dart SDK `>=3.12.0 <4.0.0`, Material 3, `go_router`,
 `http` package directly (no Dio/Retrofit), `flutter_secure_storage`,
 `audioplayers`, `flutter_test` + `package:http/testing.dart`.
 

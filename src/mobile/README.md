@@ -5,7 +5,7 @@ từ thư mục gốc của repository bằng PowerShell.
 
 ## Yêu cầu
 
-- Flutter SDK tương thích Dart `>=3.6.0 <4.0.0`; kiểm tra bằng `flutter doctor`.
+- Flutter SDK `>=3.44` (Dart `>=3.12.0 <4.0.0`); kiểm tra bằng `flutter doctor`.
 - Android SDK và Android SDK Platform-Tools (`adb`) nếu chạy trên Android.
 - .NET SDK, PostgreSQL và môi trường Python của dịch vụ ML nếu chạy toàn bộ
   stack trên máy local.
