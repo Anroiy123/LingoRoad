@@ -74,26 +74,29 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
     }
     final item = vm.current!;
     if (vm.state == QuestionReviewState.feedback) return _feedback(vm, l);
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(l.translate('question_review.progress', [vm.completed + 1, vm.remaining])),
-      const SizedBox(height: 24),
-      Text(item.stem, key: const Key('question_review_stem'), style: Theme.of(context).textTheme.headlineSmall),
-      const SizedBox(height: 24),
-      ExerciseAnswerInput(
-        key: ValueKey(item.id),
-        type: item.type,
-        options: item.options,
-        answer: vm.answer,
-        enabled: vm.state == QuestionReviewState.ready,
-        onAnswerChanged: vm.setAnswer,
-        onSubmit: vm.check,
-        textFieldKey: const Key('question_review_text_answer'),
-        submitKey: const Key('question_review_check'),
-        submitLabel: l.translate('question_review.check'),
-        hintText: l.translate('question_review.answer_hint'),
-      ),
-      if (vm.state == QuestionReviewState.checking) const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator())),
-    ]);
+    return SingleChildScrollView(
+      key: const Key('question_review_question_scroll'),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(l.translate('question_review.progress', [vm.completed + 1, vm.remaining])),
+        const SizedBox(height: 24),
+        Text(item.stem, key: const Key('question_review_stem'), style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 24),
+        ExerciseAnswerInput(
+          key: ValueKey(item.id),
+          type: item.type,
+          options: item.options,
+          answer: vm.answer,
+          enabled: vm.state == QuestionReviewState.ready,
+          onAnswerChanged: vm.setAnswer,
+          onSubmit: vm.check,
+          textFieldKey: const Key('question_review_text_answer'),
+          submitKey: const Key('question_review_check'),
+          submitLabel: l.translate('question_review.check'),
+          hintText: l.translate('question_review.answer_hint'),
+        ),
+        if (vm.state == QuestionReviewState.checking) const Padding(padding: EdgeInsets.only(top: 16), child: Center(child: CircularProgressIndicator())),
+      ]),
+    );
   }
 
   Widget _feedback(QuestionReviewViewModel vm, AppLanguageProvider l) {
@@ -104,19 +107,22 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
       liveRegion: true,
       child: Focus(
         focusNode: _feedbackFocus,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(feedback.correct ? l.translate('question_review.feedback.correct') : l.translate('question_review.feedback.wrong'), style: Theme.of(context).textTheme.headlineSmall),
-          if (!feedback.correct) Text(l.translate('question_review.feedback.answer', [feedback.correctAnswer])),
-          if (feedback.explanationVi?.isNotEmpty == true) Text(feedback.explanationVi!),
-          const SizedBox(height: 24),
-          if (feedback.correct)
-            Wrap(spacing: 8, children: [
-              for (final rating in [2, 3, 4])
-                FilledButton(key: Key('question_review_rating_$rating'), onPressed: vm.isBusy ? null : () => vm.grade(rating), child: Text(l.translate('question_review.rating.$rating'))),
-            ])
-          else
-            FilledButton(key: const Key('question_review_next'), onPressed: vm.next, child: Text(l.translate('question_review.next'))),
-        ]),
+        child: SingleChildScrollView(
+          key: const Key('question_review_feedback_scroll'),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(feedback.correct ? l.translate('question_review.feedback.correct') : l.translate('question_review.feedback.wrong'), style: Theme.of(context).textTheme.headlineSmall),
+            if (!feedback.correct) Text(l.translate('question_review.feedback.answer', [feedback.correctAnswer])),
+            if (feedback.explanationVi?.isNotEmpty == true) Text(feedback.explanationVi!),
+            const SizedBox(height: 24),
+            if (feedback.correct)
+              Wrap(spacing: 8, children: [
+                for (final rating in [2, 3, 4])
+                  FilledButton(key: Key('question_review_rating_$rating'), onPressed: vm.isBusy ? null : () => vm.grade(rating), child: Text(l.translate('question_review.rating.$rating'))),
+              ])
+            else
+              FilledButton(key: const Key('question_review_next'), onPressed: vm.next, child: Text(l.translate('question_review.next'))),
+          ]),
+        ),
       ),
     );
   }

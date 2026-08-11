@@ -8,10 +8,18 @@ enum QuestionReviewState { initial, loading, ready, checking, feedback, grading,
 enum _RetryAction { load, check, grade }
 
 class QuestionReviewViewModel extends ChangeNotifier {
-  QuestionReviewViewModel(this._repository, {Uuid? uuid}) : _uuid = uuid ?? const Uuid();
+  QuestionReviewViewModel(
+    this._repository, {
+    Uuid? uuid,
+    int sessionGeneration = 0,
+  })  : _uuid = uuid ?? const Uuid(),
+        _sessionGeneration = sessionGeneration;
 
   final QuestionReviewRepository _repository;
   final Uuid _uuid;
+  int _sessionGeneration;
+  int _requestGeneration = 0;
+  bool _disposed = false;
   QuestionReviewState _state = QuestionReviewState.initial;
   List<QuestionReviewItem> _items = const [];
   int _totalDue = 0;
@@ -41,8 +49,34 @@ class QuestionReviewViewModel extends ChangeNotifier {
   int get xp => _xp;
   int get coins => _coins;
   bool get hasMoreDue => _hasMoreDue;
+  int get sessionGeneration => _sessionGeneration;
   bool get isBusy => _state == QuestionReviewState.loading || _state == QuestionReviewState.checking || _state == QuestionReviewState.grading;
   bool get hasRetainedAnswerError => _retryAction != _RetryAction.load;
+
+  void updateSessionGeneration(int value) {
+    if (_sessionGeneration == value) return;
+    _sessionGeneration = value;
+    _requestGeneration++;
+    _state = QuestionReviewState.initial;
+    _items = const [];
+    _totalDue = 0;
+    _index = 0;
+    _answer = '';
+    _errorCode = null;
+    _feedback = null;
+    _operationId = null;
+    _pendingRating = null;
+    _correctCount = 0;
+    _incorrectCount = 0;
+    _xp = 0;
+    _coins = 0;
+    _hasMoreDue = false;
+    _retryAction = _RetryAction.load;
+    final resetGeneration = _requestGeneration;
+    Future<void>.microtask(() {
+      if (_isCurrent(resetGeneration)) notifyListeners();
+    });
+  }
 
   void setAnswer(String value) {
     if (isBusy || _state == QuestionReviewState.feedback || _state == QuestionReviewState.complete) return;
@@ -52,12 +86,14 @@ class QuestionReviewViewModel extends ChangeNotifier {
 
   Future<void> load({bool force = false, bool preserveSummary = false}) async {
     if (isBusy && !force) return;
+    final requestGeneration = ++_requestGeneration;
     _state = QuestionReviewState.loading;
     _errorCode = null;
     _retryAction = _RetryAction.load;
     notifyListeners();
     try {
       final session = await _repository.fetchDue();
+      if (!_isCurrent(requestGeneration)) return;
       _items = session.items;
       _totalDue = session.totalDue;
       _hasMoreDue = session.totalDue > session.items.length;
@@ -74,9 +110,10 @@ class QuestionReviewViewModel extends ChangeNotifier {
       }
       _state = _items.isEmpty ? QuestionReviewState.empty : QuestionReviewState.ready;
     } catch (error) {
+      if (!_isCurrent(requestGeneration)) return;
       _toError(error, _RetryAction.load);
     }
-    notifyListeners();
+    if (_isCurrent(requestGeneration)) notifyListeners();
   }
 
   Future<void> check([String? submittedAnswer]) async {
@@ -85,22 +122,31 @@ class QuestionReviewViewModel extends ChangeNotifier {
     if (item == null || isBusy || _answer.trim().isEmpty) return;
     _state = QuestionReviewState.checking;
     _errorCode = null;
+    final requestGeneration = _requestGeneration;
     notifyListeners();
     try {
-      _feedback = await _repository.check(item: item, answer: _answer);
+      final feedback = await _repository.check(item: item, answer: _answer);
+      if (!_isCurrent(requestGeneration)) return;
+      _feedback = feedback;
       if (_feedback!.correct) {
         _state = QuestionReviewState.feedback;
       } else {
-        await _grade(item, 1, automatic: true);
+        await _grade(
+          item,
+          1,
+          automatic: true,
+          requestGeneration: requestGeneration,
+        );
       }
     } catch (error) {
+      if (!_isCurrent(requestGeneration)) return;
       if (_isStaleCard(error)) {
         await load(force: true, preserveSummary: true);
         return;
       }
       _toError(error, _RetryAction.check);
     }
-    notifyListeners();
+    if (_isCurrent(requestGeneration)) notifyListeners();
   }
 
   Future<void> grade(int rating) async {
@@ -110,7 +156,14 @@ class QuestionReviewViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _grade(QuestionReviewItem item, int rating, {bool automatic = false}) async {
+  Future<void> _grade(
+    QuestionReviewItem item,
+    int rating, {
+    bool automatic = false,
+    int? requestGeneration,
+  }) async {
+    final activeGeneration = requestGeneration ?? _requestGeneration;
+    if (!_isCurrent(activeGeneration)) return;
     _state = QuestionReviewState.grading;
     _errorCode = null;
     _operationId ??= _uuid.v4();
@@ -124,6 +177,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
         expectedReps: item.reps,
         answer: _answer,
       );
+      if (!_isCurrent(activeGeneration)) return;
       _xp += grade.xp;
       _coins += grade.coins;
       if (_feedback!.correct) {
@@ -136,6 +190,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
       _state = QuestionReviewState.feedback;
       if (!automatic) await _advance();
     } catch (error) {
+      if (!_isCurrent(activeGeneration)) return;
       if (_isStaleCard(error)) {
         await load(force: true, preserveSummary: true);
         return;
@@ -146,8 +201,9 @@ class QuestionReviewViewModel extends ChangeNotifier {
 
   Future<void> next() async {
     if (_state != QuestionReviewState.feedback || _feedback == null || (_feedback!.correct && _operationId != null)) return;
+    final requestGeneration = _requestGeneration;
     await _advance();
-    notifyListeners();
+    if (_isCurrent(requestGeneration)) notifyListeners();
   }
 
   Future<void> _advance() async {
@@ -159,8 +215,10 @@ class QuestionReviewViewModel extends ChangeNotifier {
       return;
     }
     _state = QuestionReviewState.complete;
+    final requestGeneration = _requestGeneration;
     try {
       final session = await _repository.fetchDue();
+      if (!_isCurrent(requestGeneration)) return;
       _totalDue = session.totalDue;
       _hasMoreDue = session.totalDue > 0;
     } catch (_) {
@@ -194,5 +252,15 @@ class QuestionReviewViewModel extends ChangeNotifier {
     return error.statusCode == 404 ||
         error.code == 'review_not_due' ||
         error.code == 'review_already_graded';
+  }
+
+  bool _isCurrent(int requestGeneration) =>
+      !_disposed && requestGeneration == _requestGeneration;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _requestGeneration++;
+    super.dispose();
   }
 }

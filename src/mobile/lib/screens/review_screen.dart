@@ -17,6 +17,7 @@ class ReviewScreen extends StatefulWidget {
 
 class _ReviewScreenState extends State<ReviewScreen> {
   bool _scheduled = false;
+  int? _questionSessionGeneration;
 
   @override
   void initState() {
@@ -61,6 +62,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final l = context.watch<AppLanguageProvider>();
 
     final questionVm = context.watch<QuestionReviewViewModel?>();
+    if (questionVm != null &&
+        _questionSessionGeneration != questionVm.sessionGeneration) {
+      _questionSessionGeneration = questionVm.sessionGeneration;
+      _scheduled = false;
+      _schedule();
+    }
     final vocabCountText = vm.state == ReviewState.loading
         ? '...'
         : l.translate('review.selection.vocab_due_badge', [vm.remaining]);

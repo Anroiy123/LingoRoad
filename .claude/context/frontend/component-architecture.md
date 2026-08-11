@@ -16,6 +16,8 @@ crossed with `session.placementStatus` (`unknown` / `checking` / `required` /
 | `/placement/question` | `PlacementQuestionScreen` | redirects back to `/placement` if `placement.currentItem == null` |
 | `/placement/result` | `PlacementResultScreen` | redirects back to `/placement` if `placement.result == null` |
 | `/home` | `MainShell` | `authenticated` + placement `completed` |
+| `/review` | `MainShell(initialIndex: 2)` | authenticated + placement completed; deep-links to the Review tab |
+| `/question-review` | `QuestionReviewScreen` | authenticated + placement completed |
 
 `PlacementViewModel` is constructed once in `createAppRouter` (not per-route),
 so placement progress survives navigation within the flow.
@@ -30,42 +32,32 @@ Tiến độ (`ProgressScreen`), Hồ sơ (`ProfileScreen`). Screens are built o
 `initState`, not rebuilt on tab switch.
 
 ## State management pattern
-No Provider/Riverpod/Bloc/GetX. Every stateful concern is a plain
-`ChangeNotifier`:
+Repositories and `ChangeNotifier` view models are wired with Provider at the
+composition root. Session-bound models use `ChangeNotifierProxyProvider` and
+`SessionController.sessionGeneration` so an old account response cannot update
+the new account state. Core concerns include:
 - `SessionController` — auth + placement-onboarding status, token, drives router redirects.
 - `AuthViewModel` — login/register submission state (`isSubmitting`, `errorMessage`) + static validators.
 - `PlacementViewModel` — CAT test progression (`sessionId`, `currentItem`, `selectedAnswer`, `result`, `questionNumber`).
+- `ReviewViewModel` — saved-word FSRS cards from `/words/*`.
+- `QuestionReviewViewModel` — wrong-question queue from `/reviews/questions/*`, answer feedback, rating and session rewards; independent from saved-word state.
 
-Screens consume these via `AnimatedBuilder(animation: viewModel, builder:
-...)`, not `context.watch`/`Consumer`. Dependencies are passed in via
-constructor from `main.dart` → `app_router.dart` → screen — there is no
-service locator, no `InheritedWidget`-based DI, no global singletons besides
-what `main.dart` constructs once.
+Screens consume the supplied dependencies through `context.watch`,
+`context.read` or `Consumer`. Repositories use the authenticated `ApiClient`;
+feature state is not shared through a mock repository.
 
-`screens/*.dart` (the 5 tabs, except `ProfileScreen`'s session/logout wiring)
-are plain `StatefulWidget`s with **local `setState`** only — they don't use
-the `ChangeNotifier` pattern because they don't talk to the backend yet (see
-below).
-
-## Mock vs. live data — read this before changing a screen
-Only `auth` and `placement` are wired to the real backend. Everything
-reachable from `MainShell` after placement completes is currently
-**mock/demo data**:
+## Live learner data
+The learner shell uses real authenticated repositories:
 
 | Screen | Data source | Notes |
 |---|---|---|
 | `LoginScreen`, `RegisterScreen`, `SplashScreen` | `ApiAuthRepository` → `POST /auth/login`, `POST /auth/register` | Real |
 | `PlacementIntroScreen`/`Question`/`Result`/`StatusError` | `ApiPlacementRepository` → `/placement/*` | Real |
-| `HomeScreen` | `MockRepository.quests()` | ⚠️ Greeting text `'Chào Hùng!'` is hardcoded, not the logged-in user's name |
-| `LearningPathScreen` | `MockRepository.path()` | Hardcoded lesson list |
-| `ReviewScreen` | `MockRepository.reviews()` | Hardcoded vocab cards |
-| `ProgressScreen` | `MockRepository.skills` | Hardcoded skill percentages |
-| `ProfileScreen` | Local `setState` only (notification/reminder toggles) | Only the **logout** button is real — it calls `sessionController.logout()`. The rest (name, level, badges, settings) is static UI; the logout confirmation dialog itself says the action is "simulated" |
-
-When asked to make one of the mock tabs "work", the backend already has real
-endpoints for the underlying domain (learning path, mastery, review queue —
-see repo-root `docs/system-architecture.md`); this is a wiring gap in the
-mobile app, not a missing backend feature.
+| `HomeScreen` | `ApiDashboardRepository` + quests | Real dashboard, rewards and activity |
+| `LearningPathScreen` | `ApiLearningPathRepository` | Real personalized path and lesson status |
+| `ReviewScreen` | `ReviewViewModel` + `QuestionReviewViewModel` | Real, separate saved-word and wrong-question queues; `/question-review` supports MCQ/cloze/reorder, feedback, grade retry and a 10-question session |
+| `ProgressScreen` | `ApiProgressRepository` + dashboard | Real mastery, review and lesson progress |
+| `ProfileScreen` | Authenticated profile/preferences APIs | Real profile, onboarding preferences, password/logout and reminder settings |
 
 ## Shared UI primitives (`widgets/common.dart`)
 - `AppPage` — the standard scaffold body: `SafeArea` + `ListView` with fixed

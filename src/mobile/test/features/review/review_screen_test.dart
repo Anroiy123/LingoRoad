@@ -93,7 +93,7 @@ void main() {
     final router = GoRouter(
       initialLocation: '/',
       routes: [
-        GoRoute(path: '/', builder: (_, __) => const ReviewScreen()),
+        GoRoute(path: '/', builder: (_, _) => const ReviewScreen()),
         GoRoute(
           path: '/question-review',
           builder: (context, state) => Scaffold(

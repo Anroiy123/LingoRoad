@@ -23,7 +23,7 @@ import 'package:lingoroad_mobile/features/practice/data/practice_repository.dart
 import 'package:lingoroad_mobile/features/review/data/review_repository.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/features/question_review/data/question_review_repository.dart';
-import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
+import 'package:lingoroad_mobile/features/question_review/presentation/question_review_session_provider.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/dictionary_repository.dart';
 import 'package:lingoroad_mobile/features/dictionary/data/saved_word_repository.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
@@ -230,11 +230,7 @@ class LingoRoadApp extends StatelessWidget {
               config: AppConfig(), session: context.read<SessionController>(),
             )),
           ),
-        ChangeNotifierProvider<QuestionReviewViewModel>(
-          create: (context) => QuestionReviewViewModel(
-            context.read<QuestionReviewRepository>(),
-          ),
-        ),
+        questionReviewViewModelProvider(),
         if (progressRepository != null)
           Provider<ProgressRepository>.value(value: progressRepository!)
         else

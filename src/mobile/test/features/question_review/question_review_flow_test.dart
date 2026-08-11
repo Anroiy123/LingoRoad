@@ -57,6 +57,7 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
   Object? gradeError;
   Completer<QuestionReviewCheck>? pendingCheck;
   Completer<QuestionReviewGrade>? pendingGrade;
+  Completer<QuestionReviewSession>? pendingFetch;
   int fetchCalls = 0;
   final fetchSessions = <QuestionReviewSession>[];
   final checks = <String>[];
@@ -66,6 +67,7 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
   Future<QuestionReviewSession> fetchDue({int limit = 10}) async {
     fetchCalls++;
     if (loadError != null) throw loadError!;
+    if (pendingFetch != null) return pendingFetch!.future;
     if (fetchSessions.isNotEmpty) return fetchSessions.removeAt(0);
     return session;
   }
@@ -412,6 +414,46 @@ void main() {
     expect(repository.fetchCalls, 2);
   });
 
+  test('response from an old account cannot populate the new session', () async {
+    final repository = _FakeQuestionReviewRepository()
+      ..pendingFetch = Completer<QuestionReviewSession>();
+    final vm = QuestionReviewViewModel(repository, sessionGeneration: 1);
+
+    final oldLoad = vm.load();
+    vm.updateSessionGeneration(2);
+    repository.pendingFetch!.complete(const QuestionReviewSession(
+      items: [_first],
+      totalDue: 1,
+    ));
+    await oldLoad;
+
+    expect(vm.sessionGeneration, 2);
+    expect(vm.state, QuestionReviewState.initial);
+    expect(vm.current, isNull);
+    expect(vm.dueCount, 0);
+
+    repository.pendingFetch = null;
+    repository.session = const QuestionReviewSession(
+      items: [_second],
+      totalDue: 1,
+    );
+    await vm.load();
+    expect(vm.current, _second);
+
+    repository.pendingCheck = Completer<QuestionReviewCheck>();
+    vm.setAnswer('blue');
+    final oldCheck = vm.check();
+    vm.updateSessionGeneration(3);
+    repository.pendingCheck!.complete(const QuestionReviewCheck(
+      correct: true,
+      correctAnswer: 'blue',
+    ));
+    await oldCheck;
+    expect(vm.sessionGeneration, 3);
+    expect(vm.state, QuestionReviewState.initial);
+    expect(vm.feedback, isNull);
+  });
+
   testWidgets('completion returns to the Review screen', (tester) async {
     final repository = _FakeQuestionReviewRepository()
       ..session = const QuestionReviewSession(items: [_first], totalDue: 1);
@@ -465,5 +507,44 @@ void main() {
     await tester.tap(find.byKey(const Key('question_review_check')));
     await tester.pumpAndSettle();
     expect(repository.checks.last, 'I learn English');
+  });
+
+  testWidgets('long question and feedback remain reachable by scrolling', (tester) async {
+    final longStem = List.filled(40, 'A long question sentence.').join(' ');
+    final longExplanation = List.filled(50, 'A detailed explanation.').join(' ');
+    final repository = _FakeQuestionReviewRepository()
+      ..session = QuestionReviewSession(
+        items: [
+          QuestionReviewItem(
+            id: _first.id,
+            reps: 0,
+            type: 'mcq',
+            stem: longStem,
+            options: const ['red', 'blue'],
+          ),
+        ],
+        totalDue: 1,
+      );
+    repository.pendingCheck = Completer<QuestionReviewCheck>();
+
+    await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('question_review_question_scroll')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('question_review_check')));
+    await tester.tap(find.byKey(const Key('answer_option_blue')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('question_review_check')));
+    await tester.tap(find.byKey(const Key('question_review_check')));
+    repository.pendingCheck!.complete(QuestionReviewCheck(
+      correct: true,
+      correctAnswer: 'blue',
+      explanationVi: longExplanation,
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('question_review_feedback_scroll')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('question_review_rating_3')));
+    expect(find.byKey(const Key('question_review_rating_3')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
