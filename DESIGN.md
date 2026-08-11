@@ -168,3 +168,11 @@ The shape language is defined as **Rounded**, balancing professional structure w
 
 - Product surfaces share the canonical orange-red palette and Hanken Grotesk typography; do not introduce a separate brand theme for Admin or internal tools.
 - Decorative metrics and controls are omitted unless they represent real product data or a working capability.
+
+## Mobile reference and visual-regression evidence
+
+- `docs/design/figma-reference/mobile/manifest.json` is the source-of-truth mapping for the 35 audited Page 1 Figma frames: 28 are routable learner states and 7 are reference-only. The technical HTML Body frame is intentionally excluded.
+- The learner gate is always **authentication → Placement → Profile Setup → Home**. A learner with an incomplete profile is redirected to Profile Setup even when opening a protected deep link.
+- Golden comparisons run only on the pinned Linux Flutter 3.44.6 CI runtime. The suites cover foundation, learning, and Progress/Profile/Settings/Streak surfaces at 390×844 in light and dark mode. Windows runs exercise layout and accessibility assertions but never create committed raster baselines.
+- `progress_profile_golden_test.dart` uses deterministic in-memory repositories for CEFR, mastery, quests, profile initials, preferences, and streak calendar. It additionally verifies no overflow at 320, 390, and 600 widths and at 1.3 text scale.
+- CI uploads `src/mobile/test/goldens/failures` when a Linux comparison fails. A local or emulator pass is evidence for that environment only; it is not a production-readiness claim.

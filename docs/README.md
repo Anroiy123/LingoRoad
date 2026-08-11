@@ -21,3 +21,11 @@ All three members' results are collected in [bao-cao-ly-thuyet-nhom.md](bao-cao-
 | Mảng 1 | Learning theory (ZPD, mastery, SRL, SRS), knowledge tracing (DKT/DKVMN/SAINT+), gamification | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) §Mảng 1; measured KT evidence in [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) |
 | Mảng 2 | LLM & RAG, CEFR assessment (IRT/CAT), ASR & pronunciation (Whisper, MFA) | [bao-cao-ly-thuyet-nhom.md](bao-cao-ly-thuyet-nhom.md) §Mảng 2; measured placement/advisor/speaking evidence in [ai-theory-and-algorithms.md](ai-theory-and-algorithms.md) |
 | **Mảng 3** (`.claude/theory-reqquirement.md`) | Learning-path optimization + technical infrastructure | [learning-path-optimization.md](learning-path-optimization.md) + [system-architecture.md](system-architecture.md) (VN: [bao-cao-mang-3-vn.md](bao-cao-mang-3-vn.md)) |
+
+## UI reference and golden tests
+
+The mobile Figma evidence is stored under `docs/design/figma-reference/mobile/`. Its v2 manifest records all 35 audited Page 1 frames (28 routable learner states and 7 reference-only states). The deterministic Progress/Profile/Settings/Streak golden state names are declared in `src/mobile/test/goldens/progress_profile_golden_test.dart`; manifest links are added only after the Linux baseline artifact has been approved.
+
+Golden baselines are generated and compared only by the pinned Linux Flutter 3.44.6 CI runner. Do not regenerate or commit them from Windows. The workflow uploads `src/mobile/test/goldens/failures` on comparison failures.
+
+The forced onboarding path is: authentication → Placement → Profile Setup → Home. Deep links to learner routes retain these guards.
