@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Icon(
                   Icons.error_outline_rounded,
-                  color: AppColors.error,
+                  color: Theme.of(context).colorScheme.error,
                   size: 48.sp,
                 ),
                 SizedBox(height: AppSpacing.sm.h),
@@ -201,20 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppCard(
           child: Column(
             children: [
-              Container(
-                width: 92.w,
-                height: 92.h,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryFixed,
-                  border: Border.all(color: AppColors.primary, width: 2.w),
-                ),
-                child: Icon(
-                  Icons.person_outline_rounded,
-                  size: 48.sp,
-                  color: AppColors.primary,
-                ),
-              ),
+              _ProfileAvatar(profile: profile),
               SizedBox(height: AppSpacing.sm.h),
               Text(
                 profile.name.isEmpty
@@ -228,9 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColorsDark.surfaceHigh
-                      : AppColors.surfaceDisabled,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(99.r),
                 ),
                 child: Text(
@@ -248,27 +233,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: _SettingTile(
-            title: l10n.translate('profile.groups.goals_and_schedule'),
-            subtitle:
-                '${profile.dailyGoalMinutes} ${l10n.currentLanguage == AppLanguage.vi ? 'phút / ngày' : 'minutes / day'} • ${profile.targetCefrConfirmed ? profile.targetCefr : l10n.translate('profile.not_set')}',
-            onTap: () async {
-              await context.push('/learning-goals-schedule');
-              _loadProfile();
-            },
+        Semantics(
+          header: true,
+          child: AppCard(
+            padding: EdgeInsets.zero,
+            child: _SettingTile(
+              title: l10n.translate('profile.groups.goals_and_schedule'),
+              subtitle:
+                  '${profile.dailyGoalMinutes} ${l10n.currentLanguage == AppLanguage.vi ? 'phút / ngày' : 'minutes / day'} • ${profile.targetCefrConfirmed ? profile.targetCefr : l10n.translate('profile.not_set')}',
+              onTap: () async {
+                await context.push('/learning-goals-schedule');
+                _loadProfile();
+              },
+            ),
           ),
         ),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: _SettingTile(
-            title: l10n.translate('profile.groups.notifications'),
-            subtitle: l10n.translate('profile.settings.notifications_subtitle'),
-            onTap: () async {
-              await context.push('/notification-settings');
-              _loadProfile();
-            },
+        Semantics(
+          header: true,
+          child: AppCard(
+            padding: EdgeInsets.zero,
+            child: _SettingTile(
+              title: l10n.translate('profile.groups.notifications'),
+              subtitle: l10n.translate(
+                'profile.settings.notifications_subtitle',
+              ),
+              onTap: () async {
+                await context.push('/notification-settings');
+                _loadProfile();
+              },
+            ),
           ),
         ),
         _group(
@@ -351,7 +344,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Row(
               children: [
-                Icon(icon, size: 20.sp, color: AppColors.primary),
+                Icon(
+                  icon,
+                  size: 20.sp,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 SizedBox(width: AppSpacing.sm.w),
                 Text(
                   title,
@@ -364,9 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           Divider(
             height: 1.h,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColorsDark.surfaceHigh
-                : AppColors.surfaceHigh,
+            color: Theme.of(context).colorScheme.outlineVariant,
           ),
           ...children,
         ],
@@ -389,63 +384,127 @@ class _SettingTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        constraints: BoxConstraints(minHeight: 64.h),
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.md.w,
-          vertical: AppSpacing.sm.h,
-        ),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
-              width: .5.w,
-            ),
+    return Semantics(
+      button: onTap != null,
+      enabled: onTap != null,
+      label: subtitle == null ? title : '$title, $subtitle',
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          constraints: BoxConstraints(minHeight: 64.h),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.md.w,
+            vertical: AppSpacing.sm.h,
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: danger
-                          ? AppColors.error
-                          : theme.colorScheme.onSurface,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle!,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: danger
-                            ? AppColors.error.withValues(alpha: 0.7)
-                            : theme.colorScheme.onSurfaceVariant,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                ],
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: theme.colorScheme.outlineVariant,
+                width: .5.w,
               ),
             ),
-            Icon(
-              danger ? Icons.logout_rounded : Icons.chevron_right_rounded,
-              color: danger
-                  ? AppColors.error
-                  : theme.colorScheme.onSurfaceVariant,
-              size: 24.sp,
-            ),
-          ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: danger
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurface,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: danger
+                              ? theme.colorScheme.error.withValues(alpha: 0.7)
+                              : theme.colorScheme.onSurfaceVariant,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Icon(
+                danger ? Icons.logout_rounded : Icons.chevron_right_rounded,
+                color: danger
+                    ? theme.colorScheme.error
+                    : theme.colorScheme.onSurfaceVariant,
+                size: 24.sp,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.profile});
+
+  final UserProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final initials = _profileInitials(profile.name, profile.email);
+    final hue = _stableHue(profile.name.isEmpty ? profile.email : profile.name);
+    final color = HSLColor.fromAHSL(1, hue, .46, .88).toColor();
+    return Semantics(
+      label: context.read<AppLanguageProvider>().translate(
+        'home.avatar_semantics',
+        [profile.name.isEmpty ? profile.email.split('@').first : profile.name],
+      ),
+      image: true,
+      child: Container(
+        key: const Key('profile_initials'),
+        width: 92.w,
+        height: 92.h,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2.w,
+          ),
+        ),
+        child: Text(
+          initials,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _profileInitials(String name, String email) {
+  final words = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (words.isNotEmpty) {
+    return words.length == 1
+        ? words.first.characters.first.toUpperCase()
+        : '${words.first.characters.first}${words.last.characters.first}'
+              .toUpperCase();
+  }
+  final fallback = email.split('@').first.trim();
+  return fallback.isEmpty ? '?' : fallback.characters.first.toUpperCase();
+}
+
+double _stableHue(String source) =>
+    source.runes.fold<int>(0, (hash, rune) => (hash * 31 + rune) & 0x7fffffff) %
+    360;

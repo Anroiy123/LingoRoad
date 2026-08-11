@@ -331,6 +331,7 @@
       "xp_1000": "1,000 XP"
     },
     "empty": "The skill catalog is currently empty.",
+    "improvements_empty": "No skills need improvement yet. Complete more learning to receive a personalized analysis.",
     "overview": {
       "badges": "BADGES",
       "cefr_journey": "CEFR Journey",
@@ -367,6 +368,7 @@
       "weakest": "Prioritize more practice in: {}."
     },
     "summary_error": "Unable to load summary metrics.",
+    "strengths_empty": "There is not enough data to identify strengths yet. Complete more lessons first.",
     "tabs": {
       "achievements": "Achievements",
       "overview": "Overview",
@@ -459,6 +461,8 @@
     }
   },
   "streak": {
+    "next_month": "Next month",
+    "previous_month": "Previous month",
     "buy": "Buy",
     "current_streak": "Current study streak",
     "days_count": "{} Days",

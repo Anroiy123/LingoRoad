@@ -62,8 +62,9 @@ class _NotificationSettingsScreenState
     if (_isSaving) return false;
     setState(() => _isSaving = true);
     try {
-      final profile =
-          await context.read<AuthRepository>().updateProfile(values);
+      final profile = await context.read<AuthRepository>().updateProfile(
+        values,
+      );
       if (!mounted) return true;
       setState(() {
         _profile = profile;
@@ -76,9 +77,9 @@ class _NotificationSettingsScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.save_failed'),
+              context.read<AppLanguageProvider>().translate(
+                'profile.save_failed',
+              ),
             ),
           ),
         );
@@ -89,8 +90,12 @@ class _NotificationSettingsScreenState
     }
   }
 
-  Future<void> _toggle(String field, bool value, bool oldValue,
-      void Function(bool) apply) async {
+  Future<void> _toggle(
+    String field,
+    bool value,
+    bool oldValue,
+    void Function(bool) apply,
+  ) async {
     setState(() => apply(value));
     if (!await _persist({field: value}) && mounted) {
       setState(() => apply(oldValue));
@@ -115,9 +120,9 @@ class _NotificationSettingsScreenState
                 child: Text(
                   l10n.translate('profile.settings.language'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.sp,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp,
+                  ),
                 ),
               ),
               ListTile(
@@ -126,7 +131,10 @@ class _NotificationSettingsScreenState
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 trailing: l10n.currentLanguage == AppLanguage.vi
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   l10n.setLanguage(AppLanguage.vi);
@@ -139,7 +147,10 @@ class _NotificationSettingsScreenState
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 trailing: l10n.currentLanguage == AppLanguage.en
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   l10n.setLanguage(AppLanguage.en);
@@ -173,9 +184,9 @@ class _NotificationSettingsScreenState
                 child: Text(
                   l10n.translate('profile.settings.theme'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18.sp,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18.sp,
+                  ),
                 ),
               ),
               ListTile(
@@ -184,7 +195,10 @@ class _NotificationSettingsScreenState
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 trailing: themeProvider.themeMode == ThemeMode.system
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   themeProvider.setThemeMode(ThemeMode.system);
@@ -197,7 +211,10 @@ class _NotificationSettingsScreenState
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 trailing: themeProvider.themeMode == ThemeMode.light
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   themeProvider.setThemeMode(ThemeMode.light);
@@ -210,7 +227,10 @@ class _NotificationSettingsScreenState
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 trailing: themeProvider.themeMode == ThemeMode.dark
-                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () {
                   themeProvider.setThemeMode(ThemeMode.dark);
@@ -241,104 +261,136 @@ class _NotificationSettingsScreenState
         title: Text(l10n.translate('profile.groups.notifications')),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Semantics(liveRegion: true, child: loadingView())
           : _error != null || profile == null
-              ? Center(
+          ? Center(
+              child: Semantics(
+                key: const Key('settings_load_error'),
+                liveRegion: true,
+                child: AppCard(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      Icon(
+                        Icons.cloud_off_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      SizedBox(height: AppSpacing.sm.h),
                       Text(l10n.translate('profile.error_load_failed')),
-                      SizedBox(height: 12.h),
-                      ElevatedButton(
+                      SizedBox(height: AppSpacing.md.h),
+                      FilledButton(
                         onPressed: _loadProfile,
                         child: Text(l10n.translate('common.retry')),
                       ),
                     ],
                   ),
-                )
-              : ListView(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  children: [
-                    _group(
-                      l10n,
-                      Icons.notifications_none_rounded,
-                      l10n.translate('profile.groups.notifications'),
-                      [
-                        _SettingTile(
-                          title: l10n.translate('profile.settings.email_notif'),
-                          value: _email,
-                          onChanged: _isSaving
-                              ? null
-                              : (value) => _toggle(
-                                    'emailNotifications',
-                                    value,
-                                    _email,
-                                    (next) => _email = next,
-                                  ),
-                        ),
-                        _SettingTile(
-                          title:
-                              l10n.translate('profile.settings.app_updates'),
-                          value: _updates,
-                          onChanged: _isSaving
-                              ? null
-                              : (value) => _toggle(
-                                    'appUpdates',
-                                    value,
-                                    _updates,
-                                    (next) => _updates = next,
-                                  ),
-                        ),
-                      ],
+                ),
+              ),
+            )
+          : ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.margin.w,
+                AppSpacing.md.h,
+                AppSpacing.margin.w,
+                AppSpacing.xl.h,
+              ),
+              children: [
+                _group(
+                  l10n,
+                  Icons.notifications_none_rounded,
+                  l10n.translate('profile.groups.notifications'),
+                  [
+                    _SettingTile(
+                      title: l10n.translate('profile.settings.email_notif'),
+                      value: _email,
+                      onChanged: _isSaving
+                          ? null
+                          : (value) => _toggle(
+                              'emailNotifications',
+                              value,
+                              _email,
+                              (next) => _email = next,
+                            ),
                     ),
-                    _group(
-                      l10n,
-                      Icons.tune_rounded,
-                      l10n.translate('profile.settings.preferences'),
-                      [
-                        _SettingTile(
-                          title: l10n.translate('profile.settings.language'),
-                          subtitle: l10n.currentLanguage == AppLanguage.vi
-                              ? l10n.translate('profile.settings.language_vi')
-                              : l10n.translate('profile.settings.language_en'),
-                          onTap: _chooseLanguage,
-                        ),
-                        _SettingTile(
-                          title: l10n.translate('profile.settings.theme'),
-                          subtitle: themeText,
-                          onTap: _chooseTheme,
-                        ),
-                      ],
+                    _SettingTile(
+                      title: l10n.translate('profile.settings.app_updates'),
+                      value: _updates,
+                      onChanged: _isSaving
+                          ? null
+                          : (value) => _toggle(
+                              'appUpdates',
+                              value,
+                              _updates,
+                              (next) => _updates = next,
+                            ),
+                    ),
+                  ],
+                  headingKey: const Key('settings_notifications_heading'),
+                ),
+                _group(
+                  l10n,
+                  Icons.tune_rounded,
+                  l10n.translate('profile.settings.preferences'),
+                  [
+                    _SettingTile(
+                      title: l10n.translate('profile.settings.language'),
+                      subtitle: l10n.currentLanguage == AppLanguage.vi
+                          ? l10n.translate('profile.settings.language_vi')
+                          : l10n.translate('profile.settings.language_en'),
+                      onTap: _chooseLanguage,
+                    ),
+                    _SettingTile(
+                      title: l10n.translate('profile.settings.theme'),
+                      subtitle: themeText,
+                      onTap: _chooseTheme,
                     ),
                   ],
                 ),
+              ],
+            ),
     );
   }
 
-  Widget _group(AppLanguageProvider l10n, IconData icon, String title,
-      List<Widget> children) {
+  Widget _group(
+    AppLanguageProvider l10n,
+    IconData icon,
+    String title,
+    List<Widget> children, {
+    Key? headingKey,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.md),
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: AppColors.primary, size: 20.sp),
-                SizedBox(width: 8.w),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.sp,
+      child: Semantics(
+        key: headingKey,
+        container: true,
+        header: true,
+        label: title,
+        child: AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ExcludeSemantics(
+                child: Row(
+                  children: [
+                    Icon(
+                      icon,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 20.sp,
+                    ),
+                    SizedBox(width: AppSpacing.xs.w),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.sm),
-            ...children,
-          ],
+              ),
+              SizedBox(height: AppSpacing.sm.h),
+              ...children,
+            ],
+          ),
         ),
       ),
     );
@@ -371,8 +423,8 @@ class _SettingTile extends StatelessWidget {
           title: Text(
             title,
             style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface,
-                ),
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           value: value!,
           onChanged: onChanged,
@@ -387,19 +439,21 @@ class _SettingTile extends StatelessWidget {
         title: Text(
           title,
           style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
+            color: theme.colorScheme.onSurface,
+          ),
         ),
         subtitle: subtitle != null
             ? Text(
                 subtitle!,
                 style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               )
             : null,
-        trailing:
-            Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
         onTap: onTap,
       ),
     );

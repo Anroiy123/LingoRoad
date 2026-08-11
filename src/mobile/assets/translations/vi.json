@@ -331,6 +331,7 @@
       "xp_1000": "1.000 XP"
     },
     "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
+    "improvements_empty": "Chưa có kỹ năng nào cần cải thiện. Hãy học thêm để nhận phân tích cá nhân hóa.",
     "overview": {
       "badges": "HUY HIỆU",
       "cefr_journey": "Hành trình CEFR",
@@ -367,6 +368,7 @@
       "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."
     },
     "summary_error": "Không thể tải các chỉ số tổng hợp.",
+    "strengths_empty": "Chưa đủ dữ liệu để xác định điểm mạnh. Hãy hoàn thành thêm bài học.",
     "tabs": {
       "achievements": "Thành tích",
       "overview": "Tổng quan",
@@ -459,6 +461,8 @@
     }
   },
   "streak": {
+    "next_month": "Tháng sau",
+    "previous_month": "Tháng trước",
     "buy": "Mua",
     "current_streak": "Chuỗi học tập hiện tại",
     "days_count": "{} Ngày",

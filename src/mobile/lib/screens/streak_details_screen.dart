@@ -47,6 +47,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
         leading: IconButton(
           onPressed: context.pop,
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: l10n.translate('common.back'),
         ),
         title: Text(l10n.translate('streak.title')),
       ),
@@ -61,7 +62,10 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off_rounded, color: AppColors.error),
+                Icon(
+                  Icons.cloud_off_rounded,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(l10n.translate('home.error')),
                 SizedBox(height: AppSpacing.md.h),
@@ -131,14 +135,18 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () => setState(() {
-                        _currentMonth = DateTime(
-                          _currentMonth.year,
-                          _currentMonth.month - 1,
-                        );
-                      }),
-                      icon: const Icon(Icons.chevron_left_rounded),
+                    Semantics(
+                      key: const Key('streak_previous_month'),
+                      label: l10n.translate('streak.previous_month'),
+                      button: true,
+                      onTap: () => _changeMonth(-1),
+                      child: ExcludeSemantics(
+                        child: IconButton(
+                          onPressed: () => _changeMonth(-1),
+                          icon: const Icon(Icons.chevron_left_rounded),
+                          tooltip: l10n.translate('streak.previous_month'),
+                        ),
+                      ),
                     ),
                     Expanded(
                       child: Text(
@@ -147,14 +155,18 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => setState(() {
-                        _currentMonth = DateTime(
-                          _currentMonth.year,
-                          _currentMonth.month + 1,
-                        );
-                      }),
-                      icon: const Icon(Icons.chevron_right_rounded),
+                    Semantics(
+                      key: const Key('streak_next_month'),
+                      label: l10n.translate('streak.next_month'),
+                      button: true,
+                      onTap: () => _changeMonth(1),
+                      child: ExcludeSemantics(
+                        child: IconButton(
+                          onPressed: () => _changeMonth(1),
+                          icon: const Icon(Icons.chevron_right_rounded),
+                          tooltip: l10n.translate('streak.next_month'),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -189,6 +201,10 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
     return '${l10n.translate('streak.months.${keys[_currentMonth.month - 1]}')} '
         '${_currentMonth.year}';
   }
+
+  void _changeMonth(int delta) => setState(() {
+    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+  });
 }
 
 class _StatCard extends StatelessWidget {
@@ -271,19 +287,22 @@ class _Calendar extends StatelessWidget {
             return Semantics(
               label: '$day/${month.month}/${month.year}',
               value: isActive ? l10n.translate('streak.legend.learned') : null,
+              selected: isActive,
               child: Container(
                 margin: EdgeInsets.all(3.w),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isActive ? AppColors.primaryFixed : null,
+                  color: isActive
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
                 ),
                 child: Text(
                   '$day',
                   style: TextStyle(
                     color: isActive
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                   ),
                 ),
