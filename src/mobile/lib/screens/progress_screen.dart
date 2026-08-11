@@ -10,8 +10,10 @@ import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({this.active = true, super.key});
+  const ProgressScreen({this.active = true, this.initialTab = 0, super.key})
+    : assert(initialTab >= 0 && initialTab < 3);
   final bool active;
+  final int initialTab;
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
 }
@@ -23,7 +25,11 @@ class _ProgressScreenState extends State<ProgressScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    _tabs = TabController(
+      length: 3,
+      initialIndex: widget.initialTab,
+      vsync: this,
+    );
     _schedule();
   }
 

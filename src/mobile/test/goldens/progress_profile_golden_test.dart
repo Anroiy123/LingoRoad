@@ -202,10 +202,12 @@ AppLanguageProvider _language() {
 
 Widget _surface(_TaskThreeSurface surface) {
   final content = switch (surface) {
-    _TaskThreeSurface.progress ||
-    _TaskThreeSurface.progressSkills ||
+    _TaskThreeSurface.progress => const Scaffold(body: ProgressScreen()),
+    _TaskThreeSurface.progressSkills => const Scaffold(
+      body: ProgressScreen(initialTab: 1),
+    ),
     _TaskThreeSurface.progressAchievements => const Scaffold(
-      body: ProgressScreen(),
+      body: ProgressScreen(initialTab: 2),
     ),
     _TaskThreeSurface.profile => const Scaffold(body: ProfileScreen()),
     _TaskThreeSurface.settings => const NotificationSettingsScreen(),
@@ -258,22 +260,6 @@ Widget _withProviders(Widget content) {
   );
 }
 
-Future<void> _prepareSurface(
-  WidgetTester tester,
-  _TaskThreeSurface surface,
-) async {
-  switch (surface) {
-    case _TaskThreeSurface.progressSkills:
-      await tester.tap(find.text('Kỹ năng'));
-      await tester.pumpAndSettle();
-    case _TaskThreeSurface.progressAchievements:
-      await tester.tap(find.text('Thành tích'));
-      await tester.pumpAndSettle();
-    default:
-      break;
-  }
-}
-
 void _expectLearnerTargetsAtLeast48(WidgetTester tester) {
   final controls = find.byWidgetPredicate(
     (widget) =>
@@ -303,7 +289,6 @@ void main() {
           child: _surface(surface),
           themeMode: mode,
         );
-        await _prepareSurface(tester, surface);
         await expectLater(
           find.byKey(lingoRoadGoldenRootKey),
           matchesGoldenFile(
@@ -332,17 +317,6 @@ void main() {
           size: profile.size,
           textScaleFactor: profile.textScale,
         );
-        switch (surface) {
-          case _TaskThreeResponsiveSurface.progressSkills:
-            await _prepareSurface(tester, _TaskThreeSurface.progressSkills);
-          case _TaskThreeResponsiveSurface.progressAchievements:
-            await _prepareSurface(
-              tester,
-              _TaskThreeSurface.progressAchievements,
-            );
-          default:
-            break;
-        }
         expect(tester.takeException(), isNull, reason: surface.label);
       }
     });
@@ -357,14 +331,6 @@ void main() {
         child: _responsiveSurface(surface),
         themeMode: ThemeMode.light,
       );
-      switch (surface) {
-        case _TaskThreeResponsiveSurface.progressSkills:
-          await _prepareSurface(tester, _TaskThreeSurface.progressSkills);
-        case _TaskThreeResponsiveSurface.progressAchievements:
-          await _prepareSurface(tester, _TaskThreeSurface.progressAchievements);
-        default:
-          break;
-      }
       _expectLearnerTargetsAtLeast48(tester);
     }
   });
