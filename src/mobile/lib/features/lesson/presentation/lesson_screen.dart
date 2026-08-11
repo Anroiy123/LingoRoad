@@ -195,6 +195,8 @@ class _LessonScreenState extends State<LessonScreen> {
                           _feedback(context, l10n, viewModel),
                         ],
                       )
+                    : viewModel.state == LessonState.submissionError
+                    ? _submissionError(context, l10n, viewModel)
                     : _answer(context, l10n, viewModel, exercise),
               ),
             ),
@@ -276,6 +278,56 @@ class _LessonScreenState extends State<LessonScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _submissionError(
+    BuildContext context,
+    AppLanguageProvider l10n,
+    LessonViewModel viewModel,
+  ) {
+    final answer = viewModel.pendingAnswer ?? '';
+    return Semantics(
+      key: const Key('lesson_submission_error'),
+      container: true,
+      liveRegion: true,
+      label: l10n.translate('lesson.submit_error'),
+      child: AppCard(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderColor: Theme.of(context).colorScheme.error,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.translate('lesson.submit_error'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            SizedBox(height: AppSpacing.sm.h),
+            Text(answer, key: const Key('lesson_failed_answer')),
+            SizedBox(height: AppSpacing.lg.h),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    key: const Key('lesson_change_answer'),
+                    onPressed: viewModel.changeAnswer,
+                    child: Text(l10n.translate('lesson.change_answer')),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const Key('lesson_retry_answer'),
+                    onPressed: viewModel.retryAnswer,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(l10n.translate('common.retry')),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

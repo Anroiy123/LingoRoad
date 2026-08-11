@@ -10,6 +10,7 @@ enum LessonState {
   ready,
   submitting,
   feedback,
+  submissionError,
   completing,
   completed,
   error,
@@ -46,6 +47,7 @@ class LessonViewModel extends ChangeNotifier {
   List<MistakeRecord> get mistakes => List.unmodifiable(_mistakes);
   String? get errorCode => _errorCode;
   String? get lastAnswer => _lastAnswer;
+  String? get pendingAnswer => _pendingAnswer;
   int get currentNumber => _index + 1;
   int get total => _attempt?.exercises.length ?? 0;
   double get progress => total == 0 ? 0 : _index / total;
@@ -90,27 +92,55 @@ class LessonViewModel extends ChangeNotifier {
     final normalized = answer.trim();
     if (exercise == null ||
         busy ||
-        _state == LessonState.feedback ||
+        _state != LessonState.ready ||
         normalized.isEmpty) {
       return;
     }
-    _answerOperationId ??= _uuid.v4();
-    _pendingAnswer ??= normalized;
+    _answerOperationId = _uuid.v4();
+    _pendingAnswer = normalized;
+    await _submitPendingAnswer();
+  }
+
+  Future<void> retryAnswer() async {
+    if (_state != LessonState.submissionError ||
+        _pendingAnswer == null ||
+        _answerOperationId == null) {
+      return;
+    }
+    await _submitPendingAnswer();
+  }
+
+  void changeAnswer() {
+    if (_state != LessonState.submissionError) return;
+    _pendingAnswer = null;
+    _answerOperationId = null;
+    _errorCode = null;
+    _state = LessonState.ready;
+    notifyListeners();
+  }
+
+  Future<void> _submitPendingAnswer() async {
+    final exercise = current;
+    final answer = _pendingAnswer;
+    final operationId = _answerOperationId;
+    if (exercise == null || answer == null || operationId == null || busy) {
+      return;
+    }
     _state = LessonState.submitting;
     _errorCode = null;
     notifyListeners();
     try {
       _feedback = await _repository.submit(
         exerciseId: exercise.id,
-        answer: _pendingAnswer!,
-        operationId: _answerOperationId!,
+        answer: answer,
+        operationId: operationId,
       );
-      _lastAnswer = _pendingAnswer;
+      _lastAnswer = answer;
       if (!_feedback!.correct) {
         _mistakes.add(
           MistakeRecord(
             exercise: exercise,
-            userAnswer: _pendingAnswer!,
+            userAnswer: answer,
             feedback: _feedback!,
           ),
         );
@@ -120,14 +150,9 @@ class LessonViewModel extends ChangeNotifier {
       _state = LessonState.feedback;
     } catch (error) {
       _errorCode = error is ApiException ? error.code : 'unexpected_error';
-      _state = LessonState.ready;
+      _state = LessonState.submissionError;
     }
     notifyListeners();
-  }
-
-  Future<void> retryAnswer() async {
-    final answer = _pendingAnswer;
-    if (answer != null) await submit(answer);
   }
 
   Future<void> next() async {

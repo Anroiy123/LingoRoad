@@ -66,6 +66,7 @@ class FakeLessonRepository implements LessonRepository {
   int submitCalls = 0;
   int completeCalls = 0;
   final operationIds = <String>[];
+  final answers = <String>[];
 
   @override
   Future<List<TodayLesson>> today() async => const [];
@@ -88,6 +89,7 @@ class FakeLessonRepository implements LessonRepository {
   }) async {
     submitCalls++;
     operationIds.add(operationId);
+    answers.add(answer);
     if (failSubmitOnce) {
       failSubmitOnce = false;
       throw const ApiException(code: 'network_unavailable', message: 'offline');
@@ -221,6 +223,52 @@ void main() {
     expect(retryRepository.operationIds.length, 2);
     expect(retryRepository.operationIds[0], retryRepository.operationIds[1]);
   });
+
+  testWidgets(
+    'lỗi submit khóa đáp án và Retry gửi lại đúng payload cùng operation ID',
+    (tester) async {
+      final repository = FakeLessonRepository()..failSubmitOnce = true;
+      await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('lesson_submission_error')), findsOneWidget);
+      expect(find.text('study'), findsOneWidget);
+      expect(find.byKey(const Key('lesson_option_studies')), findsNothing);
+      final firstOperationId = repository.operationIds.single;
+
+      await tester.tap(find.byKey(const Key('lesson_retry_answer')));
+      await tester.pumpAndSettle();
+
+      expect(repository.answers, ['study', 'study']);
+      expect(repository.operationIds, [firstOperationId, firstOperationId]);
+      expect(find.byKey(const Key('lesson_feedback')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Đổi đáp án bỏ pending retry và gửi đáp án mới với operation ID mới',
+    (tester) async {
+      final repository = FakeLessonRepository()..failSubmitOnce = true;
+      await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pumpAndSettle();
+      final firstOperationId = repository.operationIds.single;
+
+      await tester.tap(find.byKey(const Key('lesson_change_answer')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pumpAndSettle();
+
+      expect(repository.answers, ['study', 'studies']);
+      expect(repository.operationIds.last, isNot(firstOperationId));
+      expect(find.byKey(const Key('lesson_feedback')), findsOneWidget);
+    },
+  );
 
   testWidgets('hiển thị feedback rồi complete lesson', (tester) async {
     final repository = FakeLessonRepository();

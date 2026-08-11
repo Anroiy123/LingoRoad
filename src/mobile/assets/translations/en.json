@@ -176,6 +176,7 @@
     },
     "next": "Continue",
     "submit": "Submit answer",
+    "change_answer": "Change answer",
     "submit_error": "Could not submit. Retrying will reuse the same operation ID.",
     "title": "Lesson"
   },
