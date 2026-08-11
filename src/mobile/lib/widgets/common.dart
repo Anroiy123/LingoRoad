@@ -41,22 +41,23 @@ class LingoHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         CircleAvatar(
           radius: 16.r,
-          backgroundColor: AppColors.surfaceDisabled,
+          backgroundColor: scheme.surfaceContainerHighest,
           child: Icon(
             Icons.person_outline_rounded,
             size: 18.sp,
-            color: AppColors.textSecondary,
+            color: scheme.onSurfaceVariant,
           ),
         ),
         SizedBox(width: AppSpacing.xs.w),
         Text(
           'lingoRoad',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: AppColors.primary,
+            color: scheme.primary,
             fontSize: 24.sp,
           ),
         ),
@@ -73,13 +74,13 @@ class LingoHeader extends StatelessWidget {
                   Icon(
                     Icons.local_fire_department_rounded,
                     size: 20.sp,
-                    color: AppColors.primary,
+                    color: scheme.primary,
                   ),
                   SizedBox(width: 4.w),
                   Text(
                     '$streak',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: AppColors.primary,
+                      color: scheme.primary,
                       fontSize: 14.sp,
                     ),
                   ),
@@ -158,12 +159,12 @@ class AppProgress extends StatelessWidget {
   const AppProgress({
     required this.value,
     this.height = 8,
-    this.color = AppColors.primary,
+    this.color,
     super.key,
   });
   final double value;
   final double height;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -184,8 +185,10 @@ class AppProgress extends StatelessWidget {
         child: LinearProgressIndicator(
           value: safe,
           minHeight: height.h,
-          backgroundColor: AppColors.surfaceHigh,
-          color: color,
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
+          color: color ?? Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -223,7 +226,7 @@ class MetricRow extends StatelessWidget {
             Text(
               '$value%',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: AppColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 fontSize: 14.sp,
               ),
             ),
@@ -236,9 +239,13 @@ class MetricRow extends StatelessWidget {
   }
 }
 
-Widget loadingView() => Center(
-  child: Padding(
-    padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
-    child: const CircularProgressIndicator(color: AppColors.primary),
+Widget loadingView() => Builder(
+  builder: (context) => Center(
+    child: Padding(
+      padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
+      child: CircularProgressIndicator(
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
   ),
 );

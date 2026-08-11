@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
 class BrandLogo extends StatelessWidget {
-  const BrandLogo({
-    this.height = 88,
-    super.key,
-  });
+  const BrandLogo({this.height = 88, super.key});
 
-  static const assetPath = 'assets/images/logo_black.png';
+  static const lightAssetPath = 'assets/images/logo_black.png';
+  static const darkAssetPath = 'assets/images/logo.png';
 
   final double height;
 
@@ -22,7 +20,9 @@ class BrandLogo extends StatelessWidget {
             child: SizedBox(
               height: height,
               child: Image.asset(
-                assetPath,
+                Theme.of(context).brightness == Brightness.dark
+                    ? darkAssetPath
+                    : lightAssetPath,
                 fit: BoxFit.contain,
               ),
             ),
