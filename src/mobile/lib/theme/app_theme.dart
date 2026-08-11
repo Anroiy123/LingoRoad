@@ -48,6 +48,7 @@ abstract final class AppTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'HankenGrotesk',
       scaffoldBackgroundColor: AppColors.background,
       colorScheme:
           ColorScheme.fromSeed(
@@ -170,6 +171,7 @@ abstract final class AppTheme {
         ),
         bodyLarge: baseText.copyWith(fontSize: 18, height: 1.55),
         bodyMedium: baseText.copyWith(fontSize: 16, height: 1.5),
+        bodySmall: baseText.copyWith(fontSize: 12, height: 1.33),
         labelLarge: baseText.copyWith(
           fontSize: 14,
           height: 1.42,
@@ -213,6 +215,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'HankenGrotesk',
       scaffoldBackgroundColor: AppColorsDark.background,
       colorScheme:
           ColorScheme.fromSeed(
@@ -339,6 +342,7 @@ abstract final class AppTheme {
         ),
         bodyLarge: baseText.copyWith(fontSize: 18, height: 1.55),
         bodyMedium: baseText.copyWith(fontSize: 16, height: 1.5),
+        bodySmall: baseText.copyWith(fontSize: 12, height: 1.33),
         labelLarge: baseText.copyWith(
           fontSize: 14,
           height: 1.42,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:lingoroad_mobile/widgets/brand_logo.dart';
 
 const lingoRoadDesignSize = Size(390, 844);
 const lingoRoadGoldenRootKey = Key('lingoroad_golden_root');
@@ -74,6 +75,13 @@ Future<void> pumpLingoRoadGoldenSurface(
       ),
     ),
   );
+  final rootContext = tester.element(find.byKey(lingoRoadGoldenRootKey));
+  await tester.runAsync(() async {
+    await Future.wait([
+      precacheImage(const AssetImage(BrandLogo.lightAssetPath), rootContext),
+      precacheImage(const AssetImage(BrandLogo.darkAssetPath), rootContext),
+    ]);
+  });
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 100));
   await tester.pumpAndSettle();

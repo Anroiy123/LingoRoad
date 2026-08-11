@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lingoroad_mobile/features/auth/presentation/splash_screen.dart';
+import 'package:lingoroad_mobile/widgets/brand_logo.dart';
 
 import 'widget_test_harness.dart';
 
@@ -19,6 +21,23 @@ Future<Uint8List> _rasterBytes(WidgetTester tester, Key key) async {
     }
   });
   return raster!;
+}
+
+int _pixelsDifferentFromCorner(Uint8List raster) {
+  final red = raster[0];
+  final green = raster[1];
+  final blue = raster[2];
+  final alpha = raster[3];
+  var count = 0;
+  for (var offset = 0; offset < raster.length; offset += 4) {
+    if (raster[offset] != red ||
+        raster[offset + 1] != green ||
+        raster[offset + 2] != blue ||
+        raster[offset + 3] != alpha) {
+      count++;
+    }
+  }
+  return count;
 }
 
 Widget _iconCell(Key key, IconData icon) => RepaintBoundary(
@@ -62,5 +81,30 @@ void main() {
     expect(mailRaster, isNot(equals(tofuRaster)));
     expect(lockRaster, isNot(equals(tofuRaster)));
     expect(mailRaster, isNot(equals(lockRaster)));
+  });
+
+  testWidgets('Splash precaches its logo and paints a determinate loader', (
+    tester,
+  ) async {
+    await pumpLingoRoadGoldenSurface(
+      tester,
+      themeMode: ThemeMode.light,
+      child: const SplashScreen(),
+    );
+
+    expect(find.byType(BrandLogo), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+    final progress = tester.widget<CircularProgressIndicator>(
+      find.byType(CircularProgressIndicator),
+    );
+    expect(progress.value, isNotNull);
+    expect(progress.value, inInclusiveRange(0.2, 0.9));
+
+    final raster = await _rasterBytes(tester, lingoRoadGoldenRootKey);
+    expect(
+      _pixelsDifferentFromCorner(raster),
+      greaterThan(5000),
+      reason: 'Splash must paint the BrandLogo and a non-trivial loader',
+    );
   });
 }

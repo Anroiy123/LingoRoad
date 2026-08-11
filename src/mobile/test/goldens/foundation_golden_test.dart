@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
@@ -365,5 +366,29 @@ void main() {
     );
     expect(progress.color, AppColorsDark.primary);
     expect(progress.backgroundColor, AppColorsDark.surfaceHigh);
+  });
+
+  testWidgets('profile max-length counter resolves the bundled Hanken font', (
+    tester,
+  ) async {
+    await pumpLingoRoadGoldenSurface(
+      tester,
+      child: await _surface(_FoundationSurface.profileSetup),
+      themeMode: ThemeMode.light,
+    );
+
+    final theme = Theme.of(tester.element(find.byType(ProfileSetupScreen)));
+    expect(theme.textTheme.bodySmall?.fontFamily, 'HankenGrotesk');
+
+    final counter = find.text('0/100');
+    expect(counter, findsOneWidget);
+    final richCounter = find.descendant(
+      of: counter,
+      matching: find.byType(RichText),
+    );
+    expect(richCounter, findsOneWidget);
+    final paragraph = tester.renderObject<RenderParagraph>(richCounter);
+    expect(paragraph.text.style?.fontFamily, 'HankenGrotesk');
+    expect(paragraph.text.style?.fontFamily, isNot('Ahem'));
   });
 }
