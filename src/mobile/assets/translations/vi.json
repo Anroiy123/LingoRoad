@@ -56,6 +56,7 @@
   "common": {
     "back": "Quay lại",
     "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "loading": "Đang tải",
     "not_implemented": "Tính năng này đang được phát triển.",
     "progress_percent": "Tiến độ {} phần trăm",
     "retry": "Thử lại"
@@ -264,6 +265,8 @@
     "complete_setup": "Hoàn tất thiết lập",
     "current_password": "Mật khẩu hiện tại",
     "error_load_failed": "Không thể tải thông tin cá nhân",
+    "loading": "Đang tải thông tin cá nhân",
+    "retry_load": "Thử tải lại thông tin cá nhân",
     "groups": {
       "account": "Tài khoản",
       "goals": "Mục tiêu học tập",
@@ -331,6 +334,8 @@
       "xp_1000": "1.000 XP"
     },
     "empty": "Danh mục kỹ năng hiện chưa có dữ liệu.",
+    "error_load_failed": "Không thể tải tiến độ học tập. Vui lòng thử lại.",
+    "improvements_empty": "Chưa có kỹ năng nào cần cải thiện. Hãy học thêm để nhận phân tích cá nhân hóa.",
     "overview": {
       "badges": "HUY HIỆU",
       "cefr_journey": "Hành trình CEFR",
@@ -349,6 +354,8 @@
       "total_xp": "TỔNG XP"
     },
     "quests_empty": "Hiện chưa có nhiệm vụ nào.",
+    "loading": "Đang tải tiến độ học tập",
+    "retry_load": "Thử tải lại tiến độ học tập",
     "skills_analysis": {
       "suggestion": "Tập trung vào Phát âm và Nói để cải thiện toàn diện.",
       "title": "Phân tích kỹ năng"
@@ -367,6 +374,7 @@
       "weakest": "Hãy ưu tiên luyện thêm nhóm kỹ năng: {}."
     },
     "summary_error": "Không thể tải các chỉ số tổng hợp.",
+    "strengths_empty": "Chưa đủ dữ liệu để xác định điểm mạnh. Hãy hoàn thành thêm bài học.",
     "tabs": {
       "achievements": "Thành tích",
       "overview": "Tổng quan",
@@ -459,14 +467,18 @@
     }
   },
   "streak": {
+    "next_month": "Tháng sau",
+    "previous_month": "Tháng trước",
     "buy": "Mua",
     "current_streak": "Chuỗi học tập hiện tại",
     "days_count": "{} Ngày",
+    "error_load_failed": "Không thể tải chuỗi học tập. Vui lòng thử lại.",
     "legend": {
       "freeze": "Dùng bảo vệ chuỗi (Băng xanh)",
       "learned": "Đã học (Lửa cam)",
       "missed": "Bỏ lỡ (Xám)"
     },
+    "loading": "Đang tải chuỗi học tập",
     "months": {
       "apr": "Tháng 4",
       "aug": "Tháng 8",
@@ -485,6 +497,7 @@
     "protect_value": "{} sẵn có",
     "record_title": "KỶ LỤC CHUỖI",
     "record_value": "{} ngày",
+    "retry_load": "Thử tải lại chuỗi học tập",
     "title": "Chi tiết chuỗi",
     "today": "Hôm nay",
     "weekdays": {

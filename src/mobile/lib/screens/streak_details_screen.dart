@@ -9,7 +9,11 @@ import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class StreakDetailsScreen extends StatefulWidget {
-  const StreakDetailsScreen({super.key});
+  const StreakDetailsScreen({this.initialMonth, super.key});
+
+  /// An optional month seed used by deterministic visual tests. Normal app
+  /// navigation leaves this null and starts from the learner's current month.
+  final DateTime? initialMonth;
 
   @override
   State<StreakDetailsScreen> createState() => _StreakDetailsScreenState();
@@ -22,7 +26,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = widget.initialMonth ?? DateTime.now();
     _currentMonth = DateTime(now.year, now.month);
   }
 
@@ -47,31 +51,52 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
         leading: IconButton(
           onPressed: context.pop,
           icon: const Icon(Icons.arrow_back_rounded),
+          tooltip: l10n.translate('common.back'),
         ),
         title: Text(l10n.translate('streak.title')),
       ),
       body: switch (viewModel.state) {
-        DashboardState.initial || DashboardState.loading => Center(
+        DashboardState.initial || DashboardState.loading => loadingView(
           key: const Key('streak_loading'),
-          child: loadingView(),
+          label: l10n.translate('streak.loading'),
         ),
         DashboardState.error => Center(
-          child: AppCard(
+          child: Semantics(
             key: const Key('streak_error'),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.cloud_off_rounded, color: AppColors.error),
-                SizedBox(height: AppSpacing.sm.h),
-                Text(l10n.translate('home.error')),
-                SizedBox(height: AppSpacing.md.h),
-                FilledButton.icon(
-                  key: const Key('streak_retry'),
-                  onPressed: viewModel.retry,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(l10n.translate('common.retry')),
-                ),
-              ],
+            container: true,
+            explicitChildNodes: true,
+            liveRegion: true,
+            label: l10n.translate('streak.error_load_failed'),
+            child: AppCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.cloud_off_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.sm.h),
+                  ExcludeSemantics(
+                    child: Text(l10n.translate('streak.error_load_failed')),
+                  ),
+                  SizedBox(height: AppSpacing.md.h),
+                  Semantics(
+                    label: l10n.translate('streak.retry_load'),
+                    button: true,
+                    onTap: viewModel.retry,
+                    child: ExcludeSemantics(
+                      child: FilledButton.icon(
+                        key: const Key('streak_retry'),
+                        onPressed: viewModel.retry,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(l10n.translate('common.retry')),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -131,14 +156,18 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () => setState(() {
-                        _currentMonth = DateTime(
-                          _currentMonth.year,
-                          _currentMonth.month - 1,
-                        );
-                      }),
-                      icon: const Icon(Icons.chevron_left_rounded),
+                    Semantics(
+                      key: const Key('streak_previous_month'),
+                      label: l10n.translate('streak.previous_month'),
+                      button: true,
+                      onTap: () => _changeMonth(-1),
+                      child: ExcludeSemantics(
+                        child: IconButton(
+                          onPressed: () => _changeMonth(-1),
+                          icon: const Icon(Icons.chevron_left_rounded),
+                          tooltip: l10n.translate('streak.previous_month'),
+                        ),
+                      ),
                     ),
                     Expanded(
                       child: Text(
@@ -147,14 +176,18 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => setState(() {
-                        _currentMonth = DateTime(
-                          _currentMonth.year,
-                          _currentMonth.month + 1,
-                        );
-                      }),
-                      icon: const Icon(Icons.chevron_right_rounded),
+                    Semantics(
+                      key: const Key('streak_next_month'),
+                      label: l10n.translate('streak.next_month'),
+                      button: true,
+                      onTap: () => _changeMonth(1),
+                      child: ExcludeSemantics(
+                        child: IconButton(
+                          onPressed: () => _changeMonth(1),
+                          icon: const Icon(Icons.chevron_right_rounded),
+                          tooltip: l10n.translate('streak.next_month'),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -189,6 +222,10 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
     return '${l10n.translate('streak.months.${keys[_currentMonth.month - 1]}')} '
         '${_currentMonth.year}';
   }
+
+  void _changeMonth(int delta) => setState(() {
+    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+  });
 }
 
 class _StatCard extends StatelessWidget {
@@ -271,19 +308,22 @@ class _Calendar extends StatelessWidget {
             return Semantics(
               label: '$day/${month.month}/${month.year}',
               value: isActive ? l10n.translate('streak.legend.learned') : null,
+              selected: isActive,
               child: Container(
                 margin: EdgeInsets.all(3.w),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isActive ? AppColors.primaryFixed : null,
+                  color: isActive
+                      ? Theme.of(context).colorScheme.primaryContainer
+                      : null,
                 ),
                 child: Text(
                   '$day',
                   style: TextStyle(
                     color: isActive
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                   ),
                 ),
