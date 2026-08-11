@@ -74,6 +74,18 @@ jobs:
         working-directory: src/mobile
       - run: flutter test
         working-directory: src/mobile
+      - name: Bootstrap missing Task 3 Linux golden baselines
+        if: failure()
+        run: flutter test --update-goldens test/goldens/progress_profile_golden_test.dart
+        working-directory: src/mobile
+      - name: Upload Task 3 Linux golden baselines
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: task-3-linux-goldens-${{ github.run_id }}
+          path: src/mobile/test/goldens/progress-profile
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload Flutter golden failure artifacts
         if: failure()
         uses: actions/upload-artifact@v6
