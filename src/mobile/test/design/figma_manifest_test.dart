@@ -16,11 +16,7 @@ void main() {
     final frames = manifest['page1Frames'] as Map<String, dynamic>;
     expect(frames.keys.toSet(), _page1NodeIds);
     final pending = manifest['pendingGoldenBaselines'] as List<dynamic>;
-    final pendingByNode = {
-      for (final raw in pending)
-        (raw as Map<String, dynamic>)['nodeId'] as String: raw,
-    };
-    expect(pendingByNode.keys.toSet(), _taskThreeGoldenByNode.keys.toSet());
+    expect(pending, isEmpty);
 
     final referencedFiles = <String>{};
     for (final entry in frames.entries) {
@@ -64,31 +60,16 @@ void main() {
 
       final taskThreeGolden = _taskThreeGoldenByNode[entry.key];
       if (taskThreeGolden != null) {
-        final pendingEntry = pendingByNode[entry.key];
         expect(
-          golden ?? pendingEntry?['golden'],
+          golden,
           taskThreeGolden,
           reason: '${entry.key} Task 3 golden contract',
         );
+        expect(_goldenFileExists(taskThreeGolden), isTrue);
         expect(
-          golden != null || pendingEntry?['directory'] == 'progress-profile',
+          _goldenFileExists(taskThreeGolden.replaceFirst('_light', '_dark')),
           isTrue,
-          reason: '${entry.key} pending Linux baseline directory',
-        );
-        expect(
-          golden != null ? ['light', 'dark'] : pendingEntry?['modes'],
-          ['light', 'dark'],
-          reason: '${entry.key} pending Linux baseline modes',
-        );
-        expect(
-          golden != null ? route : pendingEntry?['route'],
-          route,
-          reason: '${entry.key} pending Linux baseline route',
-        );
-        expect(
-          golden != null ? state : pendingEntry?['state'],
-          state,
-          reason: '${entry.key} pending Linux baseline state',
+          reason: '${entry.key} Task 3 dark golden contract',
         );
       }
 
