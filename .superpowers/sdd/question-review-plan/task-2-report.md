@@ -80,3 +80,23 @@
 ### Remaining concern
 
 - No live authenticated backend/device or physical screen-reader validation was run in this scoped fix; local Flutter unit/widget evidence is green.
+
+---
+
+## Fix round 2 — stale grade summary accounting
+
+### TDD evidence
+
+1. **RED:** Added `stale grade excludes the current provisional result but keeps prior successful grades`. With one successful grade followed by a correct check whose grade returned `review_already_graded`, the test failed with `Expected: 1, Actual: 2` for `correctCount`.
+2. **GREEN:** Moved correct/incorrect counter updates from `check()` to the successful grade response path. The stale queue reload still preserves rewards and counts from already successful cards, but no longer includes the unconfirmed current card. `question_review_flow_test.dart` passed **14/14**.
+
+### Verification
+
+- `flutter analyze` — no issues.
+- Question-review focused tests — 14/14 passed.
+- `git diff --check` — clean.
+
+### Self-review and concern
+
+- A correct answer is now provisional until the grade response succeeds; wrong answers use the same successful-grade accounting after their automatic rating-1 request.
+- No live authenticated backend/device validation was run for this focused accounting fix.

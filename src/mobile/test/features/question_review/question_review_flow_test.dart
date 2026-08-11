@@ -281,6 +281,36 @@ void main() {
     expect(vm.xp, 5);
   });
 
+  test('stale grade excludes the current provisional result but keeps prior successful grades', () async {
+    final repository = _FakeQuestionReviewRepository()
+      ..session = const QuestionReviewSession(items: [_first, _second], totalDue: 2);
+    final vm = QuestionReviewViewModel(repository);
+    await vm.load();
+
+    vm.setAnswer('blue');
+    await vm.check();
+    await vm.grade(3);
+    expect(vm.correctCount, 1);
+    expect(vm.xp, 5);
+    expect(vm.coins, 1);
+
+    repository.session = const QuestionReviewSession(items: [], totalDue: 0);
+    repository.gradeError = const ApiException(
+      code: 'review_already_graded',
+      message: 'stale',
+      statusCode: 409,
+    );
+    vm.setAnswer('blue');
+    await vm.check();
+    await vm.grade(3);
+
+    expect(vm.state, QuestionReviewState.empty);
+    expect(vm.correctCount, 1);
+    expect(vm.incorrectCount, 0);
+    expect(vm.xp, 5);
+    expect(vm.coins, 1);
+  });
+
   test('grading is single-flight while a rating request is pending', () async {
     final repository = _FakeQuestionReviewRepository()
       ..pendingGrade = Completer<QuestionReviewGrade>();

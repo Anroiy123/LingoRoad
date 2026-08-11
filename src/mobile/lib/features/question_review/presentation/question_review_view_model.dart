@@ -86,10 +86,8 @@ class QuestionReviewViewModel extends ChangeNotifier {
     try {
       _feedback = await _repository.check(item: item, answer: _answer);
       if (_feedback!.correct) {
-        _correctCount++;
         _state = QuestionReviewState.feedback;
       } else {
-        _incorrectCount++;
         await _grade(item, 1, automatic: true);
       }
     } catch (error) {
@@ -125,6 +123,11 @@ class QuestionReviewViewModel extends ChangeNotifier {
       );
       _xp += grade.xp;
       _coins += grade.coins;
+      if (_feedback!.correct) {
+        _correctCount++;
+      } else {
+        _incorrectCount++;
+      }
       _operationId = null;
       _pendingRating = null;
       _state = QuestionReviewState.feedback;
