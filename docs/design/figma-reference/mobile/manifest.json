@@ -58,7 +58,7 @@
       "state": "dashboard-loaded",
       "route": "/home",
       "status": "routable",
-      "golden": "main_shell_light"
+      "golden": "home_loaded_light"
     },
     "2030:724": {
       "file": "page-1/2030-724.png",
@@ -74,7 +74,7 @@
       "state": "learning-path-loaded",
       "route": "/home",
       "status": "routable",
-      "golden": null
+      "golden": "learning_path_loaded_light"
     },
     "2030:726": {
       "file": "page-1/2030-726.png",
@@ -90,7 +90,7 @@
       "state": "exercise-mcq-unanswered",
       "route": "/lesson/:id",
       "status": "routable",
-      "golden": null
+      "golden": "lesson_exercise_light"
     },
     "2030:728": {
       "file": "page-1/2030-728.png",
@@ -98,7 +98,7 @@
       "state": "feedback-incorrect-explanation",
       "route": "/question-review",
       "status": "routable",
-      "golden": null
+      "golden": "question_review_feedback_incorrect_light"
     },
     "2030:729": {
       "file": "page-1/2030-729.png",
@@ -106,7 +106,7 @@
       "state": "card-back-rating",
       "route": "/vocabulary-review",
       "status": "routable",
-      "golden": null
+      "golden": "vocabulary_review_back_light"
     },
     "2030:730": {
       "file": "page-1/2030-730.png",
@@ -138,7 +138,7 @@
       "state": "completed-celebration",
       "route": "/lesson/:id",
       "status": "routable",
-      "golden": null
+      "golden": "lesson_complete_light"
     },
     "2069:99": {
       "file": "page-1/2069-99.png",
@@ -146,7 +146,7 @@
       "state": "card-front",
       "route": "/vocabulary-review",
       "status": "routable",
-      "golden": null
+      "golden": "vocabulary_review_ready_light"
     },
     "2070:136": {
       "file": "page-1/2070-136.png",
@@ -154,7 +154,7 @@
       "state": "feedback-incorrect",
       "route": "/lesson/:id",
       "status": "routable",
-      "golden": null
+      "golden": "lesson_feedback_incorrect_light"
     },
     "2070:99": {
       "file": "page-1/2070-99.png",
@@ -162,7 +162,7 @@
       "state": "feedback-correct",
       "route": "/lesson/:id",
       "status": "routable",
-      "golden": null
+      "golden": "lesson_feedback_correct_light"
     },
     "2071:99": {
       "file": "page-1/2071-99.png",
@@ -170,7 +170,7 @@
       "state": "completed-rewards-summary",
       "route": "/lesson/:id",
       "status": "routable",
-      "golden": null
+      "golden": "lesson_complete_light"
     },
     "2079:1015": {
       "file": "page-1/2079-1015.png",
@@ -242,7 +242,7 @@
       "state": "daily-plan",
       "route": "/home",
       "status": "routable",
-      "golden": null
+      "golden": "home_loaded_light"
     },
     "2146:146": {
       "file": "page-1/2146-146.png",
@@ -250,7 +250,7 @@
       "state": "learning-path-empty",
       "route": "/home",
       "status": "routable",
-      "golden": null
+      "golden": "learning_path_empty_light"
     },
     "2146:246": {
       "file": "page-1/2146-246.png",
@@ -258,7 +258,7 @@
       "state": "learning-path-error",
       "route": "/home",
       "status": "routable",
-      "golden": null
+      "golden": "learning_path_error_light"
     },
     "2146:346": {
       "file": "page-1/2146-346.png",
@@ -274,7 +274,7 @@
       "state": "empty",
       "route": "/vocabulary-review",
       "status": "routable",
-      "golden": null
+      "golden": "vocabulary_review_empty_light"
     },
     "2146:531": {
       "file": "page-1/2146-531.png",
@@ -282,7 +282,7 @@
       "state": "completed",
       "route": "/vocabulary-review",
       "status": "routable",
-      "golden": null
+      "golden": "vocabulary_review_complete_light"
     },
     "2146:96": {
       "file": "page-1/2146-96.png",
@@ -306,7 +306,7 @@
       "state": "card-back-rating",
       "route": "/vocabulary-review",
       "status": "routable",
-      "golden": null
+      "golden": "vocabulary_review_back_light"
     }
   }
 }

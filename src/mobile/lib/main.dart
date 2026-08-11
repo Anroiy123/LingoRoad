@@ -326,7 +326,7 @@ class LingoRoadApp extends StatelessWidget {
             builder: (context, child) {
               final themeProvider = context.watch<AppThemeProvider>();
               return MaterialApp.router(
-                title: 'lingoRoad',
+                title: 'LingoRoad',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.light,
                 darkTheme: AppTheme.dark,

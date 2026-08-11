@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +27,24 @@ const widgetStep = LearningPathStep(
   cefr: 'A2',
   mastery: 0.35,
   reason: 'below_threshold',
+);
+
+const completedStep = LearningPathStep(
+  code: 'grammar.completed',
+  name: 'Completed skill',
+  nameVi: 'Kỹ năng đã xong',
+  cefr: 'A1',
+  mastery: 1,
+  reason: 'recommended',
+);
+
+const lockedStep = LearningPathStep(
+  code: 'grammar.locked',
+  name: 'Locked skill',
+  nameVi: 'Kỹ năng bị khóa',
+  cefr: 'B1',
+  mastery: 0,
+  reason: 'not_started',
 );
 
 const routeExercise = LessonExercise(
@@ -98,37 +117,35 @@ class RoutedLessonRepository implements LessonRepository {
     required String exerciseId,
     required String answer,
     required String operationId,
-  }) async =>
-      const ExerciseFeedback(correct: true, correctAnswer: 'an');
+  }) async => const ExerciseFeedback(correct: true, correctAnswer: 'an');
 
   @override
   Future<LessonCompletion> complete(
     String attemptId,
     String operationId,
-  ) async =>
-      const LessonCompletion(
-        correctAnswers: 1,
-        totalAnswers: 1,
-        reviewCardsCreated: 0,
-      );
-}
-
-AppLanguageProvider loadLanguageProvider() {
-  final vi = json.decode(
-    File('assets/translations/vi.json').readAsStringSync(),
-  ) as Map<String, dynamic>;
-  final en = json.decode(
-    File('assets/translations/en.json').readAsStringSync(),
-  ) as Map<String, dynamic>;
-  return AppLanguageProvider.test(
-    translations: {
-      AppLanguage.vi: vi,
-      AppLanguage.en: en,
-    },
+  ) async => const LessonCompletion(
+    correctAnswers: 1,
+    totalAnswers: 1,
+    reviewCardsCreated: 0,
   );
 }
 
-Widget buildScreen(ScreenLearningPathRepository repository) {
+AppLanguageProvider loadLanguageProvider() {
+  final vi =
+      json.decode(File('assets/translations/vi.json').readAsStringSync())
+          as Map<String, dynamic>;
+  final en =
+      json.decode(File('assets/translations/en.json').readAsStringSync())
+          as Map<String, dynamic>;
+  return AppLanguageProvider.test(
+    translations: {AppLanguage.vi: vi, AppLanguage.en: en},
+  );
+}
+
+Widget buildScreen(
+  ScreenLearningPathRepository repository, {
+  ThemeData? theme,
+}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AppLanguageProvider>.value(
@@ -139,29 +156,28 @@ Widget buildScreen(ScreenLearningPathRepository repository) {
       ),
     ],
     child: MaterialApp(
-      theme: AppTheme.light,
+      theme: theme ?? AppTheme.light,
       home: const Scaffold(body: LearningPathScreen()),
     ),
   );
 }
 
 GoRouter learningPathRouter() => GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) =>
-              const Scaffold(body: LearningPathScreen()),
-        ),
-        GoRoute(
-          path: '/lesson/:id',
-          builder: (context, state) => ChangeNotifierProvider(
-            create: (_) => LessonViewModel(context.read<LessonRepository>()),
-            child: LessonScreen(lessonId: state.pathParameters['id']!),
-          ),
-        ),
-      ],
-    );
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) => const Scaffold(body: LearningPathScreen()),
+    ),
+    GoRoute(
+      path: '/lesson/:id',
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (_) => LessonViewModel(context.read<LessonRepository>()),
+        child: LessonScreen(lessonId: state.pathParameters['id']!),
+      ),
+    ),
+  ],
+);
 
 Widget buildRoutedScreen({
   required GoRouter router,
@@ -183,8 +199,9 @@ Widget buildRoutedScreen({
 }
 
 void main() {
-  testWidgets('hiển thị dữ liệu thật và không còn XP/streak mock',
-      (tester) async {
+  testWidgets('hiển thị dữ liệu thật và không còn XP/streak mock', (
+    tester,
+  ) async {
     await pumpWidgetWithLingoRoadScreenUtil(
       tester,
       buildScreen(ScreenLearningPathRepository()),
@@ -226,8 +243,9 @@ void main() {
     expect(find.text('Thì hiện tại đơn'), findsOneWidget);
   });
 
-  testWidgets('chọn kỹ năng mở lesson player tại route lesson khớp',
-      (tester) async {
+  testWidgets('chọn kỹ năng mở lesson player tại route lesson khớp', (
+    tester,
+  ) async {
     final lessonRepository = RoutedLessonRepository(
       todayLessons: const [routeLesson],
     );
@@ -258,8 +276,9 @@ void main() {
     );
   });
 
-  testWidgets('kỹ năng chưa có lesson báo lỗi và không điều hướng',
-      (tester) async {
+  testWidgets('kỹ năng chưa có lesson báo lỗi và không điều hướng', (
+    tester,
+  ) async {
     final lessonRepository = RoutedLessonRepository(todayLessons: const []);
     final router = learningPathRouter();
     addTearDown(router.dispose);
@@ -285,5 +304,81 @@ void main() {
     );
     expect(router.routerDelegate.currentConfiguration.uri.path, '/');
     expect(lessonRepository.startedLessonIds, isEmpty);
+  });
+
+  testWidgets(
+    'Path phân biệt completed/current/locked và khóa có onTap null + disabled semantics',
+    (tester) async {
+      final repository = ScreenLearningPathRepository()
+        ..result = const [completedStep, widgetStep, lockedStep];
+      await pumpWidgetWithLingoRoadScreenUtil(tester, buildScreen(repository));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(
+          const Key('learning_path_state_completed_grammar.completed'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const Key('learning_path_state_current_grammar.present-simple'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('learning_path_state_locked_grammar.locked')),
+        findsOneWidget,
+      );
+
+      final locked = tester.widget<InkWell>(
+        find.byKey(const Key('learning_path_step_grammar.locked')),
+      );
+      expect(locked.onTap, isNull);
+
+      final semantics = tester.getSemantics(
+        find.byKey(const Key('learning_path_state_locked_grammar.locked')),
+      );
+      expect(semantics.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(semantics.label, contains('Kỹ năng bị khóa'));
+    },
+  );
+
+  testWidgets('Path dark resolve màu current và locked theo ColorScheme', (
+    tester,
+  ) async {
+    final repository = ScreenLearningPathRepository()
+      ..result = const [completedStep, widgetStep, lockedStep];
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      buildScreen(repository, theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    final scheme = AppTheme.dark.colorScheme;
+    final progress = tester.widgetList<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(progress.elementAt(1).color, scheme.primary);
+    expect(
+      progress.elementAt(1).backgroundColor,
+      scheme.surfaceContainerHighest,
+    );
+
+    final currentCard = tester.widget<Container>(
+      find.byKey(const Key('learning_path_card_grammar.present-simple')),
+    );
+    final currentDecoration = currentCard.decoration! as BoxDecoration;
+    expect(currentDecoration.color, scheme.surface);
+    expect(
+      currentDecoration.border,
+      Border.fromBorderSide(BorderSide(color: scheme.primary, width: 2)),
+    );
+
+    final lockedCard = tester.widget<Container>(
+      find.byKey(const Key('learning_path_card_grammar.locked')),
+    );
+    final lockedDecoration = lockedCard.decoration! as BoxDecoration;
+    expect(lockedDecoration.color, scheme.surfaceContainerLow);
   });
 }

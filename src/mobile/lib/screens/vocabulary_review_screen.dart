@@ -48,7 +48,14 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => context.pop(),
+          tooltip: l.translate('common.back'),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/review');
+            }
+          },
           icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(l.translate('review.title')),
@@ -63,9 +70,7 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: _content(vm, l)),
-            ],
+            children: [Expanded(child: _content(vm, l))],
           ),
         ),
       ),
@@ -122,50 +127,58 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
             cardsCount: vm.cards.length,
             numberOfCardsDisplayed: vm.cards.length == 1 ? 1 : 2,
             initialIndex: vm.currentIndex,
-            allowedSwipeDirection:
-                const AllowedSwipeDirection.only(left: true, right: true),
+            allowedSwipeDirection: const AllowedSwipeDirection.only(
+              left: true,
+              right: true,
+            ),
             isLoop: false,
             onSwipe: (previousIndex, currentIndex, direction) =>
                 _onSwipe(previousIndex, currentIndex, direction, vm),
             cardBuilder: (context, index, percentX, percentY) {
               final card = vm.cards[index];
-              return FlipCard(
-                fill: Fill.fillBack,
-                flipOnTouch: !vm.gradePending,
-                onFlip: () {
-                  if (mounted) {
-                    setState(() {
-                      _showBack = true;
-                    });
-                  }
-                },
-                front: AppCard(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg.w),
-                      child: Text(
-                        card.front,
-                        textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  fontSize: 30.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
+              return Semantics(
+                button: true,
+                label: l.translate('review.flip_card_semantics'),
+                child: FlipCard(
+                  fill: Fill.fillBack,
+                  flipOnTouch: !vm.gradePending,
+                  onFlip: () {
+                    if (mounted) {
+                      setState(() {
+                        _showBack = true;
+                      });
+                    }
+                  },
+                  front: AppCard(
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(AppSpacing.lg.w),
+                        child: Text(
+                          card.front,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.displaySmall
+                              ?.copyWith(
+                                fontSize: 30.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                back: AppCard(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg.w),
-                      child: Text(
-                        card.back,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 20.sp,
-                              color: AppColors.primary,
-                            ),
+                  back: AppCard(
+                    variant: AppCardVariant.tonal,
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(AppSpacing.lg.w),
+                        child: Text(
+                          card.back,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontSize: 20.sp,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
                       ),
                     ),
                   ),
@@ -189,9 +202,6 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
                 l.translate('review.mark_learned'),
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
             ),
           ),
         if (vm.gradePending)
@@ -202,7 +212,7 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
         if (vm.errorCode != null && !vm.gradePending)
           Text(
             l.translate('review.grade_error'),
-            style: const TextStyle(color: AppColors.error),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
       ],
     );
@@ -214,15 +224,18 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
     CardSwiperDirection direction,
     ReviewViewModel vm,
   ) {
-    vm.grade().then((_) {
-      if (mounted) {
-        setState(() {
-          _showBack = false;
+    vm
+        .grade()
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              _showBack = false;
+            });
+          }
+        })
+        .catchError((_) {
+          _swiperController.undo();
         });
-      }
-    }).catchError((_) {
-      _swiperController.undo();
-    });
 
     return true;
   }
@@ -238,27 +251,26 @@ class _VocabularyReviewScreenState extends State<VocabularyReviewScreen> {
     required String message,
     required VoidCallback action,
     Key? retryKey,
-  }) =>
-      AppCard(
-        key: key,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 42.sp, color: AppColors.primary),
-            SizedBox(height: AppSpacing.sm.h),
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: AppSpacing.xs.h),
-            Text(message, textAlign: TextAlign.center),
-            SizedBox(height: AppSpacing.md.h),
-            FilledButton.icon(
-              key: retryKey,
-              onPressed: action,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text(
-                context.read<AppLanguageProvider>().translate('common.retry'),
-              ),
-            )
-          ],
+  }) => AppCard(
+    key: key,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 42.sp, color: Theme.of(context).colorScheme.primary),
+        SizedBox(height: AppSpacing.sm.h),
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        SizedBox(height: AppSpacing.xs.h),
+        Text(message, textAlign: TextAlign.center),
+        SizedBox(height: AppSpacing.md.h),
+        FilledButton.icon(
+          key: retryKey,
+          onPressed: action,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(
+            context.read<AppLanguageProvider>().translate('common.retry'),
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }

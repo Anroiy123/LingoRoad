@@ -359,7 +359,7 @@ void main() {
       child: await _surface(_FoundationSurface.mainShell),
       themeMode: ThemeMode.dark,
     );
-    final brand = tester.widget<Text>(find.text('lingoRoad'));
+    final brand = tester.widget<Text>(find.text('LingoRoad'));
     expect(brand.style?.color, AppColorsDark.primary);
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar).first);
     expect(avatar.backgroundColor, AppColorsDark.surfaceHigh);

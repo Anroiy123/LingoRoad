@@ -15,6 +15,11 @@ class ExerciseAnswerInput extends StatefulWidget {
     this.submitOnOptionTap = false,
     this.optionKeyBuilder,
     this.hintText,
+    this.feedbackCorrect,
+    this.correctAnswer,
+    this.selectedSemanticsLabel = 'selected',
+    this.correctSemanticsLabel = 'correct',
+    this.incorrectSemanticsLabel = 'incorrect',
     super.key,
   });
 
@@ -30,23 +35,45 @@ class ExerciseAnswerInput extends StatefulWidget {
   final bool submitOnOptionTap;
   final Key Function(String option)? optionKeyBuilder;
   final String? hintText;
+  final bool? feedbackCorrect;
+  final String? correctAnswer;
+  final String selectedSemanticsLabel;
+  final String correctSemanticsLabel;
+  final String incorrectSemanticsLabel;
 
   @override
   State<ExerciseAnswerInput> createState() => _ExerciseAnswerInputState();
 }
 
 class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
-  late final TextEditingController _controller = TextEditingController(text: widget.answer);
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.answer,
+  );
   final List<int> _orderedIndexes = [];
-  String _selectedOption = '';
+  late String _selectedOption = widget.type == 'mcq' ? widget.answer : '';
   late String _typedAnswer = widget.answer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.type == 'reorder') {
+      _orderedIndexes.addAll(_indexesForAnswer(widget.answer));
+    }
+  }
 
   @override
   void didUpdateWidget(covariant ExerciseAnswerInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.answer != widget.answer && _controller.text != widget.answer) {
+    if (oldWidget.answer != widget.answer &&
+        _controller.text != widget.answer) {
       _controller.value = TextEditingValue(text: widget.answer);
       _typedAnswer = widget.answer;
+      if (widget.type == 'mcq') _selectedOption = widget.answer;
+      if (widget.type == 'reorder') {
+        _orderedIndexes
+          ..clear()
+          ..addAll(_indexesForAnswer(widget.answer));
+      }
     }
     if (oldWidget.type != widget.type || oldWidget.options != widget.options) {
       _orderedIndexes.clear();
@@ -64,6 +91,25 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
     widget.onAnswerChanged(answer);
   }
 
+  List<int> _indexesForAnswer(String answer) {
+    if (answer.trim().isEmpty) return const [];
+    final available = List<bool>.filled(widget.options.length, true);
+    final result = <int>[];
+    for (final token in answer.trim().split(RegExp(r'\s+'))) {
+      int? match;
+      for (var index = 0; index < widget.options.length; index++) {
+        if (available[index] && widget.options[index] == token) {
+          match = index;
+          break;
+        }
+      }
+      if (match == null) return const [];
+      available[match] = false;
+      result.add(match);
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.type == 'mcq') {
@@ -73,22 +119,73 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
           for (final option in widget.options)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: OutlinedButton(
-                key: widget.optionKeyBuilder?.call(option) ?? Key('answer_option_$option'),
-                onPressed: !widget.enabled
-                    ? null
-                    : () {
-                        setState(() => _selectedOption = option);
-                        _update(option);
-                        if (widget.submitOnOptionTap) widget.onSubmit(option);
-                      },
-                child: Text(option),
+              child: Builder(
+                builder: (context) {
+                  final selected = option == _selectedOption;
+                  final correct =
+                      widget.feedbackCorrect != null &&
+                      option == widget.correctAnswer;
+                  final incorrect =
+                      widget.feedbackCorrect == false && selected && !correct;
+                  final scheme = Theme.of(context).colorScheme;
+                  final semanticState = correct
+                      ? widget.correctSemanticsLabel
+                      : incorrect
+                      ? widget.incorrectSemanticsLabel
+                      : selected
+                      ? widget.selectedSemanticsLabel
+                      : '';
+                  final fill = correct
+                      ? scheme.primaryContainer
+                      : incorrect
+                      ? scheme.errorContainer
+                      : selected
+                      ? scheme.primaryContainer
+                      : Colors.transparent;
+                  final border = correct
+                      ? scheme.primary
+                      : incorrect
+                      ? scheme.error
+                      : selected
+                      ? scheme.primary
+                      : scheme.outline;
+                  return Semantics(
+                    container: true,
+                    excludeSemantics: true,
+                    button: true,
+                    enabled: widget.enabled,
+                    selected: selected,
+                    label: semanticState.isEmpty
+                        ? option
+                        : '$option, $semanticState',
+                    child: OutlinedButton(
+                      key:
+                          widget.optionKeyBuilder?.call(option) ??
+                          Key('answer_option_$option'),
+                      style: OutlinedButton.styleFrom(
+                        alignment: Alignment.centerLeft,
+                        backgroundColor: fill,
+                        side: BorderSide(color: border, width: 1.5),
+                      ),
+                      onPressed: !widget.enabled
+                          ? null
+                          : () {
+                              setState(() => _selectedOption = option);
+                              _update(option);
+                              if (widget.submitOnOptionTap) {
+                                widget.onSubmit(option);
+                              }
+                            },
+                      child: Text(option),
+                    ),
+                  );
+                },
               ),
             ),
           if (!widget.submitOnOptionTap)
             FilledButton(
               key: widget.submitKey,
-            onPressed: !widget.enabled || _selectedOption.isEmpty
+              onPressed: !widget.enabled || _selectedOption.isEmpty
                   ? null
                   : () => widget.onSubmit(_selectedOption),
               child: Text(widget.submitLabel),
@@ -97,7 +194,23 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       );
     }
     if (widget.type == 'reorder') {
-      final answer = _orderedIndexes.map((index) => widget.options[index]).join(' ');
+      final answer = _orderedIndexes
+          .map((index) => widget.options[index])
+          .join(' ');
+      final isFeedback = widget.feedbackCorrect != null;
+      final normalizedAnswer = _normalizedOrder(answer);
+      final normalizedCorrectAnswer = _normalizedOrder(widget.correctAnswer);
+      final isCorrect =
+          isFeedback &&
+          widget.feedbackCorrect == true &&
+          normalizedAnswer == normalizedCorrectAnswer;
+      final isIncorrect = isFeedback && !isCorrect;
+      final scheme = Theme.of(context).colorScheme;
+      final feedbackLabel = isCorrect
+          ? widget.correctSemanticsLabel
+          : isIncorrect
+          ? widget.incorrectSemanticsLabel
+          : widget.selectedSemanticsLabel;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -107,27 +220,90 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
             children: List.generate(widget.options.length, (index) {
               final word = widget.options[index];
               final selected = _orderedIndexes.contains(index);
-              return FilterChip(
-                key: Key('answer_reorder_$index'),
-                label: Text(word),
+              final selectedState = isCorrect
+                  ? widget.correctSemanticsLabel
+                  : isIncorrect
+                  ? widget.incorrectSemanticsLabel
+                  : widget.selectedSemanticsLabel;
+              final chipFill = !selected
+                  ? null
+                  : isCorrect
+                  ? scheme.primaryContainer
+                  : isIncorrect
+                  ? scheme.errorContainer
+                  : scheme.surfaceContainerHighest;
+              final chipBorder = !selected
+                  ? scheme.outline
+                  : isCorrect
+                  ? scheme.primary
+                  : isIncorrect
+                  ? scheme.error
+                  : scheme.primary;
+              return Semantics(
+                key: Key('answer_reorder_semantics_$index'),
                 selected: selected,
-                onSelected: !widget.enabled
-                    ? null
-                    : (selected) => setState(() {
+                container: true,
+                label: selected ? '$word, $selectedState' : word,
+                child: FilterChip(
+                  key: Key('answer_reorder_$index'),
+                  label: Text(word),
+                  selected: selected,
+                  selectedColor: chipFill,
+                  backgroundColor: scheme.surface,
+                  side: BorderSide(color: chipBorder, width: 1.5),
+                  onSelected: !widget.enabled
+                      ? null
+                      : (selected) => setState(() {
                           if (selected) {
                             _orderedIndexes.add(index);
                           } else {
                             _orderedIndexes.remove(index);
                           }
-                          _update(_orderedIndexes
-                              .map((selectedIndex) => widget.options[selectedIndex])
-                              .join(' '));
+                          _update(
+                            _orderedIndexes
+                                .map(
+                                  (selectedIndex) =>
+                                      widget.options[selectedIndex],
+                                )
+                                .join(' '),
+                          );
                         }),
+                ),
               );
             }),
           ),
           const SizedBox(height: 12),
-          Text(answer),
+          if (isFeedback)
+            Semantics(
+              key: const Key('answer_reorder_feedback'),
+              container: true,
+              liveRegion: true,
+              label: feedbackLabel,
+              child: Container(
+                key: const Key('answer_reorder_feedback_visual'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isCorrect
+                      ? scheme.primaryContainer
+                      : scheme.errorContainer,
+                  border: Border.all(
+                    color: isCorrect ? scheme.primary : scheme.error,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  answer,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: isCorrect
+                        ? scheme.onPrimaryContainer
+                        : scheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            )
+          else
+            Text(answer),
           const SizedBox(height: 20),
           FilledButton(
             key: widget.submitKey,
@@ -142,16 +318,31 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          key: widget.textFieldKey,
-          controller: _controller,
-          enabled: widget.enabled,
-          decoration: InputDecoration(hintText: widget.hintText),
-          onChanged: (answer) {
-            setState(() => _typedAnswer = answer);
-            _update(answer);
-          },
-          onSubmitted: widget.enabled ? widget.onSubmit : null,
+        Semantics(
+          label: widget.feedbackCorrect == null
+              ? null
+              : widget.feedbackCorrect!
+              ? widget.correctSemanticsLabel
+              : widget.incorrectSemanticsLabel,
+          child: TextField(
+            key: widget.textFieldKey,
+            controller: _controller,
+            enabled: widget.enabled,
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              filled: widget.feedbackCorrect != null,
+              fillColor: widget.feedbackCorrect == null
+                  ? null
+                  : widget.feedbackCorrect!
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.errorContainer,
+            ),
+            onChanged: (answer) {
+              setState(() => _typedAnswer = answer);
+              _update(answer);
+            },
+            onSubmitted: widget.enabled ? widget.onSubmit : null,
+          ),
         ),
         const SizedBox(height: 20),
         FilledButton(
@@ -164,4 +355,10 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       ],
     );
   }
+
+  String _normalizedOrder(String? value) => (value ?? '')
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .join(' ');
 }

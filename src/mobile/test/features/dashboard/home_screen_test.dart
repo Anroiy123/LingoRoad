@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/dashboard/data/dashboard_repository.dart';
 import 'package:lingoroad_mobile/features/dashboard/domain/dashboard_models.dart';
 import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
@@ -45,6 +47,7 @@ const dashboardData = DashboardData(
 );
 
 class FakeDashboardRepository implements DashboardRepository {
+  DashboardData data = dashboardData;
   Object? error;
   int calls = 0;
   Completer<DashboardData>? completer;
@@ -53,7 +56,7 @@ class FakeDashboardRepository implements DashboardRepository {
   Future<DashboardData> dashboard() async {
     calls++;
     if (error != null) throw error!;
-    return completer?.future ?? dashboardData;
+    return completer?.future ?? data;
   }
 
   @override
@@ -66,49 +69,101 @@ class FakeDashboardRepository implements DashboardRepository {
   }
 }
 
+class FakeHomeAuthRepository implements AuthRepository {
+  FakeHomeAuthRepository(this.profile);
+
+  final UserProfile profile;
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
+  Future<UserProfile> completeProfileSetup({
+    required String name,
+    required String targetCefr,
+    required int dailyGoalMinutes,
+  }) async => profile;
+
+  @override
+  Future<UserProfile> getProfile() async => profile;
+
+  @override
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async => const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
+
+  @override
+  Future<void> logout(String? refreshToken) async {}
+
+  @override
+  Future<AuthTokens> register({
+    required String email,
+    required String password,
+    String? name,
+  }) async => const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
+
+  @override
+  Future<UserProfile> updateProfile(Map<String, Object?> values) async =>
+      profile;
+}
+
 AppLanguageProvider languageProvider() {
-  final vi = json.decode(File('assets/translations/vi.json').readAsStringSync())
-      as Map<String, dynamic>;
-  final en = json.decode(File('assets/translations/en.json').readAsStringSync())
-      as Map<String, dynamic>;
+  final vi =
+      json.decode(File('assets/translations/vi.json').readAsStringSync())
+          as Map<String, dynamic>;
+  final en =
+      json.decode(File('assets/translations/en.json').readAsStringSync())
+          as Map<String, dynamic>;
   return AppLanguageProvider.test(
     translations: {AppLanguage.vi: vi, AppLanguage.en: en},
   );
 }
 
-Widget homeApp(FakeDashboardRepository repository) => MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AppLanguageProvider>.value(
-          value: languageProvider(),
-        ),
-        ChangeNotifierProvider<DashboardViewModel>(
-          create: (_) => DashboardViewModel(repository),
-        ),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const Scaffold(body: HomeScreen()),
-      ),
-    );
+Widget homeApp(
+  FakeDashboardRepository repository, {
+  AuthRepository? authRepository,
+}) => MultiProvider(
+  providers: [
+    Provider<AuthRepository?>.value(value: authRepository),
+    ChangeNotifierProvider<AppLanguageProvider>.value(
+      value: languageProvider(),
+    ),
+    ChangeNotifierProvider<DashboardViewModel>(
+      create: (_) => DashboardViewModel(repository),
+    ),
+  ],
+  child: MaterialApp(
+    theme: AppTheme.light,
+    home: const Scaffold(body: HomeScreen()),
+  ),
+);
 
-Widget streakApp(FakeDashboardRepository repository) => MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AppLanguageProvider>.value(
-          value: languageProvider(),
-        ),
-        ChangeNotifierProvider<DashboardViewModel>(
-          create: (_) => DashboardViewModel(repository),
-        ),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const StreakDetailsScreen(),
-      ),
-    );
+Widget streakApp(
+  FakeDashboardRepository repository, {
+  ThemeData? theme,
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<AppLanguageProvider>.value(
+      value: languageProvider(),
+    ),
+    ChangeNotifierProvider<DashboardViewModel>(
+      create: (_) => DashboardViewModel(repository),
+    ),
+  ],
+  child: MaterialApp(
+    theme: theme ?? AppTheme.light,
+    home: const StreakDetailsScreen(),
+  ),
+);
 
 void main() {
-  testWidgets('Home hiển thị dashboard API, không còn tên và lesson hardcode',
-      (tester) async {
+  testWidgets('Home hiển thị dashboard API, không còn tên và lesson hardcode', (
+    tester,
+  ) async {
     await pumpWidgetWithLingoRoadScreenUtil(
       tester,
       homeApp(FakeDashboardRepository()),
@@ -155,5 +210,124 @@ void main() {
     expect(find.text('6 ngày'), findsOneWidget);
     expect(find.text('12 ngày'), findsNothing);
     expect(find.text('18 ngày'), findsNothing);
+  });
+
+  testWidgets('Chi tiết streak dark resolve indicator và stat icon theo primary', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      streakApp(FakeDashboardRepository(), theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    final primary = AppTheme.dark.colorScheme.primary;
+    expect(
+      tester.widget<Icon>(
+        find.byIcon(Icons.local_fire_department_rounded),
+      ).color,
+      primary,
+    );
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.emoji_events_rounded)).color,
+      primary,
+    );
+  });
+
+  testWidgets(
+    'Home dùng thương hiệu chuẩn, avatar initials có semantics và màu ổn định',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      final repository = FakeDashboardRepository();
+      await pumpWidgetWithLingoRoadScreenUtil(tester, homeApp(repository));
+      await tester.pumpAndSettle();
+
+      expect(find.text('LingoRoad'), findsOneWidget);
+      expect(find.text('lingRoad'), findsNothing);
+      expect(find.text('lingoRoad'), findsNothing);
+      expect(find.text('M'), findsOneWidget);
+      expect(find.bySemanticsLabel('Ảnh đại diện của Mai'), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+
+      final firstAvatar = tester.widget<CircleAvatar>(
+        find.byKey(const Key('home_avatar')),
+      );
+      final firstColor = firstAvatar.backgroundColor;
+      await tester.pumpWidget(const SizedBox.shrink());
+      await pumpWidgetWithLingoRoadScreenUtil(tester, homeApp(repository));
+      await tester.pumpAndSettle();
+      final secondAvatar = tester.widget<CircleAvatar>(
+        find.byKey(const Key('home_avatar')),
+      );
+      expect(secondAvatar.backgroundColor, firstColor);
+      semantics.dispose();
+    },
+  );
+
+  testWidgets('Home fallback initials sang email profile khi tên trống', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final repository = FakeDashboardRepository()
+      ..data = const DashboardData(
+        name: '',
+        currentCefr: 'A2',
+        targetCefr: 'B1',
+        dailyGoalMinutes: 30,
+        mastery: .42,
+        dailyProgress: .5,
+        weeklyProgress: .25,
+        dueReviews: 3,
+        completedLessons: 2,
+        xp: 125,
+        coins: 7,
+        currentStreak: 4,
+        longestStreak: 6,
+        activeDates: [],
+        recentActivity: [],
+      );
+
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      homeApp(
+        repository,
+        authRepository: FakeHomeAuthRepository(
+          const UserProfile(
+            id: 'learner-1',
+            email: 'fallback.mai@example.com',
+            name: '',
+            targetCefr: 'B1',
+            cefrLevel: 'A2',
+            level: 2,
+            badgesCount: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('F'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Ảnh đại diện của fallback.mai@example.com'),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('thẻ bài học hôm nay dùng màu semantic phẳng, không gradient', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      homeApp(FakeDashboardRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    final card = tester.widget<Container>(
+      find.byKey(const Key('home_today_lesson')),
+    );
+    final decoration = card.decoration! as BoxDecoration;
+    expect(decoration.gradient, isNull);
+    expect(decoration.color, AppColors.primary);
   });
 }

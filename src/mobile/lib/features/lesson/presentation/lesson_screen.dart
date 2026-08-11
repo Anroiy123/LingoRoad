@@ -27,6 +27,13 @@ class LessonScreen extends StatefulWidget {
 class _LessonScreenState extends State<LessonScreen> {
   String? _exerciseId;
   bool _refreshScheduled = false;
+  final FocusNode _feedbackFocus = FocusNode(debugLabel: 'lesson feedback');
+
+  @override
+  void dispose() {
+    _feedbackFocus.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -51,11 +58,14 @@ class _LessonScreenState extends State<LessonScreen> {
         completion: viewModel.completion!,
       );
     }
+    if (viewModel.state == LessonState.feedback) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _feedbackFocus.requestFocus();
+      });
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_localizedTitle(l10n, viewModel.attempt)),
-      ),
+      appBar: AppBar(title: Text(_localizedTitle(l10n, viewModel.attempt))),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.lg.w),
@@ -73,10 +83,7 @@ class _LessonScreenState extends State<LessonScreen> {
     if (viewModel.state == LessonState.initial ||
         viewModel.state == LessonState.loading ||
         viewModel.state == LessonState.completing) {
-      return Center(
-        key: const Key('lesson_loading'),
-        child: loadingView(),
-      );
+      return Center(key: const Key('lesson_loading'), child: loadingView());
     }
     if (viewModel.state == LessonState.error) {
       return _StateCard(
@@ -103,44 +110,137 @@ class _LessonScreenState extends State<LessonScreen> {
         message: l10n.translate('lesson.empty.message'),
       );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Text('${viewModel.currentNumber}/${viewModel.total}'),
-            SizedBox(width: AppSpacing.sm.w),
-            Expanded(child: AppProgress(value: viewModel.progress)),
-          ],
-        ),
-        SizedBox(height: AppSpacing.xl.h),
-        Wrap(
-          key: const Key('lesson_stem'),
-          children: exercise.stem.split(' ').map((word) {
-            final cleanWord =
-                word.replaceAll(RegExp(r'[^\p{L}]', unicode: true), '');
-            return GestureDetector(
-              onLongPress: () => _showDictionaryBottomSheet(
-                  context, l10n, cleanWord, viewModel.attempt?.skillCode ?? ''),
-              child: Padding(
-                padding: EdgeInsets.only(right: 6.w, bottom: 4.h),
-                child: Text(
-                  word.replaceAll('*', ''),
-                  style: Theme.of(context).textTheme.headlineSmall,
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('${viewModel.currentNumber}/${viewModel.total}'),
+              SizedBox(width: AppSpacing.sm.w),
+              Expanded(child: AppProgress(value: viewModel.progress)),
+            ],
+          ),
+          SizedBox(height: AppSpacing.xl.h),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Wrap(
+                  key: const Key('lesson_stem'),
+                  children: exercise.stem.split(' ').map((word) {
+                    final cleanWord = word.replaceAll(
+                      RegExp(r'[^\p{L}]', unicode: true),
+                      '',
+                    );
+                    return GestureDetector(
+                      onLongPress: () => _showDictionaryBottomSheet(
+                        context,
+                        l10n,
+                        cleanWord,
+                        viewModel.attempt?.skillCode ?? '',
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(right: 6.w, bottom: 4.h),
+                        child: Text(
+                          word.replaceAll('*', ''),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-            );
-          }).toList(),
-        ),
-        SizedBox(height: AppSpacing.lg.h),
-        Expanded(
-          child: SingleChildScrollView(
-            child: viewModel.state == LessonState.feedback
-                ? _feedback(context, l10n, viewModel)
-                : _answer(context, l10n, viewModel, exercise),
+              SizedBox(width: AppSpacing.xs.w),
+              FocusTraversalOrder(
+                order: const NumericFocusOrder(1),
+                child: Semantics(
+                  key: const Key('lesson_dictionary_button'),
+                  button: true,
+                  label: l10n.translate('dictionary.lookup_sentence'),
+                  child: PopupMenuButton<String>(
+                    tooltip: l10n.translate('dictionary.lookup_sentence'),
+                    icon: const Icon(Icons.menu_book_outlined),
+                    onSelected: (word) => _showDictionaryBottomSheet(
+                      context,
+                      l10n,
+                      word,
+                      viewModel.attempt?.skillCode ?? '',
+                    ),
+                    itemBuilder: (context) => [
+                      for (final word in _dictionaryWords(exercise.stem))
+                        PopupMenuItem<String>(
+                          key: Key('lesson_dictionary_word_$word'),
+                          value: word,
+                          child: Text(word),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+          SizedBox(height: AppSpacing.lg.h),
+          Expanded(
+            child: SingleChildScrollView(
+              child: FocusTraversalOrder(
+                order: const NumericFocusOrder(2),
+                child: viewModel.state == LessonState.feedback
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _feedbackAnswer(context, l10n, viewModel, exercise),
+                          SizedBox(height: AppSpacing.md.h),
+                          _feedback(context, l10n, viewModel),
+                        ],
+                      )
+                    : viewModel.state == LessonState.submissionError
+                    ? _submissionError(context, l10n, viewModel)
+                    : _answer(context, l10n, viewModel, exercise),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _dictionaryWords(String stem) {
+    final seen = <String>{};
+    return stem
+        .split(RegExp(r'\s+'))
+        .map((word) => word.replaceAll(RegExp(r'[^\p{L}]', unicode: true), ''))
+        .where((word) => word.length > 1 && seen.add(word))
+        .toList(growable: false);
+  }
+
+  Widget _feedbackAnswer(
+    BuildContext context,
+    AppLanguageProvider l10n,
+    LessonViewModel viewModel,
+    LessonExercise exercise,
+  ) {
+    final feedback = viewModel.feedback!;
+    return ExerciseAnswerInput(
+      key: ValueKey(exercise.id),
+      type: exercise.type,
+      options: exercise.options,
+      answer: viewModel.lastAnswer ?? '',
+      enabled: false,
+      onAnswerChanged: (_) {},
+      onSubmit: (_) {},
+      textFieldKey: const Key('lesson_text_answer'),
+      submitKey: const Key('lesson_submit'),
+      submitLabel: l10n.translate('lesson.submit'),
+      submitOnOptionTap: exercise.type == 'mcq',
+      optionKeyBuilder: (option) => Key('lesson_option_$option'),
+      hintText: l10n.translate('lesson.answer_hint'),
+      feedbackCorrect: feedback.correct,
+      correctAnswer: feedback.correctAnswer,
+      selectedSemanticsLabel: l10n.translate('lesson.answer_state.selected'),
+      correctSemanticsLabel: l10n.translate('lesson.answer_state.correct'),
+      incorrectSemanticsLabel: l10n.translate('lesson.answer_state.incorrect'),
     );
   }
 
@@ -151,27 +251,84 @@ class _LessonScreenState extends State<LessonScreen> {
     LessonExercise exercise,
   ) {
     final disabled = viewModel.state == LessonState.submitting;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ExerciseAnswerInput(
-        key: ValueKey(exercise.id),
-        type: exercise.type,
-        options: exercise.options,
-        answer: '',
-        enabled: !disabled,
-        onAnswerChanged: (_) {},
-        onSubmit: viewModel.submit,
-        textFieldKey: const Key('lesson_text_answer'),
-        submitKey: const Key('lesson_submit'),
-        submitLabel: l10n.translate('lesson.submit'),
-        submitOnOptionTap: exercise.type == 'mcq',
-        optionKeyBuilder: (option) => Key('lesson_option_$option'),
-        hintText: l10n.translate('lesson.answer_hint'),
-      ),
-      if (viewModel.errorCode != null) ...[
-        SizedBox(height: AppSpacing.sm.h),
-        Text(l10n.translate('lesson.submit_error'), key: const Key('lesson_submit_error'), style: const TextStyle(color: AppColors.error)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ExerciseAnswerInput(
+          key: ValueKey(exercise.id),
+          type: exercise.type,
+          options: exercise.options,
+          answer: '',
+          enabled: !disabled,
+          onAnswerChanged: (_) {},
+          onSubmit: viewModel.submit,
+          textFieldKey: const Key('lesson_text_answer'),
+          submitKey: const Key('lesson_submit'),
+          submitLabel: l10n.translate('lesson.submit'),
+          submitOnOptionTap: exercise.type == 'mcq',
+          optionKeyBuilder: (option) => Key('lesson_option_$option'),
+          hintText: l10n.translate('lesson.answer_hint'),
+        ),
+        if (viewModel.errorCode != null) ...[
+          SizedBox(height: AppSpacing.sm.h),
+          Text(
+            l10n.translate('lesson.submit_error'),
+            key: const Key('lesson_submit_error'),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
       ],
-    ]);
+    );
+  }
+
+  Widget _submissionError(
+    BuildContext context,
+    AppLanguageProvider l10n,
+    LessonViewModel viewModel,
+  ) {
+    final answer = viewModel.pendingAnswer ?? '';
+    return Semantics(
+      key: const Key('lesson_submission_error'),
+      container: true,
+      liveRegion: true,
+      label: l10n.translate('lesson.submit_error'),
+      child: AppCard(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderColor: Theme.of(context).colorScheme.error,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.translate('lesson.submit_error'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            SizedBox(height: AppSpacing.sm.h),
+            Text(answer, key: const Key('lesson_failed_answer')),
+            SizedBox(height: AppSpacing.lg.h),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    key: const Key('lesson_change_answer'),
+                    onPressed: viewModel.changeAnswer,
+                    child: Text(l10n.translate('lesson.change_answer')),
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const Key('lesson_retry_answer'),
+                    onPressed: viewModel.retryAnswer,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(l10n.translate('common.retry')),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _feedback(
@@ -180,73 +337,85 @@ class _LessonScreenState extends State<LessonScreen> {
     LessonViewModel viewModel,
   ) {
     final feedback = viewModel.feedback!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
     final cardBg = feedback.correct
-        ? (isDark ? AppColorsDark.successSoft : AppColors.successSoft)
-        : (isDark ? AppColorsDark.errorSoft : AppColors.errorSoft);
-    final titleColor = feedback.correct
-        ? (isDark ? const Color(0xFF86EFAC) : const Color(0xFF14532D))
-        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D));
+        ? scheme.primaryContainer
+        : scheme.errorContainer;
+    final titleColor = feedback.correct ? scheme.primary : scheme.error;
     final textColor = feedback.correct
-        ? (isDark ? Colors.white : const Color(0xFF14532D))
-        : (isDark ? Colors.white : const Color(0xFF7F1D1D));
+        ? scheme.onPrimaryContainer
+        : scheme.onErrorContainer;
 
-    return AppCard(
-      color: cardBg,
-      borderColor: feedback.correct ? AppColors.success : AppColors.error,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Semantics(
+      key: const Key('lesson_feedback'),
+      container: true,
+      liveRegion: true,
+      label: l10n.translate(
+        feedback.correct
+            ? 'lesson.feedback.semantics_correct'
+            : 'lesson.feedback.semantics_wrong',
+      ),
+      child: Focus(
+        focusNode: _feedbackFocus,
+        child: AppCard(
+          color: cardBg,
+          borderColor: feedback.correct ? scheme.primary : scheme.error,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                feedback.correct
-                    ? Icons.check_circle_rounded
-                    : Icons.info_rounded,
-                color: titleColor,
-              ),
-              SizedBox(width: AppSpacing.xs.w),
-              Expanded(
-                child: Text(
-                  l10n.translate(
+              Row(
+                children: [
+                  Icon(
                     feedback.correct
-                        ? 'lesson.feedback.correct'
-                        : 'lesson.feedback.wrong',
+                        ? Icons.check_circle_rounded
+                        : Icons.info_rounded,
+                    color: titleColor,
                   ),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  SizedBox(width: AppSpacing.xs.w),
+                  Expanded(
+                    child: Text(
+                      l10n.translate(
+                        feedback.correct
+                            ? 'lesson.feedback.correct'
+                            : 'lesson.feedback.wrong',
+                      ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: titleColor,
                         fontWeight: FontWeight.bold,
                       ),
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          SizedBox(height: AppSpacing.sm.h),
-          if (!feedback.correct)
-            Text(
-              l10n.translate(
-                  'lesson.feedback.answer', [feedback.correctAnswer]),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              SizedBox(height: AppSpacing.sm.h),
+              if (!feedback.correct)
+                Text(
+                  l10n.translate('lesson.feedback.answer', [
+                    feedback.correctAnswer,
+                  ]),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w600,
                   ),
-            ),
-          if (feedback.explanationVi?.isNotEmpty == true) ...[
-            SizedBox(height: AppSpacing.xs.h),
-            Text(
-              feedback.explanationVi!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: textColor,
-                  ),
-            ),
-          ],
-          SizedBox(height: AppSpacing.lg.h),
-          FilledButton(
-            key: const Key('lesson_next'),
-            onPressed: viewModel.next,
-            child: Text(l10n.translate('lesson.next')),
+                ),
+              if (feedback.explanationVi?.isNotEmpty == true) ...[
+                SizedBox(height: AppSpacing.xs.h),
+                Text(
+                  feedback.explanationVi!,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: textColor),
+                ),
+              ],
+              SizedBox(height: AppSpacing.lg.h),
+              FilledButton(
+                key: const Key('lesson_next'),
+                onPressed: viewModel.next,
+                child: Text(l10n.translate('lesson.next')),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -270,8 +439,12 @@ class _LessonScreenState extends State<LessonScreen> {
     });
   }
 
-  void _showDictionaryBottomSheet(BuildContext context,
-      AppLanguageProvider l10n, String word, String skillCode) {
+  void _showDictionaryBottomSheet(
+    BuildContext context,
+    AppLanguageProvider l10n,
+    String word,
+    String skillCode,
+  ) {
     if (word.isEmpty) return;
     showModalBottomSheet(
       context: context,
@@ -296,23 +469,20 @@ class _StateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: AppCard(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 48.sp, color: AppColors.primary),
-              SizedBox(height: AppSpacing.md.h),
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: AppSpacing.xs.h),
-              Text(message, textAlign: TextAlign.center),
-              if (action != null) ...[
-                SizedBox(height: AppSpacing.lg.h),
-                action!,
-              ],
-            ],
-          ),
-        ),
-      );
+    child: AppCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 48.sp, color: Theme.of(context).colorScheme.primary),
+          SizedBox(height: AppSpacing.md.h),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          SizedBox(height: AppSpacing.xs.h),
+          Text(message, textAlign: TextAlign.center),
+          if (action != null) ...[SizedBox(height: AppSpacing.lg.h), action!],
+        ],
+      ),
+    ),
+  );
 }
 
 class _DictionarySheet extends StatefulWidget {
@@ -363,7 +533,10 @@ class _DictionarySheetState extends State<_DictionarySheet> {
     try {
       final repo = context.read<SavedWordRepository>();
       await repo.save(
-          widget.skillCode, widget.word, _definition!.replaceAll('*', ''));
+        widget.skillCode,
+        widget.word,
+        _definition!.replaceAll('*', ''),
+      );
       if (mounted) {
         setState(() {
           _saving = false;
@@ -385,26 +558,30 @@ class _DictionarySheetState extends State<_DictionarySheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.word,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+          Text(widget.word, style: Theme.of(context).textTheme.headlineMedium),
           SizedBox(height: AppSpacing.md.h),
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
-            Text(l10n.translate('lesson.error.message'),
-                style: const TextStyle(color: AppColors.error))
+            Text(
+              l10n.translate('lesson.error.message'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
           else ...[
-            Text((_definition ?? '').replaceAll('*', ''),
-                key: const Key('dictionary_definition'),
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              (_definition ?? '').replaceAll('*', ''),
+              key: const Key('dictionary_definition'),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             SizedBox(height: AppSpacing.lg.h),
             if (_wordSaved)
               Row(
                 key: const Key('dictionary_word_saved'),
                 children: [
-                  const Icon(Icons.check_circle, color: AppColors.success),
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   SizedBox(width: AppSpacing.sm.w),
                   Text(l10n.translate('dictionary.word_saved')),
                 ],
@@ -417,7 +594,8 @@ class _DictionarySheetState extends State<_DictionarySheet> {
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2))
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.bookmark_add_outlined),
                 label: Text(l10n.translate('dictionary.save_word')),
               ),

@@ -49,16 +49,19 @@
     }
   },
   "dictionary": {
+    "lookup_sentence": "Look up a word in the sentence",
     "save_word": "Save word to review",
     "word_saved": "Word saved"
   },
   "common": {
+    "back": "Back",
     "fallback_error": "An error occurred. Please try again.",
     "not_implemented": "This feature is under development.",
     "progress_percent": "Progress {} percent",
     "retry": "Retry"
   },
   "home": {
+    "avatar_semantics": "Avatar for {}",
     "error": "Could not load today's learning data.",
     "level_summary": "{} → {} · {}% mastery",
     "metrics": {
@@ -93,6 +96,7 @@
       "due": "Due"
     },
     "subtitle": "Ready to learn English today?",
+    "streak_semantics": "{} day learning streak",
     "today_lesson": {
       "details": "CEFR {} · {} questions · {} minute goal",
       "empty": "You have completed all recommended lessons",
@@ -123,6 +127,11 @@
     "title": "Your learning path"
   },
   "lesson": {
+    "answer_state": {
+      "correct": "correct answer",
+      "incorrect": "incorrect selection",
+      "selected": "selected"
+    },
     "answer_hint": "Enter your answer",
     "complete": {
       "accuracy": "Accuracy\nRate",
@@ -148,6 +157,8 @@
     "feedback": {
       "answer": "Correct answer: {}",
       "correct": "Correct!",
+      "semantics_correct": "Correct answer",
+      "semantics_wrong": "Incorrect answer",
       "wrong": "Not quite. Review the answer and explanation."
     },
     "mistakes": {
@@ -165,6 +176,7 @@
     },
     "next": "Continue",
     "submit": "Submit answer",
+    "change_answer": "Change answer",
     "submit_error": "Could not submit. Retrying will reuse the same operation ID.",
     "title": "Lesson"
   },
@@ -367,6 +379,9 @@
     "answer_hint": "Enter your answer",
     "check": "Check",
     "progress": "Question {} · {} left this session",
+    "status": {
+      "checking": "Checking your answer"
+    },
     "next": "Continue",
     "rating": { "2": "Hard", "3": "Good", "4": "Easy" },
     "feedback": {

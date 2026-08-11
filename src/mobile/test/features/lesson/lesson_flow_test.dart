@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,6 +38,26 @@ const attempt = LessonAttempt(
   exercises: [exercise],
 );
 
+const reorderExercise = LessonExercise(
+  id: 'exercise-reorder',
+  sequence: 1,
+  type: 'reorder',
+  stem: 'Arrange the sentence.',
+  options: ['I', 'learn', 'English'],
+  answered: false,
+);
+
+const reorderAttempt = LessonAttempt(
+  id: 'attempt-reorder',
+  lessonId: 'lesson-reorder',
+  slug: 'reorder',
+  title: 'Reorder',
+  titleVi: 'Sắp xếp câu',
+  skillCode: 'grammar.word-order',
+  status: 'in_progress',
+  exercises: [reorderExercise],
+);
+
 class FakeLessonRepository implements LessonRepository {
   Object? startError;
   bool failSubmitOnce = false;
@@ -45,6 +66,7 @@ class FakeLessonRepository implements LessonRepository {
   int submitCalls = 0;
   int completeCalls = 0;
   final operationIds = <String>[];
+  final answers = <String>[];
 
   @override
   Future<List<TodayLesson>> today() async => const [];
@@ -67,6 +89,7 @@ class FakeLessonRepository implements LessonRepository {
   }) async {
     submitCalls++;
     operationIds.add(operationId);
+    answers.add(answer);
     if (failSubmitOnce) {
       failSubmitOnce = false;
       throw const ApiException(code: 'network_unavailable', message: 'offline');
@@ -77,7 +100,9 @@ class FakeLessonRepository implements LessonRepository {
 
   @override
   Future<LessonCompletion> complete(
-      String attemptId, String operationId) async {
+    String attemptId,
+    String operationId,
+  ) async {
     completeCalls++;
     return const LessonCompletion(
       correctAnswers: 1,
@@ -85,6 +110,25 @@ class FakeLessonRepository implements LessonRepository {
       reviewCardsCreated: 0,
     );
   }
+}
+
+class ReorderLessonRepository extends FakeLessonRepository {
+  @override
+  Future<LessonAttempt> start(String lessonId, String operationId) async =>
+      reorderAttempt;
+
+  @override
+  Future<LessonAttempt> getAttempt(String attemptId) async => reorderAttempt;
+
+  @override
+  Future<ExerciseFeedback> submit({
+    required String exerciseId,
+    required String answer,
+    required String operationId,
+  }) async => ExerciseFeedback(
+    correct: answer == 'I learn English',
+    correctAnswer: 'I  learn English',
+  );
 }
 
 class FakeDictionaryRepository implements DictionaryRepository {
@@ -118,40 +162,42 @@ class FakeSavedWordRepository implements SavedWordRepository {
 }
 
 AppLanguageProvider languageProvider() {
-  final vi = json.decode(File('assets/translations/vi.json').readAsStringSync())
-      as Map<String, dynamic>;
-  final en = json.decode(File('assets/translations/en.json').readAsStringSync())
-      as Map<String, dynamic>;
+  final vi =
+      json.decode(File('assets/translations/vi.json').readAsStringSync())
+          as Map<String, dynamic>;
+  final en =
+      json.decode(File('assets/translations/en.json').readAsStringSync())
+          as Map<String, dynamic>;
   return AppLanguageProvider.test(
     translations: {AppLanguage.vi: vi, AppLanguage.en: en},
   );
 }
 
 Widget lessonApp(
-  FakeLessonRepository repository, {
+  LessonRepository repository, {
   DictionaryRepository? dictionaryRepository,
   SavedWordRepository? savedWordRepository,
-}) =>
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AppLanguageProvider>.value(
-          value: languageProvider(),
-        ),
-        ChangeNotifierProvider<LessonViewModel>(
-          create: (_) => LessonViewModel(repository),
-        ),
-        Provider<DictionaryRepository>.value(
-          value: dictionaryRepository ?? FakeDictionaryRepository(),
-        ),
-        Provider<SavedWordRepository>.value(
-          value: savedWordRepository ?? FakeSavedWordRepository(),
-        ),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const LessonScreen(lessonId: 'lesson-1'),
-      ),
-    );
+  ThemeData? theme,
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<AppLanguageProvider>.value(
+      value: languageProvider(),
+    ),
+    ChangeNotifierProvider<LessonViewModel>(
+      create: (_) => LessonViewModel(repository),
+    ),
+    Provider<DictionaryRepository>.value(
+      value: dictionaryRepository ?? FakeDictionaryRepository(),
+    ),
+    Provider<SavedWordRepository>.value(
+      value: savedWordRepository ?? FakeSavedWordRepository(),
+    ),
+  ],
+  child: MaterialApp(
+    theme: theme ?? AppTheme.light,
+    home: const LessonScreen(lessonId: 'lesson-1'),
+  ),
+);
 
 void main() {
   test('double submit gửi một request và retry giữ operation ID', () async {
@@ -177,6 +223,52 @@ void main() {
     expect(retryRepository.operationIds.length, 2);
     expect(retryRepository.operationIds[0], retryRepository.operationIds[1]);
   });
+
+  testWidgets(
+    'lỗi submit khóa đáp án và Retry gửi lại đúng payload cùng operation ID',
+    (tester) async {
+      final repository = FakeLessonRepository()..failSubmitOnce = true;
+      await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('lesson_submission_error')), findsOneWidget);
+      expect(find.text('study'), findsOneWidget);
+      expect(find.byKey(const Key('lesson_option_studies')), findsNothing);
+      final firstOperationId = repository.operationIds.single;
+
+      await tester.tap(find.byKey(const Key('lesson_retry_answer')));
+      await tester.pumpAndSettle();
+
+      expect(repository.answers, ['study', 'study']);
+      expect(repository.operationIds, [firstOperationId, firstOperationId]);
+      expect(find.byKey(const Key('lesson_feedback')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Đổi đáp án bỏ pending retry và gửi đáp án mới với operation ID mới',
+    (tester) async {
+      final repository = FakeLessonRepository()..failSubmitOnce = true;
+      await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pumpAndSettle();
+      final firstOperationId = repository.operationIds.single;
+
+      await tester.tap(find.byKey(const Key('lesson_change_answer')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pumpAndSettle();
+
+      expect(repository.answers, ['study', 'studies']);
+      expect(repository.operationIds.last, isNot(firstOperationId));
+      expect(find.byKey(const Key('lesson_feedback')), findsOneWidget);
+    },
+  );
 
   testWidgets('hiển thị feedback rồi complete lesson', (tester) async {
     final repository = FakeLessonRepository();
@@ -218,8 +310,9 @@ void main() {
     );
   });
 
-  testWidgets('giữ tay vào từ để tra nghĩa rồi lưu từ vào danh sách xem lại',
-      (tester) async {
+  testWidgets('giữ tay vào từ để tra nghĩa rồi lưu từ vào danh sách xem lại', (
+    tester,
+  ) async {
     final repository = FakeLessonRepository();
     final dictionaryRepository = FakeDictionaryRepository()
       ..nextDefinition = 'một cái tên tiếng Việt';
@@ -254,8 +347,9 @@ void main() {
     expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
   });
 
-  testWidgets('lỗi tra từ điển hiển thị thông báo lỗi, không có nút lưu',
-      (tester) async {
+  testWidgets('lỗi tra từ điển hiển thị thông báo lỗi, không có nút lưu', (
+    tester,
+  ) async {
     final repository = FakeLessonRepository();
     final dictionaryRepository = FakeDictionaryRepository()
       ..lookupError = const ApiException(
@@ -272,9 +366,155 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(dictionaryRepository.lookedUpWords, ['English']);
-    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'),
-        findsOneWidget);
+    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'), findsOneWidget);
     expect(find.byKey(const Key('dictionary_definition')), findsNothing);
     expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
+  });
+
+  testWidgets('nút từ điển hiển thị rõ ràng và cho chọn từ để tra', (
+    tester,
+  ) async {
+    final dictionaryRepository = FakeDictionaryRepository()
+      ..nextDefinition = 'học';
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(
+        FakeLessonRepository(),
+        dictionaryRepository: dictionaryRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dictionaryButton = find.byKey(const Key('lesson_dictionary_button'));
+    expect(dictionaryButton, findsOneWidget);
+    expect(tester.getSize(dictionaryButton).width, greaterThanOrEqualTo(48));
+    expect(tester.getSize(dictionaryButton).height, greaterThanOrEqualTo(48));
+    expect(
+      tester.getSemantics(dictionaryButton).label,
+      contains('Tra từ trong câu'),
+    );
+
+    await tester.tap(dictionaryButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('lesson_dictionary_word_English')));
+    await tester.pumpAndSettle();
+
+    expect(dictionaryRepository.lookedUpWords, ['English']);
+    expect(find.byKey(const Key('dictionary_definition')), findsOneWidget);
+  });
+
+  testWidgets(
+    'feedback giữ lựa chọn, công bố đúng/sai bằng semantics live region và nhận focus',
+    (tester) async {
+      await pumpWidgetWithLingoRoadScreenUtil(
+        tester,
+        lessonApp(FakeLessonRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pumpAndSettle();
+
+      final selected = tester.getSemantics(
+        find.byKey(const Key('lesson_option_studies')),
+      );
+      expect(selected.flagsCollection.isSelected, Tristate.isTrue);
+      expect(selected.label, contains('đúng'));
+
+      final feedbackFinder = find.byKey(const Key('lesson_feedback'));
+      final feedback = tester.widget<Semantics>(feedbackFinder);
+      expect(feedback.properties.liveRegion, isTrue);
+      final focus = tester.widget<Focus>(
+        find.descendant(of: feedbackFinder, matching: find.byType(Focus)).first,
+      );
+      expect(focus.focusNode?.hasFocus, isTrue);
+    },
+  );
+
+  testWidgets('reorder feedback lesson công bố đúng và tô trạng thái đúng', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [0, 1, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_feedback')),
+    );
+    expect(feedback.properties.liveRegion, isTrue);
+    expect(feedback.properties.label, 'đáp án đúng');
+    final selected = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_semantics_0')),
+    );
+    expect(selected.properties.selected, isTrue);
+    expect(selected.properties.label, 'I, đáp án đúng');
+    semantics.dispose();
+  });
+
+  testWidgets('reorder feedback lesson công bố sai và tô trạng thái sai', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [1, 0, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_feedback')),
+    );
+    expect(feedback.properties.liveRegion, isTrue);
+    expect(feedback.properties.label, 'lựa chọn chưa đúng');
+    final selected = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_semantics_0')),
+    );
+    expect(selected.properties.selected, isTrue);
+    expect(selected.properties.label, 'I, lựa chọn chưa đúng');
+    semantics.dispose();
+  });
+
+  testWidgets('feedback reorder dark dùng màu semantic của ColorScheme', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository(), theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [0, 1, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Container>(
+      find.byKey(const Key('answer_reorder_feedback_visual')),
+    );
+    final decoration = feedback.decoration! as BoxDecoration;
+    expect(decoration.color, AppTheme.dark.colorScheme.primaryContainer);
+    expect(
+      decoration.border,
+      Border.all(color: AppTheme.dark.colorScheme.primary, width: 1.5),
+    );
   });
 }

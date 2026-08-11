@@ -70,21 +70,20 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
               l10n.translate('learning_path.title'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.w800,
-                  ),
+                fontSize: 28.sp,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             SizedBox(height: AppSpacing.xxs.h),
             Text(
-              l10n.translate(
-                'learning_path.subtitle',
-                [viewModel.steps.length],
-              ),
+              l10n.translate('learning_path.subtitle', [
+                viewModel.steps.length,
+              ]),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14.sp,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 14.sp,
+              ),
             ),
           ],
         ),
@@ -100,37 +99,37 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
   ) {
     return switch (viewModel.state) {
       LearningPathState.initial || LearningPathState.loading => KeyedSubtree(
-          key: const Key('learning_path_loading'),
-          child: loadingView(),
-        ),
+        key: const Key('learning_path_loading'),
+        child: loadingView(),
+      ),
       LearningPathState.empty => _MessageCard(
-          key: const Key('learning_path_empty'),
-          icon: Icons.route_rounded,
-          title: l10n.translate('learning_path.empty.title'),
-          message: l10n.translate('learning_path.empty.message'),
-        ),
+        key: const Key('learning_path_empty'),
+        icon: Icons.route_rounded,
+        title: l10n.translate('learning_path.empty.title'),
+        message: l10n.translate('learning_path.empty.message'),
+      ),
       LearningPathState.error => _MessageCard(
-          key: const Key('learning_path_error'),
-          icon: Icons.cloud_off_rounded,
-          title: l10n.translate('learning_path.error.title'),
-          message: l10n.translate(
-            viewModel.errorCode == 'network_unavailable' ||
-                    viewModel.errorCode == 'request_timeout'
-                ? 'learning_path.error.network'
-                : 'learning_path.error.message',
-          ),
-          action: FilledButton.icon(
-            key: const Key('learning_path_retry'),
-            onPressed: viewModel.retry,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(l10n.translate('common.retry')),
-          ),
+        key: const Key('learning_path_error'),
+        icon: Icons.cloud_off_rounded,
+        title: l10n.translate('learning_path.error.title'),
+        message: l10n.translate(
+          viewModel.errorCode == 'network_unavailable' ||
+                  viewModel.errorCode == 'request_timeout'
+              ? 'learning_path.error.network'
+              : 'learning_path.error.message',
         ),
+        action: FilledButton.icon(
+          key: const Key('learning_path_retry'),
+          onPressed: viewModel.retry,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(l10n.translate('common.retry')),
+        ),
+      ),
       LearningPathState.success => _PathList(
-          steps: viewModel.steps,
-          selectedCode: _selectedCode,
-          onSelected: _openLesson,
-        ),
+        steps: viewModel.steps,
+        selectedCode: _selectedCode,
+        onSelected: _openLesson,
+      ),
     };
   }
 
@@ -144,9 +143,12 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       if (matches.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('learning_path.no_lesson'))),
+            content: Text(
+              context.read<AppLanguageProvider>().translate(
+                'learning_path.no_lesson',
+              ),
+            ),
+          ),
         );
         return;
       }
@@ -155,9 +157,12 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('learning_path.open_error'))),
+            content: Text(
+              context.read<AppLanguageProvider>().translate(
+                'learning_path.open_error',
+              ),
+            ),
+          ),
         );
       }
     }
@@ -177,6 +182,13 @@ class _PathList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstIncomplete = steps.indexWhere((step) => step.mastery < 1);
+    final firstRecommended = steps.indexWhere(
+      (step) => step.mastery < 1 && step.reason == 'below_threshold',
+    );
+    final currentIndex = firstRecommended >= 0
+        ? firstRecommended
+        : firstIncomplete;
     return Column(
       children: [
         for (var index = 0; index < steps.length; index++)
@@ -185,11 +197,29 @@ class _PathList extends StatelessWidget {
             index: index,
             isLast: index == steps.length - 1,
             selected: selectedCode == steps[index].code,
-            onTap: () => onSelected(steps[index].code),
+            state: _pathStateFor(steps[index], index, currentIndex),
+            onTap:
+                _pathStateFor(steps[index], index, currentIndex) ==
+                    _PathStepState.locked
+                ? null
+                : () => onSelected(steps[index].code),
           ),
       ],
     );
   }
+}
+
+enum _PathStepState { completed, current, unlocked, locked }
+
+_PathStepState _pathStateFor(
+  LearningPathStep step,
+  int index,
+  int currentIndex,
+) {
+  if (step.mastery >= 1) return _PathStepState.completed;
+  if (index == currentIndex) return _PathStepState.current;
+  if (step.reason == 'below_threshold') return _PathStepState.unlocked;
+  return _PathStepState.locked;
 }
 
 class _PathItem extends StatelessWidget {
@@ -198,6 +228,7 @@ class _PathItem extends StatelessWidget {
     required this.index,
     required this.isLast,
     required this.selected,
+    required this.state,
     required this.onTap,
   });
 
@@ -205,13 +236,15 @@ class _PathItem extends StatelessWidget {
   final int index;
   final bool isLast;
   final bool selected;
-  final VoidCallback onTap;
+  final _PathStepState state;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
-    final localizedName =
-        l10n.currentLanguage == AppLanguage.vi ? step.nameVi : step.name;
+    final localizedName = l10n.currentLanguage == AppLanguage.vi
+        ? step.nameVi
+        : step.name;
     final reasonKey = switch (step.reason) {
       'below_threshold' => 'learning_path.reason.below_threshold',
       'not_started' => 'learning_path.reason.not_started',
@@ -219,71 +252,85 @@ class _PathItem extends StatelessWidget {
     };
 
     final side = index.isEven ? Alignment.centerLeft : Alignment.centerRight;
-    final bool current = index == 0;
-    final bool isCompleted = step.mastery >= 1.0;
+    final current = state == _PathStepState.current;
+    final isCompleted = state == _PathStepState.completed;
+    final locked = state == _PathStepState.locked;
     final String statusText = l10n.translate(reasonKey);
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final scheme = theme.colorScheme;
 
-    Color progressColor = AppColors.primary;
+    Color progressColor = scheme.primary;
     IconData iconData = Icons.play_arrow_rounded;
-    Color iconBg = AppColors.primary;
-    Color iconColor = Colors.white;
-    Color cardColor = theme.scaffoldBackgroundColor;
-    BorderSide borderSide =
-        BorderSide(color: theme.colorScheme.primary, width: 1.5.w);
+    Color iconBg = scheme.primary;
+    Color iconColor = scheme.onPrimary;
+    Color cardColor = scheme.surface;
+    BorderSide borderSide = BorderSide(
+      color: theme.colorScheme.primary,
+      width: 1.5.w,
+    );
     List<BoxShadow> shadow = [
       BoxShadow(
-        color: isDark ? AppColorsDark.shadow : AppColors.shadow,
+        color: theme.shadowColor.withValues(alpha: .08),
         blurRadius: 12,
         offset: const Offset(0, 4),
       ),
     ];
 
     if (isCompleted) {
-      progressColor = AppColors.success;
+      progressColor = scheme.primary;
       iconData = Icons.check_rounded;
-      iconBg = isDark ? AppColorsDark.successSoft : AppColors.successSoft;
-      iconColor = AppColors.success;
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.onPrimaryContainer;
     } else if (current) {
-      progressColor = AppColors.cta;
+      progressColor = scheme.primary;
       iconData = Icons.play_arrow_rounded;
-      iconBg = AppColors.cta.withValues(alpha: 0.1);
-      iconColor = AppColors.cta;
-      borderSide = BorderSide(color: AppColors.cta, width: 2.w);
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.primary;
+      borderSide = BorderSide(color: scheme.primary, width: 2.w);
       shadow = [
         BoxShadow(
-          color: AppColors.primaryShadow,
+          color: scheme.primary.withValues(alpha: .2),
           blurRadius: 16,
           offset: const Offset(0, 8),
         ),
       ];
-    } else if (step.reason == 'below_threshold') {
-      progressColor = AppColors.primaryContainer;
+    } else if (state == _PathStepState.unlocked) {
+      progressColor = scheme.primary;
       iconData = Icons.psychology_rounded;
-      iconBg = isDark ? AppColorsDark.primaryFixed : AppColors.primaryFixed;
-      iconColor = AppColors.primary;
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.onPrimaryContainer;
     } else {
       iconData = Icons.lock_rounded;
-      iconBg = isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh;
-      iconColor = isDark ? AppColorsDark.textSecondary : AppColors.textSecondary;
-      cardColor = isDark ? AppColorsDark.surfaceLow : AppColors.surfaceLow;
-      borderSide = BorderSide(
-          color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
-          width: 1.w);
+      iconBg = scheme.surfaceContainerHigh;
+      iconColor = scheme.onSurfaceVariant;
+      cardColor = scheme.surfaceContainerLow;
+      borderSide = BorderSide(color: scheme.outlineVariant, width: 1.w);
     }
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: Align(
-        alignment: side,
-        child: FractionallySizedBox(
-          widthFactor: 0.76,
+    final stateName = state.name;
+    final semanticsLabel = '$localizedName, ${step.cefr}, $statusText';
+
+    return Semantics(
+      key: Key('learning_path_state_${stateName}_${step.code}'),
+      container: true,
+      explicitChildNodes: true,
+      button: true,
+      enabled: !locked,
+      selected: current || selected,
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          child: Align(
+            alignment: side,
+            child: FractionallySizedBox(
+              widthFactor: MediaQuery.sizeOf(context).width <= 340 ? .9 : .76,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Container(
+                    key: Key('learning_path_card_${step.code}'),
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(AppRadius.xl.r),
@@ -330,9 +377,9 @@ class _PathItem extends StatelessWidget {
                                               ?.copyWith(
                                                 fontSize: 14.sp,
                                                 fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                         ),
                                         SizedBox(height: 2.h),
@@ -342,9 +389,9 @@ class _PathItem extends StatelessWidget {
                                               .textTheme
                                               .labelSmall
                                               ?.copyWith(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                                 fontSize: 12.sp,
                                               ),
                                         ),
@@ -358,12 +405,14 @@ class _PathItem extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(999.r),
+                                      borderRadius: BorderRadius.circular(
+                                        999.r,
+                                      ),
                                       child: LinearProgressIndicator(
                                         value: step.mastery.clamp(0.0, 1.0),
                                         minHeight: 6.h,
-                                        backgroundColor: AppColors.surfaceHigh,
+                                        backgroundColor:
+                                            scheme.surfaceContainerHighest,
                                         color: progressColor,
                                       ),
                                     ),
@@ -376,7 +425,7 @@ class _PathItem extends StatelessWidget {
                                         .labelSmall
                                         ?.copyWith(
                                           fontSize: 11.sp,
-                                          color: AppColors.textSecondary,
+                                          color: scheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ],
@@ -403,7 +452,7 @@ class _PathItem extends StatelessWidget {
                               child: Container(
                                 width: 8.w,
                                 height: 8.w,
-                                color: AppColors.primaryContainer,
+                                color: scheme.primary,
                               ),
                             ),
                           ),
@@ -413,19 +462,18 @@ class _PathItem extends StatelessWidget {
                               vertical: AppSpacing.xxs.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md.r),
+                              color: scheme.primary,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.md.r,
+                              ),
                             ),
                             child: Text(
                               l10n
                                   .translate('learning_path.current_step')
                                   .toUpperCase(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
-                                    color: Colors.white,
+                                    color: scheme.onPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10.sp,
                                   ),
@@ -438,10 +486,11 @@ class _PathItem extends StatelessWidget {
               ),
             ),
           ),
-        );
+        ),
+      ),
+    );
   }
 }
-
 
 class _MessageCard extends StatelessWidget {
   const _MessageCard({
@@ -462,28 +511,24 @@ class _MessageCard extends StatelessWidget {
     return AppCard(
       child: Column(
         children: [
-          Icon(icon, size: 40.sp, color: AppColors.primary),
+          Icon(icon, size: 40.sp, color: Theme.of(context).colorScheme.primary),
           SizedBox(height: AppSpacing.sm.h),
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontSize: 20.sp),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
           ),
           SizedBox(height: AppSpacing.xs.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 14.sp,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 14.sp,
+            ),
           ),
-          if (action != null) ...[
-            SizedBox(height: AppSpacing.md.h),
-            action!,
-          ],
+          if (action != null) ...[SizedBox(height: AppSpacing.md.h), action!],
         ],
       ),
     );

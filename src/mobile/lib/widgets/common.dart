@@ -55,7 +55,7 @@ class LingoHeader extends StatelessWidget {
         ),
         SizedBox(width: AppSpacing.xs.w),
         Text(
-          'lingoRoad',
+          'LingoRoad',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             color: scheme.primary,
             fontSize: 24.sp,
