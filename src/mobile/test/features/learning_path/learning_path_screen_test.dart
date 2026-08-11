@@ -142,7 +142,10 @@ AppLanguageProvider loadLanguageProvider() {
   );
 }
 
-Widget buildScreen(ScreenLearningPathRepository repository) {
+Widget buildScreen(
+  ScreenLearningPathRepository repository, {
+  ThemeData? theme,
+}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AppLanguageProvider>.value(
@@ -153,7 +156,7 @@ Widget buildScreen(ScreenLearningPathRepository repository) {
       ),
     ],
     child: MaterialApp(
-      theme: AppTheme.light,
+      theme: theme ?? AppTheme.light,
       home: const Scaffold(body: LearningPathScreen()),
     ),
   );
@@ -340,4 +343,42 @@ void main() {
       expect(semantics.label, contains('Kỹ năng bị khóa'));
     },
   );
+
+  testWidgets('Path dark resolve màu current và locked theo ColorScheme', (
+    tester,
+  ) async {
+    final repository = ScreenLearningPathRepository()
+      ..result = const [completedStep, widgetStep, lockedStep];
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      buildScreen(repository, theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    final scheme = AppTheme.dark.colorScheme;
+    final progress = tester.widgetList<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(progress.elementAt(1).color, scheme.primary);
+    expect(
+      progress.elementAt(1).backgroundColor,
+      scheme.surfaceContainerHighest,
+    );
+
+    final currentCard = tester.widget<Container>(
+      find.byKey(const Key('learning_path_card_grammar.present-simple')),
+    );
+    final currentDecoration = currentCard.decoration! as BoxDecoration;
+    expect(currentDecoration.color, scheme.surface);
+    expect(
+      currentDecoration.border,
+      Border.fromBorderSide(BorderSide(color: scheme.primary, width: 2)),
+    );
+
+    final lockedCard = tester.widget<Container>(
+      find.byKey(const Key('learning_path_card_grammar.locked')),
+    );
+    final lockedDecoration = lockedCard.decoration! as BoxDecoration;
+    expect(lockedDecoration.color, scheme.surfaceContainerLow);
+  });
 }

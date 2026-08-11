@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppColors {
-  static const cta = Color(0xFFF24822);
   static const primary = Color(0xFFB22300);
   static const primaryContainer = Color(0xFFDA3711);
   static const pressed = Color(0xFFC92A0B);
@@ -380,7 +379,6 @@ abstract final class AppTheme {
 }
 
 abstract final class AppColorsDark {
-  static const cta = Color(0xFFFF5733);
   static const primary = Color(0xFFFF5733);
   static const primaryContainer = Color(0xFF8B1A00);
   static const pressed = Color(0xFFE03E1A);

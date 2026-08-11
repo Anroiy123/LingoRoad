@@ -54,6 +54,14 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
   late String _typedAnswer = widget.answer;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.type == 'reorder') {
+      _orderedIndexes.addAll(_indexesForAnswer(widget.answer));
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant ExerciseAnswerInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.answer != widget.answer &&
@@ -61,6 +69,11 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       _controller.value = TextEditingValue(text: widget.answer);
       _typedAnswer = widget.answer;
       if (widget.type == 'mcq') _selectedOption = widget.answer;
+      if (widget.type == 'reorder') {
+        _orderedIndexes
+          ..clear()
+          ..addAll(_indexesForAnswer(widget.answer));
+      }
     }
     if (oldWidget.type != widget.type || oldWidget.options != widget.options) {
       _orderedIndexes.clear();
@@ -76,6 +89,25 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
 
   void _update(String answer) {
     widget.onAnswerChanged(answer);
+  }
+
+  List<int> _indexesForAnswer(String answer) {
+    if (answer.trim().isEmpty) return const [];
+    final available = List<bool>.filled(widget.options.length, true);
+    final result = <int>[];
+    for (final token in answer.trim().split(RegExp(r'\s+'))) {
+      int? match;
+      for (var index = 0; index < widget.options.length; index++) {
+        if (available[index] && widget.options[index] == token) {
+          match = index;
+          break;
+        }
+      }
+      if (match == null) return const [];
+      available[match] = false;
+      result.add(match);
+    }
+    return result;
   }
 
   @override
@@ -104,14 +136,14 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
                       ? widget.selectedSemanticsLabel
                       : '';
                   final fill = correct
-                      ? const Color(0xFFDCFCE7)
+                      ? scheme.primaryContainer
                       : incorrect
                       ? scheme.errorContainer
                       : selected
                       ? scheme.primaryContainer
                       : Colors.transparent;
                   final border = correct
-                      ? const Color(0xFF16A34A)
+                      ? scheme.primary
                       : incorrect
                       ? scheme.error
                       : selected
@@ -165,6 +197,20 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       final answer = _orderedIndexes
           .map((index) => widget.options[index])
           .join(' ');
+      final isFeedback = widget.feedbackCorrect != null;
+      final normalizedAnswer = _normalizedOrder(answer);
+      final normalizedCorrectAnswer = _normalizedOrder(widget.correctAnswer);
+      final isCorrect =
+          isFeedback &&
+          widget.feedbackCorrect == true &&
+          normalizedAnswer == normalizedCorrectAnswer;
+      final isIncorrect = isFeedback && !isCorrect;
+      final scheme = Theme.of(context).colorScheme;
+      final feedbackLabel = isCorrect
+          ? widget.correctSemanticsLabel
+          : isIncorrect
+          ? widget.incorrectSemanticsLabel
+          : widget.selectedSemanticsLabel;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -174,16 +220,37 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
             children: List.generate(widget.options.length, (index) {
               final word = widget.options[index];
               final selected = _orderedIndexes.contains(index);
+              final selectedState = isCorrect
+                  ? widget.correctSemanticsLabel
+                  : isIncorrect
+                  ? widget.incorrectSemanticsLabel
+                  : widget.selectedSemanticsLabel;
+              final chipFill = !selected
+                  ? null
+                  : isCorrect
+                  ? scheme.primaryContainer
+                  : isIncorrect
+                  ? scheme.errorContainer
+                  : scheme.surfaceContainerHighest;
+              final chipBorder = !selected
+                  ? scheme.outline
+                  : isCorrect
+                  ? scheme.primary
+                  : isIncorrect
+                  ? scheme.error
+                  : scheme.primary;
               return Semantics(
+                key: Key('answer_reorder_semantics_$index'),
                 selected: selected,
                 container: true,
-                label: selected
-                    ? '$word, ${widget.selectedSemanticsLabel}'
-                    : word,
+                label: selected ? '$word, $selectedState' : word,
                 child: FilterChip(
                   key: Key('answer_reorder_$index'),
                   label: Text(word),
                   selected: selected,
+                  selectedColor: chipFill,
+                  backgroundColor: scheme.surface,
+                  side: BorderSide(color: chipBorder, width: 1.5),
                   onSelected: !widget.enabled
                       ? null
                       : (selected) => setState(() {
@@ -206,7 +273,37 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
             }),
           ),
           const SizedBox(height: 12),
-          Text(answer),
+          if (isFeedback)
+            Semantics(
+              key: const Key('answer_reorder_feedback'),
+              container: true,
+              liveRegion: true,
+              label: feedbackLabel,
+              child: Container(
+                key: const Key('answer_reorder_feedback_visual'),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isCorrect
+                      ? scheme.primaryContainer
+                      : scheme.errorContainer,
+                  border: Border.all(
+                    color: isCorrect ? scheme.primary : scheme.error,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  answer,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: isCorrect
+                        ? scheme.onPrimaryContainer
+                        : scheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            )
+          else
+            Text(answer),
           const SizedBox(height: 20),
           FilledButton(
             key: widget.submitKey,
@@ -237,7 +334,7 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
               fillColor: widget.feedbackCorrect == null
                   ? null
                   : widget.feedbackCorrect!
-                  ? const Color(0xFFDCFCE7)
+                  ? Theme.of(context).colorScheme.primaryContainer
                   : Theme.of(context).colorScheme.errorContainer,
             ),
             onChanged: (answer) {
@@ -258,4 +355,10 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       ],
     );
   }
+
+  String _normalizedOrder(String? value) => (value ?? '')
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .join(' ');
 }

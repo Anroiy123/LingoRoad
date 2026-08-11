@@ -272,7 +272,7 @@ class _LessonScreenState extends State<LessonScreen> {
           Text(
             l10n.translate('lesson.submit_error'),
             key: const Key('lesson_submit_error'),
-            style: const TextStyle(color: AppColors.error),
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         ],
       ],
@@ -285,16 +285,14 @@ class _LessonScreenState extends State<LessonScreen> {
     LessonViewModel viewModel,
   ) {
     final feedback = viewModel.feedback!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
     final cardBg = feedback.correct
-        ? (isDark ? AppColorsDark.successSoft : AppColors.successSoft)
-        : (isDark ? AppColorsDark.errorSoft : AppColors.errorSoft);
-    final titleColor = feedback.correct
-        ? (isDark ? const Color(0xFF86EFAC) : const Color(0xFF14532D))
-        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D));
+        ? scheme.primaryContainer
+        : scheme.errorContainer;
+    final titleColor = feedback.correct ? scheme.primary : scheme.error;
     final textColor = feedback.correct
-        ? (isDark ? Colors.white : const Color(0xFF14532D))
-        : (isDark ? Colors.white : const Color(0xFF7F1D1D));
+        ? scheme.onPrimaryContainer
+        : scheme.onErrorContainer;
 
     return Semantics(
       key: const Key('lesson_feedback'),
@@ -309,7 +307,7 @@ class _LessonScreenState extends State<LessonScreen> {
         focusNode: _feedbackFocus,
         child: AppCard(
           color: cardBg,
-          borderColor: feedback.correct ? AppColors.success : AppColors.error,
+          borderColor: feedback.correct ? scheme.primary : scheme.error,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -423,7 +421,7 @@ class _StateCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 48.sp, color: AppColors.primary),
+          Icon(icon, size: 48.sp, color: Theme.of(context).colorScheme.primary),
           SizedBox(height: AppSpacing.md.h),
           Text(title, style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: AppSpacing.xs.h),
@@ -515,7 +513,7 @@ class _DictionarySheetState extends State<_DictionarySheet> {
           else if (_error != null)
             Text(
               l10n.translate('lesson.error.message'),
-              style: const TextStyle(color: AppColors.error),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             )
           else ...[
             Text(
@@ -528,7 +526,10 @@ class _DictionarySheetState extends State<_DictionarySheet> {
               Row(
                 key: const Key('dictionary_word_saved'),
                 children: [
-                  const Icon(Icons.check_circle, color: AppColors.success),
+                  Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   SizedBox(width: AppSpacing.sm.w),
                   Text(l10n.translate('dictionary.word_saved')),
                 ],

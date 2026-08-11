@@ -258,59 +258,54 @@ class _PathItem extends StatelessWidget {
     final String statusText = l10n.translate(reasonKey);
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final scheme = theme.colorScheme;
 
-    Color progressColor = AppColors.primary;
+    Color progressColor = scheme.primary;
     IconData iconData = Icons.play_arrow_rounded;
-    Color iconBg = AppColors.primary;
-    Color iconColor = Colors.white;
-    Color cardColor = theme.scaffoldBackgroundColor;
+    Color iconBg = scheme.primary;
+    Color iconColor = scheme.onPrimary;
+    Color cardColor = scheme.surface;
     BorderSide borderSide = BorderSide(
       color: theme.colorScheme.primary,
       width: 1.5.w,
     );
     List<BoxShadow> shadow = [
       BoxShadow(
-        color: isDark ? AppColorsDark.shadow : AppColors.shadow,
+        color: theme.shadowColor.withValues(alpha: .08),
         blurRadius: 12,
         offset: const Offset(0, 4),
       ),
     ];
 
     if (isCompleted) {
-      progressColor = AppColors.success;
+      progressColor = scheme.primary;
       iconData = Icons.check_rounded;
-      iconBg = isDark ? AppColorsDark.successSoft : AppColors.successSoft;
-      iconColor = AppColors.success;
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.onPrimaryContainer;
     } else if (current) {
-      progressColor = AppColors.cta;
+      progressColor = scheme.primary;
       iconData = Icons.play_arrow_rounded;
-      iconBg = AppColors.cta.withValues(alpha: 0.1);
-      iconColor = AppColors.cta;
-      borderSide = BorderSide(color: AppColors.cta, width: 2.w);
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.primary;
+      borderSide = BorderSide(color: scheme.primary, width: 2.w);
       shadow = [
         BoxShadow(
-          color: AppColors.primaryShadow,
+          color: scheme.primary.withValues(alpha: .2),
           blurRadius: 16,
           offset: const Offset(0, 8),
         ),
       ];
     } else if (state == _PathStepState.unlocked) {
-      progressColor = AppColors.primaryContainer;
+      progressColor = scheme.primary;
       iconData = Icons.psychology_rounded;
-      iconBg = isDark ? AppColorsDark.primaryFixed : AppColors.primaryFixed;
-      iconColor = AppColors.primary;
+      iconBg = scheme.primaryContainer;
+      iconColor = scheme.onPrimaryContainer;
     } else {
       iconData = Icons.lock_rounded;
-      iconBg = isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh;
-      iconColor = isDark
-          ? AppColorsDark.textSecondary
-          : AppColors.textSecondary;
-      cardColor = isDark ? AppColorsDark.surfaceLow : AppColors.surfaceLow;
-      borderSide = BorderSide(
-        color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
-        width: 1.w,
-      );
+      iconBg = scheme.surfaceContainerHigh;
+      iconColor = scheme.onSurfaceVariant;
+      cardColor = scheme.surfaceContainerLow;
+      borderSide = BorderSide(color: scheme.outlineVariant, width: 1.w);
     }
 
     final stateName = state.name;
@@ -335,6 +330,7 @@ class _PathItem extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
+                    key: Key('learning_path_card_${step.code}'),
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(AppRadius.xl.r),
@@ -415,7 +411,8 @@ class _PathItem extends StatelessWidget {
                                       child: LinearProgressIndicator(
                                         value: step.mastery.clamp(0.0, 1.0),
                                         minHeight: 6.h,
-                                        backgroundColor: AppColors.surfaceHigh,
+                                        backgroundColor:
+                                            scheme.surfaceContainerHighest,
                                         color: progressColor,
                                       ),
                                     ),
@@ -428,7 +425,7 @@ class _PathItem extends StatelessWidget {
                                         .labelSmall
                                         ?.copyWith(
                                           fontSize: 11.sp,
-                                          color: AppColors.textSecondary,
+                                          color: scheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ],
@@ -455,7 +452,7 @@ class _PathItem extends StatelessWidget {
                               child: Container(
                                 width: 8.w,
                                 height: 8.w,
-                                color: AppColors.primaryContainer,
+                                color: scheme.primary,
                               ),
                             ),
                           ),
@@ -465,7 +462,7 @@ class _PathItem extends StatelessWidget {
                               vertical: AppSpacing.xxs.h,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
+                              color: scheme.primary,
                               borderRadius: BorderRadius.circular(
                                 AppRadius.md.r,
                               ),
@@ -476,7 +473,7 @@ class _PathItem extends StatelessWidget {
                                   .toUpperCase(),
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
-                                    color: Colors.white,
+                                    color: scheme.onPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10.sp,
                                   ),
@@ -514,7 +511,7 @@ class _MessageCard extends StatelessWidget {
     return AppCard(
       child: Column(
         children: [
-          Icon(icon, size: 40.sp, color: AppColors.primary),
+          Icon(icon, size: 40.sp, color: Theme.of(context).colorScheme.primary),
           SizedBox(height: AppSpacing.sm.h),
           Text(
             title,
@@ -527,7 +524,7 @@ class _MessageCard extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 14.sp,
             ),
           ),

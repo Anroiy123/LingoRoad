@@ -50,7 +50,7 @@ void main() {
           reason: '${entry.key} golden semantics',
         );
         expect(
-          File('test/goldens/foundation/$golden.png').existsSync(),
+          _goldenFileExists(golden as String),
           isTrue,
           reason: '${entry.key} golden file',
         );
@@ -76,6 +76,11 @@ void main() {
             .toSet();
     expect(referencedFiles, exportedFiles);
   });
+}
+
+bool _goldenFileExists(String golden) {
+  return File('test/goldens/foundation/$golden.png').existsSync() ||
+      File('test/goldens/learning/$golden.png').existsSync();
 }
 
 const _pngSignature = <int>[137, 80, 78, 71, 13, 10, 26, 10];
@@ -160,5 +165,20 @@ const _foundationGoldenByRouteState = <String, String>{
   '/placement/question|mcq-unanswered': 'placement_question_light',
   '/placement/result|completed-summary': 'placement_result_light',
   '/profile-setup|personalization-form': 'profile_setup_light',
-  '/home|dashboard-loaded': 'main_shell_light',
+  '/home|dashboard-loaded': 'home_loaded_light',
+  '/home|daily-plan': 'home_loaded_light',
+  '/home|learning-path-loaded': 'learning_path_loaded_light',
+  '/home|learning-path-empty': 'learning_path_empty_light',
+  '/home|learning-path-error': 'learning_path_error_light',
+  '/lesson/:id|exercise-mcq-unanswered': 'lesson_exercise_light',
+  '/lesson/:id|feedback-incorrect': 'lesson_feedback_incorrect_light',
+  '/lesson/:id|feedback-correct': 'lesson_feedback_correct_light',
+  '/lesson/:id|completed-celebration': 'lesson_complete_light',
+  '/lesson/:id|completed-rewards-summary': 'lesson_complete_light',
+  '/question-review|feedback-incorrect-explanation':
+      'question_review_feedback_incorrect_light',
+  '/vocabulary-review|card-front': 'vocabulary_review_ready_light',
+  '/vocabulary-review|card-back-rating': 'vocabulary_review_back_light',
+  '/vocabulary-review|empty': 'vocabulary_review_empty_light',
+  '/vocabulary-review|completed': 'vocabulary_review_complete_light',
 };

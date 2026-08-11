@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/dashboard/data/dashboard_repository.dart';
 import 'package:lingoroad_mobile/features/dashboard/domain/dashboard_models.dart';
 import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
@@ -67,6 +69,48 @@ class FakeDashboardRepository implements DashboardRepository {
   }
 }
 
+class FakeHomeAuthRepository implements AuthRepository {
+  FakeHomeAuthRepository(this.profile);
+
+  final UserProfile profile;
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
+  Future<UserProfile> completeProfileSetup({
+    required String name,
+    required String targetCefr,
+    required int dailyGoalMinutes,
+  }) async => profile;
+
+  @override
+  Future<UserProfile> getProfile() async => profile;
+
+  @override
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async => const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
+
+  @override
+  Future<void> logout(String? refreshToken) async {}
+
+  @override
+  Future<AuthTokens> register({
+    required String email,
+    required String password,
+    String? name,
+  }) async => const AuthTokens(accessToken: 'token', refreshToken: 'refresh');
+
+  @override
+  Future<UserProfile> updateProfile(Map<String, Object?> values) async =>
+      profile;
+}
+
 AppLanguageProvider languageProvider() {
   final vi =
       json.decode(File('assets/translations/vi.json').readAsStringSync())
@@ -79,8 +123,12 @@ AppLanguageProvider languageProvider() {
   );
 }
 
-Widget homeApp(FakeDashboardRepository repository) => MultiProvider(
+Widget homeApp(
+  FakeDashboardRepository repository, {
+  AuthRepository? authRepository,
+}) => MultiProvider(
   providers: [
+    Provider<AuthRepository?>.value(value: authRepository),
     ChangeNotifierProvider<AppLanguageProvider>.value(
       value: languageProvider(),
     ),
@@ -188,13 +236,13 @@ void main() {
     },
   );
 
-  testWidgets('Home lấy initials từ email khi tên hiển thị là email', (
+  testWidgets('Home fallback initials sang email profile khi tên trống', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
     final repository = FakeDashboardRepository()
       ..data = const DashboardData(
-        name: 'mai.nguyen@example.com',
+        name: '',
         currentCefr: 'A2',
         targetCefr: 'B1',
         dailyGoalMinutes: 30,
@@ -211,12 +259,28 @@ void main() {
         recentActivity: [],
       );
 
-    await pumpWidgetWithLingoRoadScreenUtil(tester, homeApp(repository));
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      homeApp(
+        repository,
+        authRepository: FakeHomeAuthRepository(
+          const UserProfile(
+            id: 'learner-1',
+            email: 'fallback.mai@example.com',
+            name: '',
+            targetCefr: 'B1',
+            cefrLevel: 'A2',
+            level: 2,
+            badgesCount: 0,
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text('M'), findsOneWidget);
+    expect(find.text('F'), findsOneWidget);
     expect(
-      find.bySemanticsLabel('Ảnh đại diện của mai.nguyen@example.com'),
+      find.bySemanticsLabel('Ảnh đại diện của fallback.mai@example.com'),
       findsOneWidget,
     );
     semantics.dispose();

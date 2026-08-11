@@ -38,6 +38,26 @@ const attempt = LessonAttempt(
   exercises: [exercise],
 );
 
+const reorderExercise = LessonExercise(
+  id: 'exercise-reorder',
+  sequence: 1,
+  type: 'reorder',
+  stem: 'Arrange the sentence.',
+  options: ['I', 'learn', 'English'],
+  answered: false,
+);
+
+const reorderAttempt = LessonAttempt(
+  id: 'attempt-reorder',
+  lessonId: 'lesson-reorder',
+  slug: 'reorder',
+  title: 'Reorder',
+  titleVi: 'Sắp xếp câu',
+  skillCode: 'grammar.word-order',
+  status: 'in_progress',
+  exercises: [reorderExercise],
+);
+
 class FakeLessonRepository implements LessonRepository {
   Object? startError;
   bool failSubmitOnce = false;
@@ -90,6 +110,25 @@ class FakeLessonRepository implements LessonRepository {
   }
 }
 
+class ReorderLessonRepository extends FakeLessonRepository {
+  @override
+  Future<LessonAttempt> start(String lessonId, String operationId) async =>
+      reorderAttempt;
+
+  @override
+  Future<LessonAttempt> getAttempt(String attemptId) async => reorderAttempt;
+
+  @override
+  Future<ExerciseFeedback> submit({
+    required String exerciseId,
+    required String answer,
+    required String operationId,
+  }) async => ExerciseFeedback(
+    correct: answer == 'I learn English',
+    correctAnswer: 'I  learn English',
+  );
+}
+
 class FakeDictionaryRepository implements DictionaryRepository {
   String? nextDefinition;
   Object? lookupError;
@@ -133,9 +172,10 @@ AppLanguageProvider languageProvider() {
 }
 
 Widget lessonApp(
-  FakeLessonRepository repository, {
+  LessonRepository repository, {
   DictionaryRepository? dictionaryRepository,
   SavedWordRepository? savedWordRepository,
+  ThemeData? theme,
 }) => MultiProvider(
   providers: [
     ChangeNotifierProvider<AppLanguageProvider>.value(
@@ -152,7 +192,7 @@ Widget lessonApp(
     ),
   ],
   child: MaterialApp(
-    theme: AppTheme.light,
+    theme: theme ?? AppTheme.light,
     home: const LessonScreen(lessonId: 'lesson-1'),
   ),
 );
@@ -342,4 +382,91 @@ void main() {
       expect(focus.focusNode?.hasFocus, isTrue);
     },
   );
+
+  testWidgets('reorder feedback lesson công bố đúng và tô trạng thái đúng', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [0, 1, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_feedback')),
+    );
+    expect(feedback.properties.liveRegion, isTrue);
+    expect(feedback.properties.label, 'đáp án đúng');
+    final selected = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_semantics_0')),
+    );
+    expect(selected.properties.selected, isTrue);
+    expect(selected.properties.label, 'I, đáp án đúng');
+    semantics.dispose();
+  });
+
+  testWidgets('reorder feedback lesson công bố sai và tô trạng thái sai', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [1, 0, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_feedback')),
+    );
+    expect(feedback.properties.liveRegion, isTrue);
+    expect(feedback.properties.label, 'lựa chọn chưa đúng');
+    final selected = tester.widget<Semantics>(
+      find.byKey(const Key('answer_reorder_semantics_0')),
+    );
+    expect(selected.properties.selected, isTrue);
+    expect(selected.properties.label, 'I, lựa chọn chưa đúng');
+    semantics.dispose();
+  });
+
+  testWidgets('feedback reorder dark dùng màu semantic của ColorScheme', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(ReorderLessonRepository(), theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    for (final index in [0, 1, 2]) {
+      await tester.tap(find.byKey(Key('answer_reorder_$index')));
+    }
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    final feedback = tester.widget<Container>(
+      find.byKey(const Key('answer_reorder_feedback_visual')),
+    );
+    final decoration = feedback.decoration! as BoxDecoration;
+    expect(decoration.color, AppTheme.dark.colorScheme.primaryContainer);
+    expect(
+      decoration.border,
+      Border.all(color: AppTheme.dark.colorScheme.primary, width: 1.5),
+    );
+  });
 }

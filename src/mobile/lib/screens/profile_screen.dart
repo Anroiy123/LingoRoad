@@ -59,36 +59,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final submitted = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(context
-            .read<AppLanguageProvider>()
-            .translate('profile.settings.change_password')),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
+        title: Text(
+          context.read<AppLanguageProvider>().translate(
+            'profile.settings.change_password',
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
               controller: current,
               obscureText: true,
               decoration: InputDecoration(
-                  labelText: context
-                      .read<AppLanguageProvider>()
-                      .translate('profile.current_password'))),
-          TextField(
+                labelText: context.read<AppLanguageProvider>().translate(
+                  'profile.current_password',
+                ),
+              ),
+            ),
+            TextField(
               controller: next,
               obscureText: true,
               decoration: InputDecoration(
-                  labelText: context
-                      .read<AppLanguageProvider>()
-                      .translate('profile.new_password'))),
-        ]),
+                labelText: context.read<AppLanguageProvider>().translate(
+                  'profile.new_password',
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.logout_dialog.cancel'))),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              context.read<AppLanguageProvider>().translate(
+                'profile.logout_dialog.cancel',
+              ),
+            ),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('profile.save'))),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              context.read<AppLanguageProvider>().translate('profile.save'),
+            ),
+          ),
         ],
       ),
     );
@@ -106,14 +119,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final session = context.read<SessionController>();
     try {
       await repository.changePassword(
-          currentPassword: current.text, newPassword: next.text);
+        currentPassword: current.text,
+        newPassword: next.text,
+      );
       if (mounted) await session.logout();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(context
-                .read<AppLanguageProvider>()
-                .translate('profile.password_failed'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.read<AppLanguageProvider>().translate(
+                'profile.password_failed',
+              ),
+            ),
+          ),
+        );
       }
     } finally {
       current.dispose();
@@ -132,7 +152,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Center(
             child: Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xl.w, vertical: AppSpacing.xl.h),
+                horizontal: AppSpacing.xl.w,
+                vertical: AppSpacing.xl.h,
+              ),
               child: const CircularProgressIndicator(),
             ),
           ),
@@ -147,15 +169,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           AppCard(
             child: Column(
               children: [
-                Icon(Icons.error_outline_rounded,
-                    color: AppColors.error, size: 48.sp),
+                Icon(
+                  Icons.error_outline_rounded,
+                  color: AppColors.error,
+                  size: 48.sp,
+                ),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(
                   l10n.translate('profile.error_load_failed'),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontSize: 16.sp),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontSize: 16.sp),
                 ),
                 SizedBox(height: AppSpacing.md.h),
                 FilledButton(
@@ -183,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.primaryFixed,
-                  border: Border.all(color: AppColors.cta, width: 2.w),
+                  border: Border.all(color: AppColors.primary, width: 2.w),
                 ),
                 child: Icon(
                   Icons.person_outline_rounded,
@@ -196,17 +220,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 profile.name.isEmpty
                     ? profile.email.split('@')[0]
                     : profile.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontSize: 20.sp),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
               ),
               SizedBox(height: AppSpacing.xs.h),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 5.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColorsDark.surfaceHigh
@@ -214,12 +234,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(99.r),
                 ),
                 child: Text(
-                  l10n.translate('profile.status',
-                      [profile.level, profile.cefrLevel, profile.badgesCount]),
+                  l10n.translate('profile.status', [
+                    profile.level,
+                    profile.cefrLevel,
+                    profile.badgesCount,
+                  ]),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 14.sp,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 14.sp,
+                  ),
                 ),
               ),
             ],
@@ -241,57 +264,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: EdgeInsets.zero,
           child: _SettingTile(
             title: l10n.translate('profile.groups.notifications'),
-            subtitle:
-                l10n.translate('profile.settings.notifications_subtitle'),
+            subtitle: l10n.translate('profile.settings.notifications_subtitle'),
             onTap: () async {
               await context.push('/notification-settings');
               _loadProfile();
             },
           ),
         ),
-        _group(l10n, Icons.manage_accounts_outlined,
-            l10n.translate('profile.groups.account'), [
-          _SettingTile(
-            title: l10n.translate('profile.settings.change_password'),
-            onTap: _changePassword,
-          ),
-          _SettingTile(
-            title: l10n.translate('profile.settings.logout'),
-            danger: true,
-            onTap: () => showDialog<void>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(l10n.translate('profile.logout_dialog.title')),
-                content: Text(
-                  l10n.translate('profile.logout_dialog.content'),
+        _group(
+          l10n,
+          Icons.manage_accounts_outlined,
+          l10n.translate('profile.groups.account'),
+          [
+            _SettingTile(
+              title: l10n.translate('profile.settings.change_password'),
+              onTap: _changePassword,
+            ),
+            _SettingTile(
+              title: l10n.translate('profile.settings.logout'),
+              danger: true,
+              onTap: () => showDialog<void>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(l10n.translate('profile.logout_dialog.title')),
+                  content: Text(
+                    l10n.translate('profile.logout_dialog.content'),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        l10n.translate('profile.logout_dialog.cancel'),
+                      ),
+                    ),
+                    FilledButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final session = context.read<SessionController>();
+                        try {
+                          await context.read<AuthRepository>().logout(
+                            session.refreshToken,
+                          );
+                        } catch (_) {
+                          // Server logout is best-effort; always clear local secrets.
+                        } finally {
+                          await session.logout();
+                        }
+                      },
+                      child: Text(
+                        l10n.translate('profile.logout_dialog.confirm'),
+                      ),
+                    ),
+                  ],
                 ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.translate('profile.logout_dialog.cancel')),
-                  ),
-                  FilledButton(
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      final session = context.read<SessionController>();
-                      try {
-                        await context
-                            .read<AuthRepository>()
-                            .logout(session.refreshToken);
-                      } catch (_) {
-                        // Server logout is best-effort; always clear local secrets.
-                      } finally {
-                        await session.logout();
-                      }
-                    },
-                    child:
-                        Text(l10n.translate('profile.logout_dialog.confirm')),
-                  ),
-                ],
               ),
             ),
-          ),
-        ]),
+          ],
+        ),
         if (widget.onboarding)
           FilledButton.icon(
             key: const Key('profile_setup_complete'),
@@ -305,8 +334,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _group(AppLanguageProvider l10n, IconData icon, String title,
-      List<Widget> children) {
+  Widget _group(
+    AppLanguageProvider l10n,
+    IconData icon,
+    String title,
+    List<Widget> children,
+  ) {
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -320,11 +353,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Icon(icon, size: 20.sp, color: AppColors.primary),
                 SizedBox(width: AppSpacing.sm.w),
-                Text(title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge
-                        ?.copyWith(fontSize: 14.sp)),
+                Text(
+                  title,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
+                ),
               ],
             ),
           ),
@@ -383,21 +417,21 @@ class _SettingTile extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: danger
-                              ? AppColors.error
-                              : theme.colorScheme.onSurface,
-                          fontSize: 14.sp,
-                        ),
+                      color: danger
+                          ? AppColors.error
+                          : theme.colorScheme.onSurface,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle!,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: danger
-                                ? AppColors.error.withValues(alpha: 0.7)
-                                : theme.colorScheme.onSurfaceVariant,
-                            fontSize: 12.sp,
-                          ),
+                        color: danger
+                            ? AppColors.error.withValues(alpha: 0.7)
+                            : theme.colorScheme.onSurfaceVariant,
+                        fontSize: 12.sp,
+                      ),
                     ),
                 ],
               ),

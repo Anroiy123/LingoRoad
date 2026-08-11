@@ -52,29 +52,29 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
       ),
       body: switch (viewModel.state) {
         DashboardState.initial || DashboardState.loading => Center(
-            key: const Key('streak_loading'),
-            child: loadingView(),
-          ),
+          key: const Key('streak_loading'),
+          child: loadingView(),
+        ),
         DashboardState.error => Center(
-            child: AppCard(
-              key: const Key('streak_error'),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.cloud_off_rounded, color: AppColors.error),
-                  SizedBox(height: AppSpacing.sm.h),
-                  Text(l10n.translate('home.error')),
-                  SizedBox(height: AppSpacing.md.h),
-                  FilledButton.icon(
-                    key: const Key('streak_retry'),
-                    onPressed: viewModel.retry,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: Text(l10n.translate('common.retry')),
-                  ),
-                ],
-              ),
+          child: AppCard(
+            key: const Key('streak_error'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_rounded, color: AppColors.error),
+                SizedBox(height: AppSpacing.sm.h),
+                Text(l10n.translate('home.error')),
+                SizedBox(height: AppSpacing.md.h),
+                FilledButton.icon(
+                  key: const Key('streak_retry'),
+                  onPressed: viewModel.retry,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(l10n.translate('common.retry')),
+                ),
+              ],
             ),
           ),
+        ),
         DashboardState.ready => _content(l10n, viewModel.dashboard!),
       },
     );
@@ -91,14 +91,13 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                 Icon(
                   Icons.local_fire_department_rounded,
                   size: 64.sp,
-                  color: AppColors.cta,
+                  color: AppColors.primary,
                 ),
                 SizedBox(height: AppSpacing.md.h),
                 Text(
-                  l10n.translate(
-                    'streak.days_count',
-                    [dashboard.currentStreak],
-                  ),
+                  l10n.translate('streak.days_count', [
+                    dashboard.currentStreak,
+                  ]),
                   key: const Key('streak_current'),
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
@@ -112,10 +111,9 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                 child: _StatCard(
                   icon: Icons.emoji_events_rounded,
                   label: l10n.translate('streak.record_title'),
-                  value: l10n.translate(
-                    'streak.record_value',
-                    [dashboard.longestStreak],
-                  ),
+                  value: l10n.translate('streak.record_value', [
+                    dashboard.longestStreak,
+                  ]),
                 ),
               ),
               SizedBox(width: AppSpacing.sm.w),
@@ -206,15 +204,15 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppCard(
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.cta),
-            SizedBox(height: AppSpacing.sm.h),
-            Text(label),
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
-          ],
-        ),
-      );
+    child: Column(
+      children: [
+        Icon(icon, color: AppColors.primary),
+        SizedBox(height: AppSpacing.sm.h),
+        Text(label),
+        Text(value, style: Theme.of(context).textTheme.titleLarge),
+      ],
+    ),
+  );
 }
 
 class _Calendar extends StatelessWidget {
@@ -231,7 +229,9 @@ class _Calendar extends StatelessWidget {
         .toSet();
     final days = <int?>[
       ...List<int?>.filled(
-          DateTime(month.year, month.month, 1).weekday - 1, null),
+        DateTime(month.year, month.month, 1).weekday - 1,
+        null,
+      ),
       ...List<int>.generate(
         DateTime(month.year, month.month + 1, 0).day,
         (index) => index + 1,
@@ -245,12 +245,14 @@ class _Calendar extends StatelessWidget {
       children: [
         Row(
           children: weekdayKeys
-              .map((key) => Expanded(
-                    child: Text(
-                      l10n.translate('streak.weekdays.$key'),
-                      textAlign: TextAlign.center,
-                    ),
-                  ))
+              .map(
+                (key) => Expanded(
+                  child: Text(
+                    l10n.translate('streak.weekdays.$key'),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
               .toList(growable: false),
         ),
         SizedBox(height: AppSpacing.sm.h),
@@ -279,8 +281,9 @@ class _Calendar extends StatelessWidget {
                 child: Text(
                   '$day',
                   style: TextStyle(
-                    color:
-                        isActive ? AppColors.primary : AppColors.textSecondary,
+                    color: isActive
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                   ),
                 ),

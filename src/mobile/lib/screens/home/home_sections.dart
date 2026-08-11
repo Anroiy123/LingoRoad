@@ -2,22 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
+import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
 import 'package:lingoroad_mobile/features/dashboard/domain/dashboard_models.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
 import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends StatefulWidget {
   const HomeHeader({required this.dashboard, super.key});
 
   final DashboardData dashboard;
 
   @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  bool _profileLookupScheduled = false;
+  String? _email;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_profileLookupScheduled || widget.dashboard.name.trim().isNotEmpty) {
+      return;
+    }
+    final repository = context.read<AuthRepository?>();
+    if (repository == null) return;
+    _profileLookupScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadEmail(repository));
+  }
+
+  Future<void> _loadEmail(AuthRepository repository) async {
+    try {
+      final profile = await repository.getProfile();
+      if (mounted) setState(() => _email = profile.email);
+    } catch (_) {
+      // The dashboard remains usable when an optional profile refresh fails.
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
+    final dashboard = widget.dashboard;
     return Row(
       children: [
-        _InitialsAvatar(identity: dashboard.name, l10n: l10n),
+        _InitialsAvatar(name: dashboard.name, email: _email, l10n: l10n),
         SizedBox(width: AppSpacing.xs.w),
         Expanded(
           child: Text(
@@ -57,30 +88,34 @@ class HomeHeader extends StatelessWidget {
 }
 
 class _InitialsAvatar extends StatelessWidget {
-  const _InitialsAvatar({required this.identity, required this.l10n});
+  const _InitialsAvatar({
+    required this.name,
+    required this.email,
+    required this.l10n,
+  });
 
-  final String identity;
+  final String name;
+  final String? email;
   final AppLanguageProvider l10n;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final palette = isDark
-        ? const [
-            Color(0xFF8B1900),
-            Color(0xFF665F00),
-            Color(0xFF006A60),
-            Color(0xFF425E91),
-          ]
-        : const [
-            AppColors.primaryFixed,
-            Color(0xFFFFE08A),
-            Color(0xFFB8F0E5),
-            Color(0xFFD9E2FF),
-          ];
+    final scheme = Theme.of(context).colorScheme;
+    final identity = name.trim().isNotEmpty ? name.trim() : email?.trim() ?? '';
+    final palette = [
+      scheme.primaryContainer,
+      scheme.secondaryContainer,
+      scheme.tertiaryContainer,
+      scheme.surfaceContainerHighest,
+    ];
     final index = _stableIndex(identity, palette.length);
     final background = palette[index];
-    final foreground = isDark ? Colors.white : AppColors.text;
+    final foreground = switch (index) {
+      0 => scheme.onPrimaryContainer,
+      1 => scheme.onSecondaryContainer,
+      2 => scheme.onTertiaryContainer,
+      _ => scheme.onSurfaceVariant,
+    };
     return Semantics(
       container: true,
       explicitChildNodes: true,
@@ -542,7 +577,7 @@ class HomeQuickActions extends StatelessWidget {
         );
       }
       return Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: cards.first),
           SizedBox(width: AppSpacing.sm.w),
