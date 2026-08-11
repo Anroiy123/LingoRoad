@@ -38,10 +38,7 @@ void main() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final themeProvider = await AppThemeProvider.create();
   final session = SessionController(const SecureSessionStore());
-  final apiClient = ApiClient(
-    config: AppConfig(),
-    session: session,
-  );
+  final apiClient = ApiClient(config: AppConfig(), session: session);
   final authRepository = ApiAuthRepository(apiClient);
   final placementRepository = ApiPlacementRepository(apiClient);
   final placementViewModel = PlacementViewModel(placementRepository);
@@ -65,6 +62,9 @@ void main() async {
   };
 
   session.configurePlacementStatusLoader(placementRepository.isCompleted);
+  session.configureProfileSetupStatusLoader(
+    () async => (await authRepository.getProfile()).profileSetupCompleted,
+  );
 
   final router = createAppRouter(
     session: session,
@@ -186,9 +186,8 @@ class LingoRoadApp extends StatelessWidget {
           )
         else
           ChangeNotifierProvider<PlacementViewModel>(
-            create: (context) => PlacementViewModel(
-              context.read<PlacementRepository>(),
-            ),
+            create: (context) =>
+                PlacementViewModel(context.read<PlacementRepository>()),
           ),
         if (learningPathRepository != null)
           Provider<LearningPathRepository>.value(value: learningPathRepository!)
@@ -207,37 +206,49 @@ class LingoRoadApp extends StatelessWidget {
           )
         else
           ChangeNotifierProvider<LearningPathViewModel>(
-            create: (context) => LearningPathViewModel(
-              context.read<LearningPathRepository>(),
-            ),
+            create: (context) =>
+                LearningPathViewModel(context.read<LearningPathRepository>()),
           ),
         if (reviewRepository != null)
           Provider<ReviewRepository>.value(value: reviewRepository!)
         else
           Provider<ReviewRepository>(
-              create: (context) => ApiReviewRepository(ApiClient(
-                  config: AppConfig(),
-                  session: context.read<SessionController>()))),
+            create: (context) => ApiReviewRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
         ChangeNotifierProvider<ReviewViewModel>(
           create: (context) =>
               ReviewViewModel(context.read<ReviewRepository>()),
         ),
         if (questionReviewRepository != null)
-          Provider<QuestionReviewRepository>.value(value: questionReviewRepository!)
+          Provider<QuestionReviewRepository>.value(
+            value: questionReviewRepository!,
+          )
         else
           Provider<QuestionReviewRepository>(
-            create: (context) => ApiQuestionReviewRepository(ApiClient(
-              config: AppConfig(), session: context.read<SessionController>(),
-            )),
+            create: (context) => ApiQuestionReviewRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
           ),
         questionReviewViewModelProvider(),
         if (progressRepository != null)
           Provider<ProgressRepository>.value(value: progressRepository!)
         else
           Provider<ProgressRepository>(
-              create: (context) => ApiProgressRepository(ApiClient(
-                  config: AppConfig(),
-                  session: context.read<SessionController>()))),
+            create: (context) => ApiProgressRepository(
+              ApiClient(
+                config: AppConfig(),
+                session: context.read<SessionController>(),
+              ),
+            ),
+          ),
         ChangeNotifierProvider<ProgressViewModel>(
           create: (context) =>
               ProgressViewModel(context.read<ProgressRepository>()),
@@ -302,8 +313,12 @@ class LingoRoadApp extends StatelessWidget {
       child: Builder(
         builder: (context) {
           context.read<SessionController>().configurePlacementStatusLoader(
-                context.read<PlacementRepository>().isCompleted,
-              );
+            context.read<PlacementRepository>().isCompleted,
+          );
+          context.read<SessionController>().configureProfileSetupStatusLoader(
+            () async => (await context.read<AuthRepository>().getProfile())
+                .profileSetupCompleted,
+          );
           return ScreenUtilInit(
             designSize: const Size(390, 844),
             minTextAdapt: true,

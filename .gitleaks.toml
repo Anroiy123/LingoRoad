@@ -7,3 +7,8 @@ useDefault = true
 description = "Documented bootstrap placeholder from the initial Phase 7 commit"
 regexTarget = "line"
 regexes = ['''BootstrapAdmin__Password=replace-with-at-least-12-characters''']
+
+[[allowlists]]
+description = "Public Figma file key used by the committed design-reference manifest"
+regexTarget = "secret"
+regexes = ['''^Vd24yzXHCW2dujlZPLq1sg$''']

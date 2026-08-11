@@ -298,6 +298,19 @@
     "skills_selected": "Đã chọn {} kỹ năng",
     "status": "Cấp {} · {} · {} huy hiệu"
   },
+  "profile_setup": {
+    "title": "Hoàn tất hồ sơ học tập",
+    "subtitle": "Cho chúng tôi biết mục tiêu để cá nhân hóa các bài học tiếp theo.",
+    "name": "Tên của bạn",
+    "name_hint": "Chúng tôi nên gọi bạn là gì?",
+    "name_required": "Vui lòng nhập tên của bạn",
+    "target": "Mục tiêu trình độ CEFR",
+    "daily_goal": "Mục tiêu mỗi ngày: {} phút",
+    "submit": "Tiếp tục lộ trình học",
+    "submit_error": "Chưa thể lưu hồ sơ. Các lựa chọn của bạn vẫn được giữ, hãy thử lại.",
+    "status_error_title": "Không thể kiểm tra thiết lập hồ sơ",
+    "status_error_subtitle": "Hãy kiểm tra kết nối rồi thử lại để tiếp tục an toàn."
+  },
   "progress": {
     "badges_list": {
       "streak_12": "Bền bỉ 12 ngày",

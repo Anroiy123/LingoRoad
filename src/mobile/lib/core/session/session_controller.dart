@@ -5,15 +5,12 @@ import 'package:lingoroad_mobile/core/session/session_store.dart';
 
 enum SessionStatus { checking, unauthenticated, authenticated }
 
-enum PlacementOnboardingStatus {
-  unknown,
-  checking,
-  required,
-  completed,
-  error,
-}
+enum PlacementOnboardingStatus { unknown, checking, required, completed, error }
+
+enum ProfileSetupStatus { unknown, checking, required, completed, error }
 
 typedef PlacementStatusLoader = Future<bool> Function();
+typedef ProfileSetupStatusLoader = Future<bool> Function();
 
 class SessionController extends ChangeNotifier {
   SessionController(
@@ -21,12 +18,12 @@ class SessionController extends ChangeNotifier {
     Duration storeReadTimeout = const Duration(seconds: 5),
     Duration storeOperationTimeout = const Duration(seconds: 5),
     Duration placementStatusTimeout = const Duration(seconds: 8),
-  })  : assert(storeReadTimeout > Duration.zero),
-        assert(storeOperationTimeout > Duration.zero),
-        assert(placementStatusTimeout > Duration.zero),
-        _storeReadTimeout = storeReadTimeout,
-        _storeOperationTimeout = storeOperationTimeout,
-        _placementStatusTimeout = placementStatusTimeout;
+  }) : assert(storeReadTimeout > Duration.zero),
+       assert(storeOperationTimeout > Duration.zero),
+       assert(placementStatusTimeout > Duration.zero),
+       _storeReadTimeout = storeReadTimeout,
+       _storeOperationTimeout = storeOperationTimeout,
+       _placementStatusTimeout = placementStatusTimeout;
 
   final SessionStore _store;
   final Duration _storeReadTimeout;
@@ -35,15 +32,19 @@ class SessionController extends ChangeNotifier {
   SessionStatus _status = SessionStatus.checking;
   PlacementOnboardingStatus _placementStatus =
       PlacementOnboardingStatus.unknown;
+  ProfileSetupStatus _profileSetupStatus = ProfileSetupStatus.unknown;
   String? _token;
   String? _refreshToken;
   PlacementStatusLoader? _placementStatusLoader;
+  ProfileSetupStatusLoader? _profileSetupStatusLoader;
   int _sessionEpoch = 0;
   int _placementLookupGeneration = 0;
+  int _profileSetupLookupGeneration = 0;
   Future<void> _storeQueue = Future<void>.value();
 
   SessionStatus get status => _status;
   PlacementOnboardingStatus get placementStatus => _placementStatus;
+  ProfileSetupStatus get profileSetupStatus => _profileSetupStatus;
   String? get token => _token;
   String? get refreshToken => _refreshToken;
   int get sessionGeneration => _sessionEpoch;
@@ -52,9 +53,14 @@ class SessionController extends ChangeNotifier {
     _placementStatusLoader = loader;
   }
 
+  void configureProfileSetupStatusLoader(ProfileSetupStatusLoader loader) {
+    _profileSetupStatusLoader = loader;
+  }
+
   Future<void> restore() async {
     final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
+    _profileSetupLookupGeneration++;
     String? stored;
     String? storedRefresh;
     try {
@@ -84,12 +90,14 @@ class SessionController extends ChangeNotifier {
       _setSession(
         status: SessionStatus.unauthenticated,
         placementStatus: PlacementOnboardingStatus.unknown,
+        profileSetupStatus: ProfileSetupStatus.unknown,
       );
       return;
     }
     _setSession(
       status: SessionStatus.authenticated,
       placementStatus: PlacementOnboardingStatus.checking,
+      profileSetupStatus: ProfileSetupStatus.unknown,
     );
     await refreshPlacementStatus();
   }
@@ -105,6 +113,7 @@ class SessionController extends ChangeNotifier {
     }
     final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
+    _profileSetupLookupGeneration++;
     await _enqueueStore(() => _store.writeToken(normalized));
     if (refreshToken != null) {
       if (_store case final RefreshSessionStore refreshStore) {
@@ -123,6 +132,7 @@ class SessionController extends ChangeNotifier {
       placementStatus: checkPlacement
           ? PlacementOnboardingStatus.checking
           : PlacementOnboardingStatus.required,
+      profileSetupStatus: ProfileSetupStatus.unknown,
     );
     if (checkPlacement) {
       await refreshPlacementStatus();
@@ -139,14 +149,13 @@ class SessionController extends ChangeNotifier {
       return;
     }
 
-    final token = _token!;
     final epoch = _sessionEpoch;
     final generation = ++_placementLookupGeneration;
     _setPlacementStatus(PlacementOnboardingStatus.checking);
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
         final completed = await loader().timeout(_placementStatusTimeout);
-        if (!_isCurrentPlacementLookup(token, epoch, generation)) {
+        if (!_isCurrentPlacementLookup(epoch, generation)) {
           return;
         }
         _setPlacementStatus(
@@ -154,32 +163,69 @@ class SessionController extends ChangeNotifier {
               ? PlacementOnboardingStatus.completed
               : PlacementOnboardingStatus.required,
         );
+        if (completed) await refreshProfileSetupStatus();
         return;
       } catch (_) {
-        if (!_isCurrentPlacementLookup(token, epoch, generation)) {
+        if (!_isCurrentPlacementLookup(epoch, generation)) {
           return;
         }
       }
     }
-    if (_isCurrentPlacementLookup(token, epoch, generation)) {
+    if (_isCurrentPlacementLookup(epoch, generation)) {
       _setPlacementStatus(PlacementOnboardingStatus.error);
     }
   }
 
-  void markPlacementCompleted() {
+  Future<void> markPlacementCompleted() async {
     if (_status == SessionStatus.authenticated) {
       _placementLookupGeneration++;
+      _profileSetupLookupGeneration++;
       _setPlacementStatus(PlacementOnboardingStatus.completed);
+      await refreshProfileSetupStatus();
+    }
+  }
+
+  Future<void> refreshProfileSetupStatus() async {
+    if (_status != SessionStatus.authenticated ||
+        _placementStatus != PlacementOnboardingStatus.completed) {
+      return;
+    }
+    final loader = _profileSetupStatusLoader;
+    if (loader == null) {
+      _setProfileSetupStatus(ProfileSetupStatus.completed);
+      return;
+    }
+    final epoch = _sessionEpoch;
+    final generation = ++_profileSetupLookupGeneration;
+    _setProfileSetupStatus(ProfileSetupStatus.checking);
+    try {
+      final completed = await loader().timeout(_placementStatusTimeout);
+      if (_isCurrentProfileSetupLookup(epoch, generation)) {
+        _setProfileSetupStatus(
+          completed
+              ? ProfileSetupStatus.completed
+              : ProfileSetupStatus.required,
+        );
+      }
+    } catch (_) {
+      if (_isCurrentProfileSetupLookup(epoch, generation)) {
+        _setProfileSetupStatus(ProfileSetupStatus.error);
+      }
+    }
+  }
+
+  void markProfileSetupCompleted() {
+    if (_status == SessionStatus.authenticated) {
+      _profileSetupLookupGeneration++;
+      _setProfileSetupStatus(ProfileSetupStatus.completed);
     }
   }
 
   Future<void> logout() async {
     final epoch = ++_sessionEpoch;
     _placementLookupGeneration++;
-    await _enqueueStore(
-      _store.clearToken,
-      timeout: _storeOperationTimeout,
-    );
+    _profileSetupLookupGeneration++;
+    await _enqueueStore(_store.clearToken, timeout: _storeOperationTimeout);
     if (_store case final RefreshSessionStore refreshStore) {
       await _enqueueStore(
         refreshStore.clearRefreshToken,
@@ -194,6 +240,7 @@ class SessionController extends ChangeNotifier {
     _setSession(
       status: SessionStatus.unauthenticated,
       placementStatus: PlacementOnboardingStatus.unknown,
+      profileSetupStatus: ProfileSetupStatus.unknown,
     );
   }
 
@@ -226,15 +273,18 @@ class SessionController extends ChangeNotifier {
 
   Future<void> invalidate() => logout();
 
-  bool _isCurrentPlacementLookup(
-    String token,
-    int epoch,
-    int generation,
-  ) =>
+  bool _isCurrentPlacementLookup(int epoch, int generation) =>
       _status == SessionStatus.authenticated &&
-      _token == token &&
+      _token != null &&
       _sessionEpoch == epoch &&
       _placementLookupGeneration == generation;
+
+  bool _isCurrentProfileSetupLookup(int epoch, int generation) =>
+      _status == SessionStatus.authenticated &&
+      _token != null &&
+      _sessionEpoch == epoch &&
+      _placementStatus == PlacementOnboardingStatus.completed &&
+      _profileSetupLookupGeneration == generation;
 
   Future<T> _enqueueStore<T>(
     Future<T> Function() operation, {
@@ -245,7 +295,8 @@ class SessionController extends ChangeNotifier {
       try {
         final pending = operation();
         completer.complete(
-            await (timeout == null ? pending : pending.timeout(timeout)));
+          await (timeout == null ? pending : pending.timeout(timeout)),
+        );
       } catch (error, stackTrace) {
         completer.completeError(error, stackTrace);
       }
@@ -256,12 +307,24 @@ class SessionController extends ChangeNotifier {
   void _setSession({
     required SessionStatus status,
     required PlacementOnboardingStatus placementStatus,
+    required ProfileSetupStatus profileSetupStatus,
   }) {
-    if (_status == status && _placementStatus == placementStatus) {
+    if (_status == status &&
+        _placementStatus == placementStatus &&
+        _profileSetupStatus == profileSetupStatus) {
       return;
     }
     _status = status;
     _placementStatus = placementStatus;
+    _profileSetupStatus = profileSetupStatus;
+    notifyListeners();
+  }
+
+  void _setProfileSetupStatus(ProfileSetupStatus value) {
+    if (_profileSetupStatus == value) {
+      return;
+    }
+    _profileSetupStatus = value;
     notifyListeners();
   }
 

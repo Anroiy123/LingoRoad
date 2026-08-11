@@ -298,6 +298,19 @@
     "skills_selected": "{} skills selected",
     "status": "Level {} · {} · {} badges"
   },
+  "profile_setup": {
+    "title": "Complete your learning profile",
+    "subtitle": "Tell us your goal so we can personalize your next lessons.",
+    "name": "Your name",
+    "name_hint": "How should we call you?",
+    "name_required": "Please enter your name",
+    "target": "Target CEFR level",
+    "daily_goal": "Daily goal: {} minutes",
+    "submit": "Continue to your learning path",
+    "submit_error": "We could not save your profile. Your choices are still here; please try again.",
+    "status_error_title": "We could not check your profile setup",
+    "status_error_subtitle": "Check your connection, then try again to continue safely."
+  },
   "progress": {
     "badges_list": {
       "streak_12": "12-Day Streak",

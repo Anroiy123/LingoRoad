@@ -7,14 +7,21 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            BrandLogo(height: 112),
-            SizedBox(height: AppSpacing.lg),
-            CircularProgressIndicator(),
+            const BrandLogo(height: 112),
+            const SizedBox(height: AppSpacing.lg),
+            Semantics(
+              label: 'Đang tải',
+              child: CircularProgressIndicator(
+                key: Key('splash_progress'),
+                value: 0.68,
+                strokeWidth: 4,
+              ),
+            ),
           ],
         ),
       ),

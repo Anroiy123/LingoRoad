@@ -1112,6 +1112,9 @@ namespace LingoRoad.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("ProfileSetupCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("ReminderTime")
                         .HasColumnType("text");
 

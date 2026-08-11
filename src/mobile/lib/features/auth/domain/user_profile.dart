@@ -17,6 +17,7 @@ class UserProfile {
     this.appUpdates = true,
     this.role = 'Learner',
     this.targetCefrConfirmed = true,
+    this.profileSetupCompleted = true,
   });
 
   final String id;
@@ -36,6 +37,9 @@ class UserProfile {
   final bool appUpdates;
   final String role;
   final bool targetCefrConfirmed;
+
+  /// Older servers omit this field; those accounts are already onboarded.
+  final bool profileSetupCompleted;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -65,6 +69,7 @@ class UserProfile {
       appUpdates: json['appUpdates'] as bool? ?? true,
       role: json['role']?.toString() ?? 'Learner',
       targetCefrConfirmed: json['targetCefrConfirmed'] as bool? ?? true,
+      profileSetupCompleted: json['profileSetupCompleted'] as bool? ?? true,
     );
   }
 }

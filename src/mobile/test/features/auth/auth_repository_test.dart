@@ -9,6 +9,7 @@ import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
 import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 
 void main() {
   ApiAuthRepository createRepository(MockClient httpClient) {
@@ -99,5 +100,12 @@ void main() {
         ),
       ),
     );
+  });
+
+  test('profile server cũ thiếu profileSetupCompleted được xem là đã hoàn tất', () {
+    final profile = UserProfile.fromJson({
+      'id': 'id', 'email': 'a@example.com', 'name': 'A', 'targetCefr': 'B2',
+    });
+    expect(profile.profileSetupCompleted, isTrue);
   });
 }

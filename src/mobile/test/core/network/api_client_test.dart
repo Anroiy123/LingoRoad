@@ -9,6 +9,8 @@ import 'package:lingoroad_mobile/core/network/api_client.dart';
 import 'package:lingoroad_mobile/core/network/api_exception.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/core/session/session_store.dart';
+import 'package:lingoroad_mobile/features/auth/data/auth_repository.dart';
+import 'package:lingoroad_mobile/features/placement/data/placement_repository.dart';
 
 void main() {
   late SessionController session;
@@ -232,8 +234,9 @@ void main() {
   });
 
   test('hai 401 đồng thời chỉ xoay refresh token một lần', () async {
-    session =
-        SessionController(MemorySessionStore('expired-token', 'refresh-1'));
+    session = SessionController(
+      MemorySessionStore('expired-token', 'refresh-1'),
+    );
     await session.restore();
     var expiredCalls = 0;
     var refreshCalls = 0;
@@ -279,4 +282,104 @@ void main() {
     expect(session.token, 'access-2');
     expect(session.refreshToken, 'refresh-2');
   });
+
+  test(
+    'placement lookup accepts a 401 refresh retry in the same session',
+    () async {
+      session = SessionController(
+        MemorySessionStore('expired-access', 'refresh-1'),
+      );
+      final client = ApiClient(
+        config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+        session: session,
+        httpClient: MockClient((request) async {
+          if (request.url.path == '/auth/refresh') {
+            expect(request.method, 'POST');
+            expect(jsonDecode(request.body), {'refreshToken': 'refresh-1'});
+            return http.Response(
+              jsonEncode({
+                'accessToken': 'access-2',
+                'refreshToken': 'refresh-2',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          expect(request.url.path, '/placement/status');
+          final authorization = request.headers['Authorization'];
+          if (authorization == 'Bearer expired-access') {
+            return http.Response('', 401);
+          }
+          expect(authorization, 'Bearer access-2');
+          return http.Response(
+            jsonEncode({'completed': false}),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      final repository = ApiPlacementRepository(client);
+      session.configurePlacementStatusLoader(repository.isCompleted);
+
+      await session.restore();
+
+      expect(session.token, 'access-2');
+      expect(session.refreshToken, 'refresh-2');
+      expect(session.placementStatus, PlacementOnboardingStatus.required);
+    },
+  );
+
+  test(
+    'profile lookup accepts a 401 refresh retry in the same session',
+    () async {
+      session = SessionController(
+        MemorySessionStore('expired-access', 'refresh-1'),
+      );
+      final client = ApiClient(
+        config: AppConfig(apiBaseUrl: 'http://localhost:5000'),
+        session: session,
+        httpClient: MockClient((request) async {
+          if (request.url.path == '/auth/refresh') {
+            expect(request.method, 'POST');
+            expect(jsonDecode(request.body), {'refreshToken': 'refresh-1'});
+            return http.Response(
+              jsonEncode({
+                'accessToken': 'access-2',
+                'refreshToken': 'refresh-2',
+              }),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }
+          expect(request.url.path, '/auth/me');
+          final authorization = request.headers['Authorization'];
+          if (authorization == 'Bearer expired-access') {
+            return http.Response('', 401);
+          }
+          expect(authorization, 'Bearer access-2');
+          return http.Response(
+            jsonEncode({
+              'id': 'learner-1',
+              'email': 'learner@example.com',
+              'profileSetupCompleted': false,
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      final repository = ApiAuthRepository(client);
+      session.configurePlacementStatusLoader(() async => true);
+      session.configureProfileSetupStatusLoader(
+        () async => (await repository.getProfile()).profileSetupCompleted,
+      );
+
+      await session.restore();
+
+      expect(session.token, 'access-2');
+      expect(session.refreshToken, 'refresh-2');
+      expect(session.placementStatus, PlacementOnboardingStatus.completed);
+      expect(session.profileSetupStatus, ProfileSetupStatus.required);
+    },
+  );
 }

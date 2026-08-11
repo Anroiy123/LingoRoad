@@ -48,21 +48,82 @@ abstract final class AppTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'HankenGrotesk',
       scaffoldBackgroundColor: AppColors.background,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        surface: AppColors.surface,
-        onSurface: AppColors.text,
-        onSurfaceVariant: AppColors.textSecondary,
-        error: AppColors.error,
-        onError: Colors.white,
-      ),
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: AppColors.primary,
+            primary: AppColors.primary,
+            onPrimary: Colors.white,
+            surface: AppColors.surface,
+            onSurface: AppColors.text,
+            onSurfaceVariant: AppColors.textSecondary,
+            error: AppColors.error,
+            onError: Colors.white,
+          ).copyWith(
+            primaryContainer: AppColors.primaryFixed,
+            onPrimaryContainer: AppColors.text,
+            outline: AppColors.border,
+            outlineVariant: AppColors.border,
+            surfaceContainerLowest: AppColors.surface,
+            surfaceContainerLow: AppColors.surfaceLow,
+            surfaceContainer: AppColors.surfaceLow,
+            surfaceContainerHigh: AppColors.surfaceHigh,
+            surfaceContainerHighest: AppColors.surfaceHigh,
+          ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.text,
         elevation: 0,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          side: const BorderSide(color: AppColors.border),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size.square(48)),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: AppColors.border),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
       ),
       listTileTheme: const ListTileThemeData(
         textColor: AppColors.text,
@@ -110,6 +171,7 @@ abstract final class AppTheme {
         ),
         bodyLarge: baseText.copyWith(fontSize: 18, height: 1.55),
         bodyMedium: baseText.copyWith(fontSize: 16, height: 1.5),
+        bodySmall: baseText.copyWith(fontSize: 12, height: 1.33),
         labelLarge: baseText.copyWith(
           fontSize: 14,
           height: 1.42,
@@ -153,22 +215,86 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: 'HankenGrotesk',
       scaffoldBackgroundColor: AppColorsDark.background,
-      colorScheme: ColorScheme.fromSeed(
-        brightness: Brightness.dark,
-        seedColor: AppColorsDark.primary,
-        primary: AppColorsDark.primary,
-        onPrimary: Colors.white,
-        surface: AppColorsDark.surface,
-        onSurface: AppColorsDark.text,
-        onSurfaceVariant: AppColorsDark.textSecondary,
-        error: AppColorsDark.error,
-        onError: Colors.white,
-      ),
+      colorScheme:
+          ColorScheme.fromSeed(
+            brightness: Brightness.dark,
+            seedColor: AppColorsDark.primary,
+            primary: AppColorsDark.primary,
+            onPrimary: Colors.white,
+            surface: AppColorsDark.surface,
+            onSurface: AppColorsDark.text,
+            onSurfaceVariant: AppColorsDark.textSecondary,
+            error: AppColorsDark.error,
+            onError: Colors.white,
+          ).copyWith(
+            primaryContainer: AppColorsDark.primaryContainer,
+            onPrimaryContainer: AppColorsDark.text,
+            outline: AppColorsDark.border,
+            outlineVariant: AppColorsDark.border,
+            surfaceContainerLowest: AppColorsDark.surface,
+            surfaceContainerLow: AppColorsDark.surfaceLow,
+            surfaceContainer: AppColorsDark.surfaceLow,
+            surfaceContainerHigh: AppColorsDark.surfaceHigh,
+            surfaceContainerHighest: AppColorsDark.surfaceHigh,
+          ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColorsDark.background,
         foregroundColor: AppColorsDark.text,
         elevation: 0,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          side: const BorderSide(color: AppColorsDark.border),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: WidgetStatePropertyAll(Size.square(48)),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: AppColorsDark.border),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColorsDark.surface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColorsDark.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(
+            color: AppColorsDark.primary,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColorsDark.error, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          borderSide: const BorderSide(color: AppColorsDark.error, width: 1.5),
+        ),
       ),
       listTileTheme: const ListTileThemeData(
         textColor: AppColorsDark.text,
@@ -216,6 +342,7 @@ abstract final class AppTheme {
         ),
         bodyLarge: baseText.copyWith(fontSize: 18, height: 1.55),
         bodyMedium: baseText.copyWith(fontSize: 16, height: 1.5),
+        bodySmall: baseText.copyWith(fontSize: 12, height: 1.33),
         labelLarge: baseText.copyWith(
           fontSize: 14,
           height: 1.42,

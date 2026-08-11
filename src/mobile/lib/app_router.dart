@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingoroad_mobile/core/session/session_controller.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/login_screen.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/register_screen.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/splash_screen.dart';
+import 'package:lingoroad_mobile/features/auth/presentation/profile_setup_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_intro_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_question_screen.dart';
 import 'package:lingoroad_mobile/features/placement/presentation/placement_result_screen.dart';
@@ -20,7 +20,6 @@ import 'package:lingoroad_mobile/features/question_review/presentation/question_
 import 'package:lingoroad_mobile/screens/learning_goals_schedule_screen.dart';
 import 'package:lingoroad_mobile/screens/main_shell.dart';
 import 'package:lingoroad_mobile/screens/notification_settings_screen.dart';
-import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/streak_details_screen.dart';
 import 'package:lingoroad_mobile/screens/vocabulary_review_screen.dart';
 import 'package:provider/provider.dart';
@@ -35,57 +34,21 @@ GoRouter createAppRouter({
     refreshListenable: session,
     redirect: (context, state) {
       final location = state.matchedLocation;
-      final isAuthRoute = location == '/login' || location == '/register';
-
-      switch (session.status) {
-        case SessionStatus.checking:
-          return location == '/splash' ? null : '/splash';
-        case SessionStatus.unauthenticated:
-          return isAuthRoute ? null : '/login';
-        case SessionStatus.authenticated:
-          if (session.placementStatus == PlacementOnboardingStatus.unknown ||
-              session.placementStatus == PlacementOnboardingStatus.checking) {
-            return location == '/splash' ? null : '/splash';
-          }
-          if (session.placementStatus == PlacementOnboardingStatus.error) {
-            return location == '/placement/status-error'
-                ? null
-                : '/placement/status-error';
-          }
-          if (session.placementStatus == PlacementOnboardingStatus.completed) {
-            if (location == '/splash' ||
-                isAuthRoute ||
-                location == '/placement' ||
-                location == '/placement/status-error') {
-              return '/home';
-            }
-          } else if (location == '/splash' ||
-              isAuthRoute ||
-              (location == '/home' || location == '/review') ||
-              location.startsWith('/lesson/') ||
-              location == '/placement/status-error') {
-            return '/placement';
-          }
-          if (location == '/placement/question' &&
-              placementViewModel.currentItem == null) {
-            return '/placement';
-          }
-          if (location == '/placement/result' &&
-              placementViewModel.result == null) {
-            return '/placement';
-          }
-          return null;
-      }
+      return onboardingRedirect(
+        location: location,
+        sessionStatus: session.status,
+        placementStatus: session.placementStatus,
+        profileSetupStatus: session.profileSetupStatus,
+        hasPlacementQuestion: placementViewModel.currentItem != null,
+        hasPlacementResult: placementViewModel.result != null,
+      );
     },
     routes: [
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -106,19 +69,18 @@ GoRouter createAppRouter({
         path: '/placement/result',
         builder: (context, state) => const PlacementResultScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const MainShell(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const MainShell()),
       GoRoute(
         path: '/review',
         builder: (context, state) => const MainShell(initialIndex: 2),
       ),
       GoRoute(
         path: '/profile-setup',
-        builder: (context, state) => const Scaffold(
-          body: ProfileScreen(onboarding: true),
-        ),
+        builder: (context, state) => const ProfileSetupScreen(),
+      ),
+      GoRoute(
+        path: '/profile-setup/status-error',
+        builder: (context, state) => const ProfileSetupStatusErrorScreen(),
       ),
       GoRoute(
         path: '/learning-goals-schedule',
@@ -159,4 +121,74 @@ GoRouter createAppRouter({
       ),
     ],
   );
+}
+
+/// The only locations an authenticated learner may enter before placement.
+///
+/// Keeping this allowlist explicit prevents protected deep links from becoming
+/// reachable when new routes are added.
+bool isPlacementFlowRoute(String location) =>
+    location == '/placement' ||
+    location == '/placement/question' ||
+    location == '/placement/result';
+
+/// Pure redirect policy so all deep-link gates are table-testable.
+String? onboardingRedirect({
+  required String location,
+  required SessionStatus sessionStatus,
+  required PlacementOnboardingStatus placementStatus,
+  required ProfileSetupStatus profileSetupStatus,
+  required bool hasPlacementQuestion,
+  required bool hasPlacementResult,
+}) {
+  final isAuthRoute = location == '/login' || location == '/register';
+  switch (sessionStatus) {
+    case SessionStatus.checking:
+      return location == '/splash' ? null : '/splash';
+    case SessionStatus.unauthenticated:
+      return isAuthRoute ? null : '/login';
+    case SessionStatus.authenticated:
+      if (placementStatus == PlacementOnboardingStatus.unknown ||
+          placementStatus == PlacementOnboardingStatus.checking) {
+        return location == '/splash' ? null : '/splash';
+      }
+      if (placementStatus == PlacementOnboardingStatus.error) {
+        return location == '/placement/status-error'
+            ? null
+            : '/placement/status-error';
+      }
+      if (placementStatus == PlacementOnboardingStatus.completed) {
+        if (profileSetupStatus == ProfileSetupStatus.unknown ||
+            profileSetupStatus == ProfileSetupStatus.checking) {
+          return location == '/splash' ? null : '/splash';
+        }
+        if (profileSetupStatus == ProfileSetupStatus.error) {
+          return location == '/profile-setup/status-error'
+              ? null
+              : '/profile-setup/status-error';
+        }
+        if (profileSetupStatus == ProfileSetupStatus.required) {
+          return location == '/profile-setup' ? null : '/profile-setup';
+        }
+        if (location == '/splash' ||
+            isAuthRoute ||
+            isPlacementFlowRoute(location) ||
+            location == '/placement/status-error' ||
+            location == '/profile-setup' ||
+            location == '/profile-setup/status-error') {
+          return '/home';
+        }
+      } else if (location == '/splash' ||
+          isAuthRoute ||
+          !isPlacementFlowRoute(location)) {
+        return '/placement';
+      }
+      if (location == '/placement/question' && !hasPlacementQuestion) {
+        return '/placement';
+      }
+      if (location == '/placement/result' && !hasPlacementResult) {
+        return '/placement';
+      }
+      return null;
+  }
 }

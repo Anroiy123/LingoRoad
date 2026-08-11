@@ -15,6 +15,8 @@ public record ChangePasswordRequest(string? CurrentPassword, string? NewPassword
 public record UpdateProfileRequest(string? TargetCefr, int? DailyGoalMinutes,
     string? LearningPurpose, List<int>? FocusSkillIds, bool? StudyReminderEnabled,
     string? ReminderTime, string? TimeZone, bool? EmailNotifications, bool? AppUpdates);
+public record CompleteProfileSetupRequest(string? Name, string? TargetCefr,
+    int? DailyGoalMinutes);
 
 public static class AuthEndpoints
 {
@@ -204,6 +206,32 @@ public static class AuthEndpoints
             return Results.Ok(await Profile(user, db));
         }).RequireAuthorization();
 
+        g.MapPost("/me/complete-profile-setup", async (CompleteProfileSetupRequest req,
+            System.Security.Claims.ClaimsPrincipal principal, AppDbContext db) =>
+        {
+            var name = req.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(name) || name.Length is < 1 or > 100)
+                return ApiResults.Error("invalid_name");
+            if (req.TargetCefr is null || !CefrLevels.Contains(req.TargetCefr))
+                return ApiResults.Error("invalid_target_cefr");
+            if (req.DailyGoalMinutes is not (>= 10 and <= 120))
+                return ApiResults.Error("invalid_daily_goal");
+
+            var now = DateTime.UtcNow;
+            var userId = principal.UserId();
+            var changed = await db.Users.Where(u => u.Id == userId).ExecuteUpdateAsync(setters =>
+                setters.SetProperty(u => u.Name, name)
+                    .SetProperty(u => u.TargetCefr, req.TargetCefr)
+                    .SetProperty(u => u.TargetCefrConfirmed, true)
+                    .SetProperty(u => u.DailyGoalMinutes, req.DailyGoalMinutes.Value)
+                    .SetProperty(u => u.ProfileSetupCompletedAt,
+                        u => u.ProfileSetupCompletedAt ?? now));
+            if (changed == 0) return Results.NotFound();
+            var user = await db.Users.FindAsync(userId);
+            if (user is null) return Results.NotFound();
+            return Results.Ok(await Profile(user, db));
+        }).RequireAuthorization();
+
         g.MapGet("/me", async (System.Security.Claims.ClaimsPrincipal principal, AppDbContext db) =>
         {
             var user = await db.Users.FindAsync(principal.UserId());
@@ -250,6 +278,7 @@ public static class AuthEndpoints
         return new
         {
             id = user.Id, user.Email, name = user.Name ?? user.Email.Split('@')[0],
+            profileSetupCompleted = user.ProfileSetupCompletedAt is not null,
             user.TargetCefr, user.TargetCefrConfirmed,
             cefrLevel = lastSession?.ResultCefr ?? "A1",
             level = (masteryCount / 3) + 1,
