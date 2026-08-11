@@ -8,11 +8,8 @@ const _protectedDeepLinks = [
   '/lesson/lesson-1',
   '/question-review',
   '/practice',
-  '/settings',
   '/notification-settings',
-  '/streak',
   '/streak-details',
-  '/profile',
   '/vocabulary-review',
   '/learning-goals-schedule',
 ];
