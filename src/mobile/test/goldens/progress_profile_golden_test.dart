@@ -15,6 +15,7 @@ import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_
 import 'package:lingoroad_mobile/features/progress/data/progress_repository.dart';
 import 'package:lingoroad_mobile/features/progress/domain/progress_models.dart';
 import 'package:lingoroad_mobile/features/progress/presentation/progress_view_model.dart';
+import 'package:lingoroad_mobile/screens/learning_goals_schedule_screen.dart';
 import 'package:lingoroad_mobile/screens/notification_settings_screen.dart';
 import 'package:lingoroad_mobile/screens/profile_screen.dart';
 import 'package:lingoroad_mobile/screens/progress_screen.dart';
@@ -27,6 +28,7 @@ import '../helpers/widget_test_harness.dart';
 /// Flutter runtime. This file still exercises deterministic repositories on
 /// every host through the responsive tests below.
 final _canCompareGolden = Platform.isLinux;
+final _goldenMonth = DateTime.utc(2025, 10, 1);
 
 enum _TaskThreeSurface {
   progress,
@@ -35,6 +37,28 @@ enum _TaskThreeSurface {
   profile,
   settings,
   streak,
+}
+
+enum _TaskThreeResponsiveSurface {
+  progress,
+  progressSkills,
+  progressAchievements,
+  profile,
+  settings,
+  goals,
+  streak,
+}
+
+extension on _TaskThreeResponsiveSurface {
+  String get label => switch (this) {
+    _TaskThreeResponsiveSurface.progress => 'progress-overview',
+    _TaskThreeResponsiveSurface.progressSkills => 'progress-skills',
+    _TaskThreeResponsiveSurface.progressAchievements => 'progress-achievements',
+    _TaskThreeResponsiveSurface.profile => 'profile',
+    _TaskThreeResponsiveSurface.settings => 'notification-settings',
+    _TaskThreeResponsiveSurface.goals => 'learning-goals-schedule',
+    _TaskThreeResponsiveSurface.streak => 'streak',
+  };
 }
 
 extension on _TaskThreeSurface {
@@ -153,7 +177,7 @@ class _GoldenDashboardRepository implements DashboardRepository {
     coins: 12,
     currentStreak: 12,
     longestStreak: 18,
-    activeDates: [DateTime.now()],
+    activeDates: [DateTime.utc(2025, 10, 12)],
     recentActivity: const [],
   );
 
@@ -177,9 +201,6 @@ AppLanguageProvider _language() {
 }
 
 Widget _surface(_TaskThreeSurface surface) {
-  final auth = _GoldenAuthRepository();
-  final dashboard = _GoldenDashboardRepository();
-  final language = _language();
   final content = switch (surface) {
     _TaskThreeSurface.progress ||
     _TaskThreeSurface.progressSkills ||
@@ -188,11 +209,37 @@ Widget _surface(_TaskThreeSurface surface) {
     ),
     _TaskThreeSurface.profile => const Scaffold(body: ProfileScreen()),
     _TaskThreeSurface.settings => const NotificationSettingsScreen(),
-    _TaskThreeSurface.streak => const StreakDetailsScreen(),
+    _TaskThreeSurface.streak => StreakDetailsScreen(initialMonth: _goldenMonth),
   };
+  return _withProviders(content);
+}
+
+Widget _responsiveSurface(
+  _TaskThreeResponsiveSurface surface,
+) => switch (surface) {
+  _TaskThreeResponsiveSurface.progress => _surface(_TaskThreeSurface.progress),
+  _TaskThreeResponsiveSurface.progressSkills => _surface(
+    _TaskThreeSurface.progressSkills,
+  ),
+  _TaskThreeResponsiveSurface.progressAchievements => _surface(
+    _TaskThreeSurface.progressAchievements,
+  ),
+  _TaskThreeResponsiveSurface.profile => _surface(_TaskThreeSurface.profile),
+  _TaskThreeResponsiveSurface.settings => _surface(_TaskThreeSurface.settings),
+  _TaskThreeResponsiveSurface.goals => _withProviders(
+    const LearningGoalsScheduleScreen(),
+  ),
+  _TaskThreeResponsiveSurface.streak => _surface(_TaskThreeSurface.streak),
+};
+
+Widget _withProviders(Widget content) {
+  final auth = _GoldenAuthRepository();
+  final dashboard = _GoldenDashboardRepository();
+  final language = _language();
   return MultiProvider(
     providers: [
       Provider<AuthRepository>.value(value: auth),
+      Provider<ProgressRepository>.value(value: _GoldenProgressRepository()),
       ChangeNotifierProvider(
         create: (_) => ProgressViewModel(_GoldenProgressRepository()),
       ),
@@ -277,16 +324,26 @@ void main() {
     testWidgets('task 3 surfaces render without overflow at ${profile.name}', (
       tester,
     ) async {
-      for (final surface in _TaskThreeSurface.values) {
+      for (final surface in _TaskThreeResponsiveSurface.values) {
         await pumpLingoRoadGoldenSurface(
           tester,
-          child: _surface(surface),
+          child: _responsiveSurface(surface),
           themeMode: ThemeMode.light,
           size: profile.size,
           textScaleFactor: profile.textScale,
         );
-        await _prepareSurface(tester, surface);
-        expect(tester.takeException(), isNull, reason: surface.goldenName);
+        switch (surface) {
+          case _TaskThreeResponsiveSurface.progressSkills:
+            await _prepareSurface(tester, _TaskThreeSurface.progressSkills);
+          case _TaskThreeResponsiveSurface.progressAchievements:
+            await _prepareSurface(
+              tester,
+              _TaskThreeSurface.progressAchievements,
+            );
+          default:
+            break;
+        }
+        expect(tester.takeException(), isNull, reason: surface.label);
       }
     });
   }
@@ -294,13 +351,20 @@ void main() {
   testWidgets('task 3 learner controls meet the 48px touch target', (
     tester,
   ) async {
-    for (final surface in _TaskThreeSurface.values) {
+    for (final surface in _TaskThreeResponsiveSurface.values) {
       await pumpLingoRoadGoldenSurface(
         tester,
-        child: _surface(surface),
+        child: _responsiveSurface(surface),
         themeMode: ThemeMode.light,
       );
-      await _prepareSurface(tester, surface);
+      switch (surface) {
+        case _TaskThreeResponsiveSurface.progressSkills:
+          await _prepareSurface(tester, _TaskThreeSurface.progressSkills);
+        case _TaskThreeResponsiveSurface.progressAchievements:
+          await _prepareSurface(tester, _TaskThreeSurface.progressAchievements);
+        default:
+          break;
+      }
       _expectLearnerTargetsAtLeast48(tester);
     }
   });

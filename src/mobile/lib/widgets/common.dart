@@ -239,12 +239,21 @@ class MetricRow extends StatelessWidget {
   }
 }
 
-Widget loadingView() => Builder(
-  builder: (context) => Center(
-    child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
-      child: CircularProgressIndicator(
-        color: Theme.of(context).colorScheme.primary,
+Widget loadingView({Key? key, String? label}) => Builder(
+  builder: (context) => Semantics(
+    key: key,
+    liveRegion: true,
+    label:
+        label ??
+        context.read<AppLanguageProvider>().translate('common.loading'),
+    child: ExcludeSemantics(
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       ),
     ),
   ),

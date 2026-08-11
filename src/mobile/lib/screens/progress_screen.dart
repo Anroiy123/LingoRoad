@@ -111,7 +111,10 @@ class _ProgressScreenState extends State<ProgressScreen>
     final vm = context.watch<ProgressViewModel>();
     if (vm.state == ProgressState.initial ||
         vm.state == ProgressState.loading) {
-      return loadingView();
+      return loadingView(
+        key: const Key('progress_loading'),
+        label: l.translate('progress.loading'),
+      );
     }
     if (vm.state == ProgressState.error) return _retry(l, vm);
     if (vm.state == ProgressState.empty) {
@@ -225,19 +228,48 @@ class _ProgressScreenState extends State<ProgressScreen>
     variant: AppCardVariant.outlined,
     child: Semantics(
       liveRegion: true,
-      child: Row(
-        children: [
-          Icon(icon),
-          SizedBox(width: AppSpacing.sm.w),
-          Expanded(child: Text(text)),
-        ],
+      label: text,
+      child: ExcludeSemantics(
+        child: Row(
+          children: [
+            Icon(icon),
+            SizedBox(width: AppSpacing.sm.w),
+            Expanded(child: Text(text)),
+          ],
+        ),
       ),
     ),
   );
   Widget _retry(AppLanguageProvider l, ProgressViewModel vm) => Center(
-    child: FilledButton(
-      onPressed: vm.load,
-      child: Text(l.translate('common.retry')),
+    child: Semantics(
+      key: const Key('progress_error'),
+      container: true,
+      explicitChildNodes: true,
+      liveRegion: true,
+      label: l.translate('progress.error_load_failed'),
+      child: AppCard(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(
+              child: Text(l.translate('progress.error_load_failed')),
+            ),
+            SizedBox(height: AppSpacing.md.h),
+            Semantics(
+              label: l.translate('progress.retry_load'),
+              button: true,
+              onTap: vm.load,
+              child: ExcludeSemantics(
+                child: FilledButton(
+                  key: const Key('progress_retry'),
+                  onPressed: vm.load,
+                  child: Text(l.translate('common.retry')),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
   );
 
@@ -246,18 +278,35 @@ class _ProgressScreenState extends State<ProgressScreen>
     if (vm == null || vm.state == DashboardState.initial) {
       return const SizedBox.shrink();
     }
-    if (vm.state == DashboardState.loading) return loadingView();
+    if (vm.state == DashboardState.loading) {
+      return loadingView(label: l.translate('progress.loading'));
+    }
     if (vm.state == DashboardState.error || vm.dashboard == null) {
-      return AppCard(
-        child: Column(
-          children: [
-            Text(l.translate('progress.summary_error')),
-            SizedBox(height: AppSpacing.sm.h),
-            FilledButton(
-              onPressed: vm.retry,
-              child: Text(l.translate('common.retry')),
-            ),
-          ],
+      return Semantics(
+        container: true,
+        explicitChildNodes: true,
+        liveRegion: true,
+        label: l.translate('progress.summary_error'),
+        child: AppCard(
+          child: Column(
+            children: [
+              ExcludeSemantics(
+                child: Text(l.translate('progress.summary_error')),
+              ),
+              SizedBox(height: AppSpacing.sm.h),
+              Semantics(
+                label: l.translate('progress.retry_load'),
+                button: true,
+                onTap: vm.retry,
+                child: ExcludeSemantics(
+                  child: FilledButton(
+                    onPressed: vm.retry,
+                    child: Text(l.translate('common.retry')),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -315,13 +364,26 @@ class _ProgressScreenState extends State<ProgressScreen>
     if (vm == null ||
         vm.state == DashboardState.initial ||
         vm.state == DashboardState.loading) {
-      return loadingView();
+      return loadingView(label: l.translate('progress.loading'));
     }
     if (vm.state == DashboardState.error || vm.dashboard == null) {
       return Center(
-        child: FilledButton(
-          onPressed: vm.retry,
-          child: Text(l.translate('common.retry')),
+        child: Semantics(
+          container: true,
+          explicitChildNodes: true,
+          liveRegion: true,
+          label: l.translate('progress.summary_error'),
+          child: Semantics(
+            label: l.translate('progress.retry_load'),
+            button: true,
+            onTap: vm.retry,
+            child: ExcludeSemantics(
+              child: FilledButton(
+                onPressed: vm.retry,
+                child: Text(l.translate('common.retry')),
+              ),
+            ),
+          ),
         ),
       );
     }

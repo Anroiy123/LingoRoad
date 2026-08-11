@@ -149,14 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return AppPage(
         children: [
           const LingoHeader(),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl.w,
-                vertical: AppSpacing.xl.h,
-              ),
-              child: const CircularProgressIndicator(),
-            ),
+          loadingView(
+            key: const Key('profile_loading'),
+            label: l10n.translate('profile.loading'),
           ),
         ],
       );
@@ -166,27 +161,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return AppPage(
         children: [
           const LingoHeader(),
-          AppCard(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.error_outline_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                  size: 48.sp,
-                ),
-                SizedBox(height: AppSpacing.sm.h),
-                Text(
-                  l10n.translate('profile.error_load_failed'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(fontSize: 16.sp),
-                ),
-                SizedBox(height: AppSpacing.md.h),
-                FilledButton(
-                  onPressed: _loadProfile,
-                  child: Text(l10n.translate('common.retry')),
-                ),
-              ],
+          Semantics(
+            key: const Key('profile_load_error'),
+            container: true,
+            explicitChildNodes: true,
+            liveRegion: true,
+            label: l10n.translate('profile.error_load_failed'),
+            child: AppCard(
+              child: Column(
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                      size: 48.sp,
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.sm.h),
+                  ExcludeSemantics(
+                    child: Text(
+                      l10n.translate('profile.error_load_failed'),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.copyWith(fontSize: 16.sp),
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.md.h),
+                  Semantics(
+                    label: l10n.translate('profile.retry_load'),
+                    button: true,
+                    onTap: _loadProfile,
+                    child: ExcludeSemantics(
+                      child: FilledButton(
+                        key: const Key('profile_retry'),
+                        onPressed: _loadProfile,
+                        child: Text(l10n.translate('common.retry')),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -9,7 +9,11 @@ import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class StreakDetailsScreen extends StatefulWidget {
-  const StreakDetailsScreen({super.key});
+  const StreakDetailsScreen({this.initialMonth, super.key});
+
+  /// An optional month seed used by deterministic visual tests. Normal app
+  /// navigation leaves this null and starts from the learner's current month.
+  final DateTime? initialMonth;
 
   @override
   State<StreakDetailsScreen> createState() => _StreakDetailsScreenState();
@@ -22,7 +26,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
+    final now = widget.initialMonth ?? DateTime.now();
     _currentMonth = DateTime(now.year, now.month);
   }
 
@@ -52,30 +56,47 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
         title: Text(l10n.translate('streak.title')),
       ),
       body: switch (viewModel.state) {
-        DashboardState.initial || DashboardState.loading => Center(
+        DashboardState.initial || DashboardState.loading => loadingView(
           key: const Key('streak_loading'),
-          child: loadingView(),
+          label: l10n.translate('streak.loading'),
         ),
         DashboardState.error => Center(
-          child: AppCard(
+          child: Semantics(
             key: const Key('streak_error'),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.cloud_off_rounded,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                SizedBox(height: AppSpacing.sm.h),
-                Text(l10n.translate('home.error')),
-                SizedBox(height: AppSpacing.md.h),
-                FilledButton.icon(
-                  key: const Key('streak_retry'),
-                  onPressed: viewModel.retry,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(l10n.translate('common.retry')),
-                ),
-              ],
+            container: true,
+            explicitChildNodes: true,
+            liveRegion: true,
+            label: l10n.translate('streak.error_load_failed'),
+            child: AppCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      Icons.cloud_off_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                  SizedBox(height: AppSpacing.sm.h),
+                  ExcludeSemantics(
+                    child: Text(l10n.translate('streak.error_load_failed')),
+                  ),
+                  SizedBox(height: AppSpacing.md.h),
+                  Semantics(
+                    label: l10n.translate('streak.retry_load'),
+                    button: true,
+                    onTap: viewModel.retry,
+                    child: ExcludeSemantics(
+                      child: FilledButton.icon(
+                        key: const Key('streak_retry'),
+                        onPressed: viewModel.retry,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(l10n.translate('common.retry')),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

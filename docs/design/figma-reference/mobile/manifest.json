@@ -3,7 +3,49 @@
   "fileKey": "Vd24yzXHCW2dujlZPLq1sg",
   "exportedAt": "2026-08-11",
   "visualAuditStatus": "complete",
-  "notes": "All 35 Page 1 PNGs were visually audited. Routable entries name states constructible in the current app; future or alternate-only frames use a null route and reference-only status. HTML Body 2085:1545 is intentionally excluded.",
+  "notes": "All 35 Page 1 PNGs were visually audited. Routable entries name states constructible in the current app; future or alternate-only frames use a null route and reference-only status. HTML Body 2085:1545 is intentionally excluded. Task 3 frames with a null golden are governed by pendingGoldenBaselines until approved Linux rasters are committed.",
+  "pendingGoldenBaselines": [
+    {
+      "nodeId": "2030:730",
+      "route": "/home",
+      "state": "progress-overview",
+      "golden": "progress_overview_light",
+      "directory": "progress-profile",
+      "modes": ["light", "dark"]
+    },
+    {
+      "nodeId": "2030:731",
+      "route": "/home",
+      "state": "profile-settings",
+      "golden": "profile_loaded_light",
+      "directory": "progress-profile",
+      "modes": ["light", "dark"]
+    },
+    {
+      "nodeId": "2079:1015",
+      "route": "/streak-details",
+      "state": "loaded",
+      "golden": "streak_loaded_light",
+      "directory": "progress-profile",
+      "modes": ["light", "dark"]
+    },
+    {
+      "nodeId": "2085:1685",
+      "route": "/home",
+      "state": "progress-skills",
+      "golden": "progress_skills_light",
+      "directory": "progress-profile",
+      "modes": ["light", "dark"]
+    },
+    {
+      "nodeId": "2146:346",
+      "route": "/home",
+      "state": "progress-achievements",
+      "golden": "progress_achievements_light",
+      "directory": "progress-profile",
+      "modes": ["light", "dark"]
+    }
+  ],
   "references": [
     {
       "nodeId": "2030:392",

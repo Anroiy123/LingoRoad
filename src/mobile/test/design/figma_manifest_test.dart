@@ -15,6 +15,12 @@ void main() {
 
     final frames = manifest['page1Frames'] as Map<String, dynamic>;
     expect(frames.keys.toSet(), _page1NodeIds);
+    final pending = manifest['pendingGoldenBaselines'] as List<dynamic>;
+    final pendingByNode = {
+      for (final raw in pending)
+        (raw as Map<String, dynamic>)['nodeId'] as String: raw,
+    };
+    expect(pendingByNode.keys.toSet(), _taskThreeGoldenByNode.keys.toSet());
 
     final referencedFiles = <String>{};
     for (final entry in frames.entries) {
@@ -46,13 +52,43 @@ void main() {
       if (golden != null) {
         expect(
           golden,
-          _foundationGoldenByRouteState['$route|$state'],
+          _goldenByRouteState['$route|$state'],
           reason: '${entry.key} golden semantics',
         );
         expect(
           _goldenFileExists(golden as String),
           isTrue,
           reason: '${entry.key} golden file',
+        );
+      }
+
+      final taskThreeGolden = _taskThreeGoldenByNode[entry.key];
+      if (taskThreeGolden != null) {
+        final pendingEntry = pendingByNode[entry.key];
+        expect(
+          golden ?? pendingEntry?['golden'],
+          taskThreeGolden,
+          reason: '${entry.key} Task 3 golden contract',
+        );
+        expect(
+          golden != null || pendingEntry?['directory'] == 'progress-profile',
+          isTrue,
+          reason: '${entry.key} pending Linux baseline directory',
+        );
+        expect(
+          golden != null ? ['light', 'dark'] : pendingEntry?['modes'],
+          ['light', 'dark'],
+          reason: '${entry.key} pending Linux baseline modes',
+        );
+        expect(
+          golden != null ? route : pendingEntry?['route'],
+          route,
+          reason: '${entry.key} pending Linux baseline route',
+        );
+        expect(
+          golden != null ? state : pendingEntry?['state'],
+          state,
+          reason: '${entry.key} pending Linux baseline state',
         );
       }
 
@@ -80,7 +116,8 @@ void main() {
 
 bool _goldenFileExists(String golden) {
   return File('test/goldens/foundation/$golden.png').existsSync() ||
-      File('test/goldens/learning/$golden.png').existsSync();
+      File('test/goldens/learning/$golden.png').existsSync() ||
+      File('test/goldens/progress-profile/$golden.png').existsSync();
 }
 
 const _pngSignature = <int>[137, 80, 78, 71, 13, 10, 26, 10];
@@ -158,7 +195,7 @@ const _constructibleRouteStates = <String, Set<String>>{
   '/streak-details': {'loaded'},
 };
 
-const _foundationGoldenByRouteState = <String, String>{
+const _goldenByRouteState = <String, String>{
   '/login|form': 'login_light',
   '/register|form': 'register_light',
   '/placement|intro': 'placement_intro_light',
@@ -181,4 +218,17 @@ const _foundationGoldenByRouteState = <String, String>{
   '/vocabulary-review|card-back-rating': 'vocabulary_review_back_light',
   '/vocabulary-review|empty': 'vocabulary_review_empty_light',
   '/vocabulary-review|completed': 'vocabulary_review_complete_light',
+  '/home|progress-overview': 'progress_overview_light',
+  '/home|profile-settings': 'profile_loaded_light',
+  '/home|progress-skills': 'progress_skills_light',
+  '/home|progress-achievements': 'progress_achievements_light',
+  '/streak-details|loaded': 'streak_loaded_light',
+};
+
+const _taskThreeGoldenByNode = <String, String>{
+  '2030:730': 'progress_overview_light',
+  '2030:731': 'profile_loaded_light',
+  '2079:1015': 'streak_loaded_light',
+  '2085:1685': 'progress_skills_light',
+  '2146:346': 'progress_achievements_light',
 };
