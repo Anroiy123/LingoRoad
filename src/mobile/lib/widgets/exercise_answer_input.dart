@@ -37,7 +37,7 @@ class ExerciseAnswerInput extends StatefulWidget {
 
 class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
   late final TextEditingController _controller = TextEditingController(text: widget.answer);
-  final List<String> _orderedWords = [];
+  final List<int> _orderedIndexes = [];
   String _selectedOption = '';
   late String _typedAnswer = widget.answer;
 
@@ -49,7 +49,7 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       _typedAnswer = widget.answer;
     }
     if (oldWidget.type != widget.type || oldWidget.options != widget.options) {
-      _orderedWords.clear();
+      _orderedIndexes.clear();
       _selectedOption = '';
     }
   }
@@ -97,31 +97,34 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       );
     }
     if (widget.type == 'reorder') {
-      final answer = _orderedWords.join(' ');
+      final answer = _orderedIndexes.map((index) => widget.options[index]).join(' ');
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.options.map((word) {
-              final selected = _orderedWords.contains(word);
+            children: List.generate(widget.options.length, (index) {
+              final word = widget.options[index];
+              final selected = _orderedIndexes.contains(index);
               return FilterChip(
-                key: Key('answer_reorder_$word'),
+                key: Key('answer_reorder_$index'),
                 label: Text(word),
                 selected: selected,
                 onSelected: !widget.enabled
                     ? null
                     : (selected) => setState(() {
                           if (selected) {
-                            _orderedWords.add(word);
+                            _orderedIndexes.add(index);
                           } else {
-                            _orderedWords.remove(word);
+                            _orderedIndexes.remove(index);
                           }
-                          _update(_orderedWords.join(' '));
+                          _update(_orderedIndexes
+                              .map((selectedIndex) => widget.options[selectedIndex])
+                              .join(' '));
                         }),
               );
-            }).toList(),
+            }),
           ),
           const SizedBox(height: 12),
           Text(answer),

@@ -17,6 +17,7 @@ import 'package:lingoroad_mobile/features/question_review/domain/question_review
 import 'package:lingoroad_mobile/features/question_review/presentation/question_review_screen.dart';
 import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:lingoroad_mobile/widgets/exercise_answer_input.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/widget_test_harness.dart';
@@ -54,11 +55,14 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
   Object? checkError;
   Object? gradeError;
   Completer<QuestionReviewCheck>? pendingCheck;
+  Completer<QuestionReviewGrade>? pendingGrade;
+  int fetchCalls = 0;
   final checks = <String>[];
   final grades = <({String answer, int expectedReps, int rating, String operationId})>[];
 
   @override
   Future<QuestionReviewSession> fetchDue({int limit = 10}) async {
+    fetchCalls++;
     if (loadError != null) throw loadError!;
     return session;
   }
@@ -93,6 +97,7 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
       operationId: operationId,
     ));
     if (gradeError != null) throw gradeError!;
+    if (pendingGrade != null) return pendingGrade!.future;
     return const QuestionReviewGrade(xp: 5, coins: 1);
   }
 }
@@ -147,9 +152,11 @@ void main() {
           return http.Response('{"items":[{"id":"${_first.id}","reps":2,"type":"mcq","stem":"Choose blue.","options":["red","blue"]}],"totalDue":1}', 200, headers: {'content-type': 'application/json'});
         }
         if (request.url.path.endsWith('/check')) {
+          expect(request.method, 'POST');
           expect(json.decode(request.body), {'answer': 'blue'});
           return http.Response('{"correct":true,"correctAnswer":"blue"}', 200, headers: {'content-type': 'application/json'});
         }
+        expect(request.method, 'POST');
         expect(request.url.path, '/reviews/${_first.id}/grade');
         expect(json.decode(request.body), {
           'rating': 3,
@@ -231,6 +238,126 @@ void main() {
     await first;
   });
 
+  test('stale check and grade responses reload the due queue instead of retrying the stale card', () async {
+    final repository = _FakeQuestionReviewRepository();
+    final vm = QuestionReviewViewModel(repository);
+    await vm.load();
+    repository.session = const QuestionReviewSession(items: [], totalDue: 0);
+    repository.checkError = const ApiException(code: 'review_not_due', message: 'stale', statusCode: 409);
+    vm.setAnswer('blue');
+    await vm.check();
+    expect(repository.fetchCalls, 2);
+    expect(vm.state, QuestionReviewState.empty);
+
+    repository.session = const QuestionReviewSession(items: [_first], totalDue: 1);
+    repository.checkError = null;
+    await vm.load();
+    vm.setAnswer('blue');
+    await vm.check();
+    repository.session = const QuestionReviewSession(items: [], totalDue: 0);
+    repository.gradeError = const ApiException(code: 'review_already_graded', message: 'stale', statusCode: 409);
+    await vm.grade(3);
+    expect(repository.fetchCalls, 4);
+    expect(vm.state, QuestionReviewState.empty);
+  });
+
+  test('stale reload keeps rewards already earned in the current session', () async {
+    final repository = _FakeQuestionReviewRepository()
+      ..session = const QuestionReviewSession(items: [_first, _second], totalDue: 2);
+    final vm = QuestionReviewViewModel(repository);
+    await vm.load();
+    vm.setAnswer('blue');
+    await vm.check();
+    await vm.grade(3);
+    expect(vm.correctCount, 1);
+    expect(vm.xp, 5);
+
+    repository.session = const QuestionReviewSession(items: [], totalDue: 0);
+    repository.checkError = const ApiException(code: 'review_not_due', message: 'stale', statusCode: 409);
+    vm.setAnswer('blue');
+    await vm.check();
+    expect(vm.state, QuestionReviewState.empty);
+    expect(vm.correctCount, 1);
+    expect(vm.xp, 5);
+  });
+
+  test('grading is single-flight while a rating request is pending', () async {
+    final repository = _FakeQuestionReviewRepository()
+      ..pendingGrade = Completer<QuestionReviewGrade>();
+    final vm = QuestionReviewViewModel(repository);
+    await vm.load();
+    vm.setAnswer('blue');
+    await vm.check();
+    final first = vm.grade(3);
+    await vm.grade(3);
+    expect(repository.grades, hasLength(1));
+    repository.pendingGrade!.complete(const QuestionReviewGrade(xp: 5, coins: 1));
+    await first;
+    expect(vm.completed, 1);
+  });
+
+  testWidgets('reorder input treats duplicate tokens as separate option instances', (tester) async {
+    final answers = <String>[];
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      MaterialApp(
+        home: Scaffold(
+          body: ExerciseAnswerInput(
+            type: 'reorder',
+            options: const ['had', 'had', 'enough'],
+            answer: '',
+            enabled: true,
+            onAnswerChanged: answers.add,
+            onSubmit: (_) {},
+            textFieldKey: const Key('text'),
+            submitKey: const Key('submit'),
+            submitLabel: 'Check',
+          ),
+        ),
+      ),
+    );
+    expect(find.byKey(const Key('answer_reorder_0')), findsOneWidget);
+    expect(find.byKey(const Key('answer_reorder_1')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('answer_reorder_0')));
+    await tester.tap(find.byKey(const Key('answer_reorder_1')));
+    expect(answers.last, 'had had');
+  });
+
+  testWidgets('load failure uses neutral error copy while an answer operation retains its answer', (tester) async {
+    final repository = _FakeQuestionReviewRepository()
+      ..loadError = const ApiException(code: 'network_unavailable', message: 'offline');
+    await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
+    await tester.pumpAndSettle();
+    expect(find.text('Không thể tải câu hỏi cần ôn.'), findsOneWidget);
+  });
+
+  testWidgets('operation failure tells the learner the submitted answer is retained', (tester) async {
+    final repository = _FakeQuestionReviewRepository()
+      ..checkError = const ApiException(code: 'network_unavailable', message: 'offline');
+    await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('answer_option_blue')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('question_review_check')));
+    await tester.pumpAndSettle();
+    expect(find.text('Câu trả lời của bạn vẫn được giữ. Hãy thử lại.'), findsOneWidget);
+  });
+
+  testWidgets('completion shows Ôn thêm when the server reports more due questions than this page', (tester) async {
+    final repository = _FakeQuestionReviewRepository()
+      ..session = const QuestionReviewSession(items: [_first], totalDue: 2);
+    await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('answer_option_red')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('question_review_check')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('question_review_next')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('question_review_complete')), findsOneWidget);
+    expect(find.text('Ôn thêm'), findsOneWidget);
+  });
+
   testWidgets('MCQ, cloze and reorder accept answers without exposing feedback before check', (tester) async {
     final repository = _FakeQuestionReviewRepository();
     await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
@@ -238,12 +365,16 @@ void main() {
 
     expect(find.text('blue'), findsOneWidget);
     expect(find.text('Blue là màu của bầu trời.'), findsNothing);
+    expect(find.byKey(const Key('question_review_feedback')), findsNothing);
     await tester.tap(find.byKey(const Key('answer_option_blue')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('question_review_check')));
     await tester.pumpAndSettle();
     expect(find.text('Blue là màu của bầu trời.'), findsOneWidget);
     expect(find.byKey(const Key('question_review_feedback')), findsOneWidget);
+    final feedback = tester.widget<Semantics>(find.byKey(const Key('question_review_feedback')).first);
+    expect(feedback.properties.liveRegion, isTrue);
+    expect(tester.widget<Focus>(find.descendant(of: find.byKey(const Key('question_review_feedback')).first, matching: find.byType(Focus)).first).focusNode?.hasFocus, isTrue);
 
     await tester.tap(find.byKey(const Key('question_review_rating_3')));
     await tester.pumpAndSettle();
@@ -254,10 +385,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('question_review_rating_2')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('answer_reorder_I')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('answer_reorder_I')));
-    await tester.tap(find.byKey(const Key('answer_reorder_learn')));
-    await tester.tap(find.byKey(const Key('answer_reorder_English')));
+    expect(find.byKey(const Key('answer_reorder_0')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('answer_reorder_0')));
+    await tester.tap(find.byKey(const Key('answer_reorder_1')));
+    await tester.tap(find.byKey(const Key('answer_reorder_2')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('question_review_check')));
     await tester.pumpAndSettle();

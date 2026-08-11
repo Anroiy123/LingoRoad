@@ -43,3 +43,40 @@
 ## Concerns
 
 - Focused widget/unit coverage is green, but this task did not run a live authenticated Flutter-to-backend/device session. That remains the appropriate next validation for backend availability, auth expiry, and screen-reader behavior on a physical device.
+
+---
+
+## Fix round 1 — review findings
+
+### Delivered
+
+- Stale question responses (`404`, `review_not_due`, `review_already_graded`) from check or grade now force a fresh due-queue load instead of leaving the learner in a retry loop.
+- The question selection badge has its own EN/VI wording and awaits `/question-review` returning before it reloads the server due count.
+- Reorder selection uses option indices, so duplicate tokens are independently selectable and keyed uniquely.
+- Load failures show neutral copy; only a failed answer/check/grade operation promises that the answer remains available for retry.
+- The selection badge layout now constrains long localized counts without a horizontal overflow.
+
+### TDD evidence
+
+1. **RED:** Added stale check/grade, grade double-submit, duplicate reorder, neutral load-error, feedback semantic/focus, and HTTP-method assertions to `question_review_flow_test.dart`. The focused test failed on stale reload (`fetchCalls` remained 1), duplicate `answer_reorder_had` keys, and absent neutral load text.
+2. **GREEN:** Added forced stale reload that preserves already-earned session rewards, index-based reorder selections, operation-aware error copy, POST assertions, and focus/live-region assertions. `question_review_flow_test.dart` passed 13 tests.
+3. **RED:** Added ReviewScreen route-return test expecting `3 câu hỏi cần ôn`, then a fresh `1 câu hỏi cần ôn` after pop. It failed because the card rendered the saved-word wording.
+4. **GREEN:** Added `question_due_badge`, awaited child-route completion, reloaded the question VM, and constrained the badge. `review_screen_test.dart` passed 2 tests.
+
+### Verification
+
+- Focused suite passed **25 tests**: question review, Lesson flow, review integration, review selection, and vocabulary review.
+- `flutter analyze` — no issues.
+- `git diff --check` — clean.
+
+### Self-review
+
+- Confirmed stale recovery is limited to the documented stale-card cases; ordinary network errors remain retryable and preserve answer/operation ID.
+- Confirmed grade remains single-flight and retry retains the original rating, expected reps, answer, and operation ID.
+- Confirmed duplicate reorder tokens produce `had had`; the existing Lesson flow regression remains green.
+- Confirmed feedback remains absent before checking; once shown it has a localized live semantic region and receives focus.
+- Confirmed vocabulary remains on `ReviewRepository`/`ReviewViewModel` and `/words/*`.
+
+### Remaining concern
+
+- No live authenticated backend/device or physical screen-reader validation was run in this scoped fix; local Flutter unit/widget evidence is green.

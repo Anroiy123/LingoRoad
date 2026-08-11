@@ -108,13 +108,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   icon: Icons.quiz_outlined,
                   badgeText: questionVm?.state == QuestionReviewState.loading
                       ? '...'
-                      : l.translate('review.selection.vocab_due_badge', [questionVm?.dueCount ?? 0]),
+                      : l.translate('review.selection.question_due_badge', [questionVm?.dueCount ?? 0]),
                   badgeIcon: Icons.schedule_rounded,
                   badgeTextColor: AppColors.primary,
                   badgeBgColor: AppColors.primaryFixed,
                   title: l.translate('review.selection.question_title'),
                   description: l.translate('review.selection.question_desc'),
-                  onTap: () => context.push('/question-review'),
+                  onTap: () async {
+                    final routerContext = context;
+                    await routerContext.push('/question-review');
+                    if (!routerContext.mounted) return;
+                    final freshQuestionVm = routerContext.read<QuestionReviewViewModel?>();
+                    if (freshQuestionVm != null) await freshQuestionVm.load();
+                  },
                 ),
                 SizedBox(height: AppSpacing.lg.h),
                 _ReviewSelectionCard(
@@ -207,35 +213,40 @@ class _ReviewSelectionCard extends StatelessWidget {
                         size: 32.sp,
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm.w,
-                        vertical: AppSpacing.xxs.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: badgeBgColor,
-                        borderRadius: BorderRadius.circular(999.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            badgeIcon,
-                            color: badgeTextColor,
-                            size: 16.sp,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            badgeText,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: badgeTextColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
+                    Flexible(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm.w,
+                          vertical: AppSpacing.xxs.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: badgeBgColor,
+                          borderRadius: BorderRadius.circular(999.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              badgeIcon,
+                              color: badgeTextColor,
+                              size: 16.sp,
+                            ),
+                            SizedBox(width: 4.w),
+                            Flexible(
+                              child: Text(
+                                badgeText,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: badgeTextColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -363,7 +363,11 @@
       "semantics": "Kết quả câu trả lời"
     },
     "empty": { "title": "Chưa có câu hỏi cần ôn", "message": "Các câu làm sai đến hạn sẽ xuất hiện ở đây." },
-    "error": { "title": "Không thể tiếp tục ôn tập", "message": "Câu trả lời của bạn vẫn được giữ. Hãy thử lại." },
+    "error": {
+      "title": "Không thể tiếp tục ôn tập",
+      "load_message": "Không thể tải câu hỏi cần ôn.",
+      "operation_message": "Câu trả lời của bạn vẫn được giữ. Hãy thử lại."
+    },
     "complete": {
       "title": "Đã hoàn thành lượt ôn tập",
       "summary": "Đúng: {} · Sai: {}\nNhận được {} XP và {} xu",
@@ -377,6 +381,7 @@
       "question_title": "Ôn tập câu hỏi",
       "question_desc": "Luyện tập qua các câu hỏi trắc nghiệm và điền từ để củng cố cấu trúc câu.",
       "question_completed_badge": "{}% hoàn thành",
+      "question_due_badge": "{} câu hỏi cần ôn",
       "vocab_title": "Ôn tập từ vựng",
       "vocab_desc": "Sử dụng phương pháp lặp lại ngắt quãng (SRS) để ghi nhớ từ vựng hiệu quả hơn.",
       "vocab_due_badge": "{} từ cần ôn"

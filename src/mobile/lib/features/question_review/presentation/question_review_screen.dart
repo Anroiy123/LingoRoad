@@ -66,7 +66,9 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
       return _StateView(
         key: const Key('question_review_error'),
         title: l.translate('question_review.error.title'),
-        message: l.translate('question_review.error.message'),
+        message: l.translate(vm.hasRetainedAnswerError
+            ? 'question_review.error.operation_message'
+            : 'question_review.error.load_message'),
         action: FilledButton(key: const Key('question_review_retry'), onPressed: vm.retry, child: Text(l.translate('common.retry'))),
       );
     }

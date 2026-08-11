@@ -40,6 +40,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
   int get xp => _xp;
   int get coins => _coins;
   bool get isBusy => _state == QuestionReviewState.loading || _state == QuestionReviewState.checking || _state == QuestionReviewState.grading;
+  bool get hasRetainedAnswerError => _retryAction != _RetryAction.load;
 
   void setAnswer(String value) {
     if (isBusy || _state == QuestionReviewState.feedback || _state == QuestionReviewState.complete) return;
@@ -47,8 +48,8 @@ class QuestionReviewViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> load() async {
-    if (isBusy) return;
+  Future<void> load({bool force = false, bool preserveSummary = false}) async {
+    if (isBusy && !force) return;
     _state = QuestionReviewState.loading;
     _errorCode = null;
     _retryAction = _RetryAction.load;
@@ -62,10 +63,12 @@ class QuestionReviewViewModel extends ChangeNotifier {
       _feedback = null;
       _operationId = null;
       _pendingRating = null;
-      _correctCount = 0;
-      _incorrectCount = 0;
-      _xp = 0;
-      _coins = 0;
+      if (!preserveSummary) {
+        _correctCount = 0;
+        _incorrectCount = 0;
+        _xp = 0;
+        _coins = 0;
+      }
       _state = _items.isEmpty ? QuestionReviewState.empty : QuestionReviewState.ready;
     } catch (error) {
       _toError(error, _RetryAction.load);
@@ -90,6 +93,10 @@ class QuestionReviewViewModel extends ChangeNotifier {
         await _grade(item, 1, automatic: true);
       }
     } catch (error) {
+      if (_isStaleCard(error)) {
+        await load(force: true, preserveSummary: true);
+        return;
+      }
       _toError(error, _RetryAction.check);
     }
     notifyListeners();
@@ -123,6 +130,10 @@ class QuestionReviewViewModel extends ChangeNotifier {
       _state = QuestionReviewState.feedback;
       if (!automatic) _advance();
     } catch (error) {
+      if (_isStaleCard(error)) {
+        await load(force: true, preserveSummary: true);
+        return;
+      }
       _toError(error, _RetryAction.grade);
     }
   }
@@ -159,5 +170,12 @@ class QuestionReviewViewModel extends ChangeNotifier {
     _state = QuestionReviewState.error;
     _retryAction = action;
     _errorCode = error is ApiException ? error.code : 'unexpected_error';
+  }
+
+  bool _isStaleCard(Object error) {
+    if (error is! ApiException) return false;
+    return error.statusCode == 404 ||
+        error.code == 'review_not_due' ||
+        error.code == 'review_already_graded';
   }
 }
