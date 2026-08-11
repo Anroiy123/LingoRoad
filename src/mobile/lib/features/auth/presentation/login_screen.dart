@@ -52,9 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Background pattern (radial grid replacement using AppColors.border)
               const Positioned.fill(
-                child: CustomPaint(
-                  painter: GridBackgroundPainter(),
-                ),
+                child: CustomPaint(painter: GridBackgroundPainter()),
               ),
               SafeArea(
                 child: Center(
@@ -78,11 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             l10n.translate('auth.login.title'),
                             textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontFamily: 'Plus Jakarta Sans',
-                                    ),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontFamily: 'HankenGrotesk',
+                                ),
                           ),
                           const SizedBox(height: AppSpacing.xl),
 
@@ -92,9 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16.0),
-                              border: Border.all(
-                                color: AppColors.border,
-                              ),
+                              border: Border.all(color: AppColors.border),
                               boxShadow: const [
                                 BoxShadow(
                                   color: AppColors.shadow,
@@ -117,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         color: AppColors.textSecondary,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontFamily: 'HankenGrotesk',
                                       ),
                                     ),
                                     const SizedBox(height: 6),
@@ -128,17 +124,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                       keyboardType: TextInputType.emailAddress,
                                       textInputAction: TextInputAction.next,
                                       autofillHints: const [
-                                        AutofillHints.email
+                                        AutofillHints.email,
                                       ],
                                       style: const TextStyle(
-                                          color: AppColors.text),
+                                        color: AppColors.text,
+                                      ),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
                                         hintText: l10n.translate(
-                                            'auth.login.email_placeholder'),
+                                          'auth.login.email_placeholder',
+                                        ),
                                         hintStyle: const TextStyle(
-                                            color: AppColors.muted),
+                                          color: AppColors.muted,
+                                        ),
                                         prefixIcon: const Icon(
                                           Icons.mail_outlined,
                                           color: AppColors.muted,
@@ -146,35 +145,39 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                          vertical: 14,
-                                          horizontal: AppSpacing.md,
-                                        ),
+                                              vertical: 14,
+                                              horizontal: AppSpacing.md,
+                                            ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
@@ -182,8 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
                                       validator: (value) {
-                                        final key =
-                                            AuthViewModel.validateEmail(value);
+                                        final key = AuthViewModel.validateEmail(
+                                          value,
+                                        );
                                         return key != null
                                             ? l10n.translate(key)
                                             : null;
@@ -198,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         color: AppColors.textSecondary,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        fontFamily: 'Plus Jakarta Sans',
+                                        fontFamily: 'HankenGrotesk',
                                       ),
                                     ),
                                     const SizedBox(height: 6),
@@ -209,17 +213,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                       obscureText: _obscurePassword,
                                       textInputAction: TextInputAction.done,
                                       autofillHints: const [
-                                        AutofillHints.password
+                                        AutofillHints.password,
                                       ],
                                       style: const TextStyle(
-                                          color: AppColors.text),
+                                        color: AppColors.text,
+                                      ),
                                       decoration: InputDecoration(
                                         filled: true,
                                         fillColor: AppColors.surface,
                                         hintText: l10n.translate(
-                                            'auth.login.password_placeholder'),
+                                          'auth.login.password_placeholder',
+                                        ),
                                         hintStyle: const TextStyle(
-                                            color: AppColors.muted),
+                                          color: AppColors.muted,
+                                        ),
                                         prefixIcon: const Icon(
                                           Icons.lock_outline_rounded,
                                           color: AppColors.muted,
@@ -238,41 +245,47 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           tooltip: _obscurePassword
                                               ? l10n.translate(
-                                                  'auth.login.show_password')
+                                                  'auth.login.show_password',
+                                                )
                                               : l10n.translate(
-                                                  'auth.login.hide_password'),
+                                                  'auth.login.hide_password',
+                                                ),
                                         ),
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                          vertical: 14,
-                                          horizontal: AppSpacing.md,
-                                        ),
+                                              vertical: 14,
+                                              horizontal: AppSpacing.md,
+                                            ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.border,
                                           ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.cta,
                                             width: 1.5,
                                           ),
                                         ),
                                         errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
                                           ),
                                         ),
                                         focusedErrorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
+                                          ),
                                           borderSide: const BorderSide(
                                             color: AppColors.error,
                                             width: 1.5,
@@ -282,7 +295,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       validator: (value) {
                                         final key =
                                             AuthViewModel.validatePassword(
-                                                value);
+                                              value,
+                                            );
                                         return key != null
                                             ? l10n.translate(key)
                                             : null;
@@ -297,25 +311,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                       alignment: Alignment.centerRight,
                                       child: GestureDetector(
                                         onTap: () {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             SnackBar(
-                                              content: Text(l10n.translate(
-                                                  'common.not_implemented')),
+                                              content: Text(
+                                                l10n.translate(
+                                                  'common.not_implemented',
+                                                ),
+                                              ),
                                             ),
                                           );
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
-                                              vertical: 4.0),
+                                            vertical: 4.0,
+                                          ),
                                           child: Text(
                                             l10n.translate(
-                                                'auth.login.forgot_password'),
+                                              'auth.login.forgot_password',
+                                            ),
                                             style: const TextStyle(
                                               color: AppColors.primary,
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
-                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontFamily: 'HankenGrotesk',
                                             ),
                                           ),
                                         ),
@@ -328,7 +348,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         l10n.translate(viewModel.errorMessage!),
                                         key: const Key('auth_error'),
                                         style: const TextStyle(
-                                            color: AppColors.error),
+                                          color: AppColors.error,
+                                        ),
                                       ),
                                     ],
                                     const SizedBox(height: AppSpacing.lg),
@@ -343,8 +364,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           backgroundColor: AppColors.cta,
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12.0),
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
                                           ),
                                         ),
                                         onPressed: viewModel.isSubmitting
@@ -353,24 +375,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                         child: viewModel.isSubmitting
                                             ? const SizedBox.square(
                                                 dimension: 20,
-                                                child:
-                                                    CircularProgressIndicator(
+                                                child: CircularProgressIndicator(
                                                   strokeWidth: 2,
                                                   valueColor:
                                                       AlwaysStoppedAnimation<
-                                                          Color>(Colors.white),
+                                                        Color
+                                                      >(Colors.white),
                                                 ),
                                               )
                                             : Text(
                                                 l10n
                                                     .translate(
-                                                        'auth.login.submit')
+                                                      'auth.login.submit',
+                                                    )
                                                     .toUpperCase(),
                                                 style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
-                                                  fontFamily:
-                                                      'Plus Jakarta Sans',
+                                                  fontFamily: 'HankenGrotesk',
                                                   letterSpacing: 0.5,
                                                 ),
                                               ),
@@ -393,13 +415,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                           child: Text(
                                             l10n.translate(
-                                                'auth.login.or_continue'),
+                                              'auth.login.or_continue',
+                                            ),
                                             style: TextStyle(
                                               color: AppColors.textSecondary
                                                   .withValues(alpha: 0.7),
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
-                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontFamily: 'HankenGrotesk',
                                               letterSpacing: 1.0,
                                             ),
                                           ),
@@ -426,19 +449,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                               ),
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                vertical: 12,
-                                              ),
+                                                    vertical: 12,
+                                                  ),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(8.0),
                                               ),
                                             ),
                                             onPressed: () {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
-                                                  content: Text(l10n.translate(
-                                                      'common.not_implemented')),
+                                                  content: Text(
+                                                    l10n.translate(
+                                                      'common.not_implemented',
+                                                    ),
+                                                  ),
                                                 ),
                                               );
                                             },
@@ -458,8 +485,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                         .withValues(alpha: 0.9),
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w700,
-                                                    fontFamily:
-                                                        'Plus Jakarta Sans',
+                                                    fontFamily: 'HankenGrotesk',
                                                   ),
                                                 ),
                                               ],
@@ -476,19 +502,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                               ),
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                vertical: 12,
-                                              ),
+                                                    vertical: 12,
+                                                  ),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(8.0),
                                               ),
                                             ),
                                             onPressed: () {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
                                                 SnackBar(
-                                                  content: Text(l10n.translate(
-                                                      'common.not_implemented')),
+                                                  content: Text(
+                                                    l10n.translate(
+                                                      'common.not_implemented',
+                                                    ),
+                                                  ),
                                                 ),
                                               );
                                             },
@@ -510,12 +540,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       style: TextStyle(
                                                         color: AppColors.text
                                                             .withValues(
-                                                                alpha: 0.9),
+                                                              alpha: 0.9,
+                                                            ),
                                                         fontSize: 14,
                                                         fontWeight:
                                                             FontWeight.w700,
                                                         fontFamily:
-                                                            'Plus Jakarta Sans',
+                                                            'HankenGrotesk',
                                                       ),
                                                     ),
                                                   ),
@@ -540,15 +571,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                             style: const TextStyle(
                                               fontSize: 14,
                                               color: AppColors.textSecondary,
-                                              fontFamily: 'Plus Jakarta Sans',
+                                              fontFamily: 'HankenGrotesk',
                                             ),
                                             children: [
                                               TextSpan(
-                                                  text: l10n.translate(
-                                                      'auth.login.no_account')),
+                                                text: l10n.translate(
+                                                  'auth.login.no_account',
+                                                ),
+                                              ),
                                               TextSpan(
                                                 text: l10n.translate(
-                                                    'auth.login.register_action'),
+                                                  'auth.login.register_action',
+                                                ),
                                                 style: const TextStyle(
                                                   color: AppColors.cta,
                                                   fontWeight: FontWeight.bold,
@@ -609,8 +643,10 @@ class GoogleLogoPainter extends CustomPainter {
     final double r = size.width / 2;
     final double thickness = size.width * 0.28;
 
-    final rect =
-        Rect.fromCircle(center: Offset(cx, cy), radius: r - thickness / 2);
+    final rect = Rect.fromCircle(
+      center: Offset(cx, cy),
+      radius: r - thickness / 2,
+    );
 
     // Red (Top)
     final redPaint = Paint()
