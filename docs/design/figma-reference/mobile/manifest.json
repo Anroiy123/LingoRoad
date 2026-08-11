@@ -1,0 +1,28 @@
+{
+  "fileKey": "Vd24yzXHCW2dujlZPLq1sg",
+  "exportedAt": "2026-08-11",
+  "notes": "Figma MCP exposed the System Desgin page only in this session. These exported references are the source for foundation token mapping; route/golden rows are ready for the screen-frame exports when Page 1 is available.",
+  "references": [
+    {
+      "nodeId": "2030:392",
+      "name": "Section 1: Color Palette",
+      "file": "system-color-palette-2030-392.png",
+      "routes": ["/splash", "/login", "/register", "/placement", "/profile-setup", "/home"],
+      "golden": "foundation_light"
+    },
+    {
+      "nodeId": "2030:473",
+      "name": "Section 2: Typography",
+      "file": "system-typography-2030-473.png",
+      "routes": ["/splash", "/login", "/register", "/placement", "/profile-setup", "/home"],
+      "golden": "foundation_typography"
+    },
+    {
+      "nodeId": "2030:592",
+      "name": "Section 5: UI Component Preview",
+      "file": "system-components-2030-592.png",
+      "routes": ["/profile-setup", "/placement/status-error", "/profile-setup/status-error"],
+      "golden": "foundation_components"
+    }
+  ]
+}

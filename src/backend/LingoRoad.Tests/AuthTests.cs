@@ -120,6 +120,31 @@ public class AuthTests : IClassFixture<TestAppFactory>
     }
 
     [Fact]
+    public async Task Complete_profile_setup_validates_and_is_idempotent()
+    {
+        var auth = await Register($"{Guid.NewGuid():N}@example.com");
+        Authorize(auth.GetProperty("accessToken").GetString()!);
+        var invalid = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = " ", targetCefr = "b1", dailyGoalMinutes = 9 });
+        Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+
+        var first = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = "  Learner  ", targetCefr = "B1", dailyGoalMinutes = 45 });
+        first.EnsureSuccessStatusCode();
+        var profile = await Json(first);
+        Assert.True(profile.GetProperty("profileSetupCompleted").GetBoolean());
+        Assert.Equal("Learner", profile.GetProperty("name").GetString());
+
+        var second = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = "Updated", targetCefr = "B2", dailyGoalMinutes = 60 });
+        second.EnsureSuccessStatusCode();
+        var updated = await Json(second);
+        Assert.Equal("Updated", updated.GetProperty("name").GetString());
+        Assert.Equal(60, updated.GetProperty("dailyGoalMinutes").GetInt32());
+        Assert.True(updated.GetProperty("profileSetupCompleted").GetBoolean());
+    }
+
+    [Fact]
     public async Task Change_password_revokes_refresh_sessions()
     {
         var email = $"{Guid.NewGuid():N}@example.com";

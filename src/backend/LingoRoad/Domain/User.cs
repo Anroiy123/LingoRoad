@@ -17,6 +17,8 @@ public class User
     public bool AppUpdates { get; set; } = true;
     public string Role { get; set; } = UserRoles.Learner;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Null only while a newly-created learner still needs onboarding details.</summary>
+    public DateTime? ProfileSetupCompletedAt { get; set; }
 }
 
 public static class UserRoles

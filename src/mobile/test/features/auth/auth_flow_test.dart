@@ -48,6 +48,7 @@ class RecoveringHangingClearSessionStore extends MemorySessionStore {
 }
 
 class FlowAuthRepository implements AuthRepository {
+  @override Future<UserProfile> completeProfileSetup({required String name, required String targetCefr, required int dailyGoalMinutes}) => getProfile();
   @override
   Future<AuthTokens> login({
     required String email,

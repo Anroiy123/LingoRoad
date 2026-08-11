@@ -55,12 +55,10 @@ class LingoHeader extends StatelessWidget {
         SizedBox(width: AppSpacing.xs.w),
         Text(
           'lingoRoad',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(
-                color: AppColors.primary,
-                fontSize: 24.sp,
-              ),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: AppColors.primary,
+            fontSize: 24.sp,
+          ),
         ),
         if (streak != null) ...[
           const Spacer(),
@@ -80,12 +78,10 @@ class LingoHeader extends StatelessWidget {
                   SizedBox(width: 4.w),
                   Text(
                     '$streak',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelLarge?.copyWith(
-                          color: AppColors.primary,
-                          fontSize: 14.sp,
-                        ),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.primary,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ],
               ),
@@ -97,31 +93,50 @@ class LingoHeader extends StatelessWidget {
   }
 }
 
+enum AppCardVariant { defaultSurface, outlined, tonal }
+
 class AppCard extends StatelessWidget {
   const AppCard({
     required this.child,
     this.padding,
     this.color,
     this.borderColor,
+    this.variant = AppCardVariant.defaultSurface,
     super.key,
   });
   final Widget child;
   final EdgeInsets? padding;
   final Color? color;
   final Color? borderColor;
+  final AppCardVariant variant;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final cardColor = color ?? theme.scaffoldBackgroundColor;
-    final cardBorderColor = borderColor ?? theme.colorScheme.primary;
+    final cardColor =
+        color ??
+        switch (variant) {
+          AppCardVariant.defaultSurface => theme.colorScheme.surface,
+          AppCardVariant.outlined => theme.scaffoldBackgroundColor,
+          AppCardVariant.tonal => theme.colorScheme.primaryContainer,
+        };
+    final cardBorderColor =
+        borderColor ??
+        switch (variant) {
+          AppCardVariant.defaultSurface => theme.colorScheme.outlineVariant,
+          AppCardVariant.outlined => theme.colorScheme.outline,
+          AppCardVariant.tonal => theme.colorScheme.primaryContainer,
+        };
     final shadowColor = isDark ? AppColorsDark.shadow : AppColors.shadow;
 
     return Container(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg.w, vertical: AppSpacing.lg.h),
+            horizontal: AppSpacing.lg.w,
+            vertical: AppSpacing.lg.h,
+          ),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(AppRadius.xl.r),
@@ -181,8 +196,10 @@ class SectionTitle extends StatelessWidget {
   const SectionTitle(this.text, {super.key});
   final String text;
   @override
-  Widget build(BuildContext context) => Text(text,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22.sp));
+  Widget build(BuildContext context) => Text(
+    text,
+    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22.sp),
+  );
 }
 
 class MetricRow extends StatelessWidget {
@@ -196,20 +213,19 @@ class MetricRow extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelLarge
-                      ?.copyWith(fontSize: 14.sp)),
+              child: Text(
+                label,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontSize: 14.sp),
+              ),
             ),
             Text(
               '$value%',
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontSize: 14.sp,
-                  ),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: AppColors.primary,
+                fontSize: 14.sp,
+              ),
             ),
           ],
         ),
@@ -221,8 +237,8 @@ class MetricRow extends StatelessWidget {
 }
 
 Widget loadingView() => Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
-        child: const CircularProgressIndicator(color: AppColors.primary),
-      ),
-    );
+  child: Padding(
+    padding: EdgeInsets.symmetric(horizontal: 64.w, vertical: 64.h),
+    child: const CircularProgressIndicator(color: AppColors.primary),
+  ),
+);

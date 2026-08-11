@@ -15,6 +15,8 @@ public record ChangePasswordRequest(string? CurrentPassword, string? NewPassword
 public record UpdateProfileRequest(string? TargetCefr, int? DailyGoalMinutes,
     string? LearningPurpose, List<int>? FocusSkillIds, bool? StudyReminderEnabled,
     string? ReminderTime, string? TimeZone, bool? EmailNotifications, bool? AppUpdates);
+public record CompleteProfileSetupRequest(string? Name, string? TargetCefr,
+    int? DailyGoalMinutes);
 
 public static class AuthEndpoints
 {
@@ -204,6 +206,28 @@ public static class AuthEndpoints
             return Results.Ok(await Profile(user, db));
         }).RequireAuthorization();
 
+        g.MapPost("/me/complete-profile-setup", async (CompleteProfileSetupRequest req,
+            System.Security.Claims.ClaimsPrincipal principal, AppDbContext db) =>
+        {
+            var name = req.Name?.Trim();
+            if (string.IsNullOrWhiteSpace(name) || name.Length is < 1 or > 100)
+                return ApiResults.Error("invalid_name");
+            if (req.TargetCefr is null || !CefrLevels.Contains(req.TargetCefr))
+                return ApiResults.Error("invalid_target_cefr");
+            if (req.DailyGoalMinutes is not (>= 10 and <= 120))
+                return ApiResults.Error("invalid_daily_goal");
+
+            var user = await db.Users.FindAsync(principal.UserId());
+            if (user is null) return Results.NotFound();
+            user.Name = name;
+            user.TargetCefr = req.TargetCefr;
+            user.TargetCefrConfirmed = true;
+            user.DailyGoalMinutes = req.DailyGoalMinutes.Value;
+            user.ProfileSetupCompletedAt ??= DateTime.UtcNow;
+            await db.SaveChangesAsync();
+            return Results.Ok(await Profile(user, db));
+        }).RequireAuthorization();
+
         g.MapGet("/me", async (System.Security.Claims.ClaimsPrincipal principal, AppDbContext db) =>
         {
             var user = await db.Users.FindAsync(principal.UserId());
@@ -250,6 +274,7 @@ public static class AuthEndpoints
         return new
         {
             id = user.Id, user.Email, name = user.Name ?? user.Email.Split('@')[0],
+            profileSetupCompleted = user.ProfileSetupCompletedAt is not null,
             user.TargetCefr, user.TargetCefrConfirmed,
             cefrLevel = lastSession?.ResultCefr ?? "A1",
             level = (masteryCount / 3) + 1,

@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import '../helpers/widget_test_harness.dart';
 
 class _TestAuthRepository implements AuthRepository {
+  @override Future<UserProfile> completeProfileSetup({required String name, required String targetCefr, required int dailyGoalMinutes}) => getProfile();
   var failUpdate = false;
   var updateCalls = 0;
   final profile = const UserProfile(

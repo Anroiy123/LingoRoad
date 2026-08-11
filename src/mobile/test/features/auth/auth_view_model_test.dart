@@ -9,6 +9,7 @@ import 'package:lingoroad_mobile/features/auth/domain/user_profile.dart';
 import 'package:lingoroad_mobile/features/auth/presentation/auth_view_model.dart';
 
 class FakeAuthRepository implements AuthRepository {
+  @override Future<UserProfile> completeProfileSetup({required String name, required String targetCefr, required int dailyGoalMinutes}) => getProfile();
   String token = 'token';
   Object? error;
   Completer<AuthTokens>? pending;

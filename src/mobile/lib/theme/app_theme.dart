@@ -64,6 +64,9 @@ abstract final class AppTheme {
         foregroundColor: AppColors.text,
         elevation: 0,
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+      ),
       listTileTheme: const ListTileThemeData(
         textColor: AppColors.text,
         iconColor: AppColors.primary,
@@ -169,6 +172,9 @@ abstract final class AppTheme {
         backgroundColor: AppColorsDark.background,
         foregroundColor: AppColorsDark.text,
         elevation: 0,
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
       ),
       listTileTheme: const ListTileThemeData(
         textColor: AppColorsDark.text,

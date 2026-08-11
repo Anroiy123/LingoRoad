@@ -42,8 +42,8 @@ class PlacementResultScreen extends StatelessWidget {
                     l10n.translate('placement.result.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppCard(
@@ -52,18 +52,14 @@ class PlacementResultScreen extends StatelessWidget {
                       children: [
                         Text(
                           l10n.translate('placement.result.cefr_level'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
+                          style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           result?.cefr ?? '',
                           key: const Key('placement_result_cefr'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
+                          style: Theme.of(context).textTheme.displaySmall
                               ?.copyWith(
                                 color: AppColors.primary,
                                 fontSize: 52,
@@ -74,15 +70,18 @@ class PlacementResultScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _ResultMetric(
-                              label:
-                                  l10n.translate('placement.result.answered'),
+                              label: l10n.translate(
+                                'placement.result.answered',
+                              ),
                               value: l10n.translate(
-                                  'placement.result.answered_val',
-                                  [result?.itemsAnswered ?? 0]),
+                                'placement.result.answered_val',
+                                [result?.itemsAnswered ?? 0],
+                              ),
                             ),
                             _ResultMetric(
-                              label:
-                                  l10n.translate('placement.result.confidence'),
+                              label: l10n.translate(
+                                'placement.result.confidence',
+                              ),
                               value: result == null
                                   ? ''
                                   : 'SE ${result.se.toStringAsFixed(2)}',
@@ -113,12 +112,13 @@ class PlacementResultScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     key: const Key('placement_result_continue'),
-                    onPressed: () {
-                      sessionController.markPlacementCompleted();
-                      context.go('/home');
+                    onPressed: () async {
+                      await sessionController.markPlacementCompleted();
+                      if (context.mounted) context.go('/home');
                     },
-                    child:
-                        Text(l10n.translate('placement.result.continue_btn')),
+                    child: Text(
+                      l10n.translate('placement.result.continue_btn'),
+                    ),
                   ),
                 ],
               ),
@@ -142,16 +142,16 @@ class _ResultMetric extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppColors.primary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: AppColors.primary),
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
           label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
