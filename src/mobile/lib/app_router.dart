@@ -61,7 +61,7 @@ GoRouter createAppRouter({
             }
           } else if (location == '/splash' ||
               isAuthRoute ||
-              location == '/home' ||
+              (location == '/home' || location == '/review') ||
               location.startsWith('/lesson/') ||
               location == '/placement/status-error') {
             return '/placement';
@@ -109,6 +109,10 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/home',
         builder: (context, state) => const MainShell(),
+      ),
+      GoRoute(
+        path: '/review',
+        builder: (context, state) => const MainShell(initialIndex: 2),
       ),
       GoRoute(
         path: '/profile-setup',
