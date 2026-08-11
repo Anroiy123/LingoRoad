@@ -57,7 +57,7 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
         title: l.translate('question_review.complete.title'),
         message: l.translate('question_review.complete.summary', [vm.correctCount, vm.incorrectCount, vm.xp, vm.coins]),
         action: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (vm.dueCount > vm.completed) FilledButton(onPressed: vm.load, child: Text(l.translate('question_review.complete.more'))),
+          if (vm.hasMoreDue) FilledButton(onPressed: vm.load, child: Text(l.translate('question_review.complete.more'))),
           OutlinedButton(key: const Key('question_review_return'), onPressed: () => context.go('/review'), child: Text(l.translate('question_review.complete.return'))),
         ]),
       );

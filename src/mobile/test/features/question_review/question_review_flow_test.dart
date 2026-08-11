@@ -58,6 +58,7 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
   Completer<QuestionReviewCheck>? pendingCheck;
   Completer<QuestionReviewGrade>? pendingGrade;
   int fetchCalls = 0;
+  final fetchSessions = <QuestionReviewSession>[];
   final checks = <String>[];
   final grades = <({String answer, int expectedReps, int rating, String operationId})>[];
 
@@ -65,6 +66,7 @@ class _FakeQuestionReviewRepository implements QuestionReviewRepository {
   Future<QuestionReviewSession> fetchDue({int limit = 10}) async {
     fetchCalls++;
     if (loadError != null) throw loadError!;
+    if (fetchSessions.isNotEmpty) return fetchSessions.removeAt(0);
     return session;
   }
 
@@ -235,7 +237,7 @@ void main() {
     expect(vm.feedback!.correct, isFalse);
     expect(repository.grades.single.rating, 1);
     expect(repository.grades.single.answer, 'red');
-    vm.next();
+    await vm.next();
     expect(vm.state, QuestionReviewState.complete);
     expect(vm.correctCount, 0);
     expect(vm.incorrectCount, 1);
@@ -391,9 +393,12 @@ void main() {
     expect(find.text('Câu trả lời của bạn vẫn được giữ. Hãy thử lại.'), findsOneWidget);
   });
 
-  testWidgets('completion shows Ôn thêm when the server reports more due questions than this page', (tester) async {
+  testWidgets('completion refreshes due count and shows Ôn thêm for a newly re-due card', (tester) async {
     final repository = _FakeQuestionReviewRepository()
-      ..session = const QuestionReviewSession(items: [_first], totalDue: 2);
+      ..fetchSessions.addAll(const [
+        QuestionReviewSession(items: [_first], totalDue: 1),
+        QuestionReviewSession(items: [_first], totalDue: 1),
+      ]);
     await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('answer_option_red')));
@@ -404,6 +409,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('question_review_complete')), findsOneWidget);
     expect(find.text('Ôn thêm'), findsOneWidget);
+    expect(repository.fetchCalls, 2);
   });
 
   testWidgets('completion returns to the Review screen', (tester) async {

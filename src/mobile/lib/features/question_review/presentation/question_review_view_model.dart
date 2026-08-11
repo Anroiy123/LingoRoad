@@ -25,6 +25,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
   int _incorrectCount = 0;
   int _xp = 0;
   int _coins = 0;
+  bool _hasMoreDue = false;
   _RetryAction _retryAction = _RetryAction.load;
 
   QuestionReviewState get state => _state;
@@ -39,6 +40,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
   int get incorrectCount => _incorrectCount;
   int get xp => _xp;
   int get coins => _coins;
+  bool get hasMoreDue => _hasMoreDue;
   bool get isBusy => _state == QuestionReviewState.loading || _state == QuestionReviewState.checking || _state == QuestionReviewState.grading;
   bool get hasRetainedAnswerError => _retryAction != _RetryAction.load;
 
@@ -58,6 +60,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
       final session = await _repository.fetchDue();
       _items = session.items;
       _totalDue = session.totalDue;
+      _hasMoreDue = session.totalDue > session.items.length;
       _index = 0;
       _answer = '';
       _feedback = null;
@@ -131,7 +134,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
       _operationId = null;
       _pendingRating = null;
       _state = QuestionReviewState.feedback;
-      if (!automatic) _advance();
+      if (!automatic) await _advance();
     } catch (error) {
       if (_isStaleCard(error)) {
         await load(force: true, preserveSummary: true);
@@ -141,17 +144,28 @@ class QuestionReviewViewModel extends ChangeNotifier {
     }
   }
 
-  void next() {
+  Future<void> next() async {
     if (_state != QuestionReviewState.feedback || _feedback == null || (_feedback!.correct && _operationId != null)) return;
-    _advance();
+    await _advance();
     notifyListeners();
   }
 
-  void _advance() {
+  Future<void> _advance() async {
     _index++;
     _answer = '';
     _feedback = null;
-    _state = _index >= _items.length ? QuestionReviewState.complete : QuestionReviewState.ready;
+    if (_index < _items.length) {
+      _state = QuestionReviewState.ready;
+      return;
+    }
+    _state = QuestionReviewState.complete;
+    try {
+      final session = await _repository.fetchDue();
+      _totalDue = session.totalDue;
+      _hasMoreDue = session.totalDue > 0;
+    } catch (_) {
+      // Completion remains usable; keep the pre-session pagination signal.
+    }
   }
 
   Future<void> retry() => switch (_retryAction) {
@@ -165,7 +179,7 @@ class QuestionReviewViewModel extends ChangeNotifier {
     final correct = _feedback?.correct;
     if (item == null || correct == null) return;
     await _grade(item, _pendingRating ?? (correct ? 3 : 1), automatic: !correct);
-    if (correct && _state == QuestionReviewState.feedback) _advance();
+    if (correct && _state == QuestionReviewState.feedback) await _advance();
     notifyListeners();
   }
 
