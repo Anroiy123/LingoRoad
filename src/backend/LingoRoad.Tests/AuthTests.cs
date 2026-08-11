@@ -162,6 +162,16 @@ public class AuthTests : IClassFixture<TestAppFactory>
     }
 
     [Fact]
+    public async Task Complete_profile_setup_rejects_name_longer_than_100_after_trimming()
+    {
+        var auth = await Register($"{Guid.NewGuid():N}@example.com");
+        Authorize(auth.GetProperty("accessToken").GetString()!);
+        var response = await _client.PostAsJsonAsync("/auth/me/complete-profile-setup",
+            new { name = $"  {new string('A', 101)}  ", targetCefr = "B1", dailyGoalMinutes = 30 });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Complete_profile_setup_requires_authentication()
     {
         _client.DefaultRequestHeaders.Authorization = null;

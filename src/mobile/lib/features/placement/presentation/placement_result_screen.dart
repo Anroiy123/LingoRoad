@@ -94,10 +94,7 @@ class PlacementResultScreen extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.auto_awesome_rounded,
-                          color: AppColors.primary,
-                        ),
+                        Icon(Icons.auto_awesome_rounded, color: scheme.primary),
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Text(

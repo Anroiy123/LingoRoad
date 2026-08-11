@@ -10,10 +10,7 @@ import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class PlacementQuestionScreen extends StatefulWidget {
-  const PlacementQuestionScreen({
-    this.audioPlayer,
-    super.key,
-  });
+  const PlacementQuestionScreen({this.audioPlayer, super.key});
 
   final PlacementAudioPlayer? audioPlayer;
 
@@ -70,7 +67,9 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
   }
 
   Future<void> _submit(
-      BuildContext context, PlacementViewModel viewModel) async {
+    BuildContext context,
+    PlacementViewModel viewModel,
+  ) async {
     try {
       await _audioPlayer?.stop();
     } catch (_) {
@@ -86,6 +85,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<PlacementViewModel>();
     final l10n = context.watch<AppLanguageProvider>();
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
         child: Builder(
@@ -112,27 +112,23 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                           Row(
                             children: [
                               Text(
-                                l10n.translate('placement.question.title',
-                                    [viewModel.questionNumber]),
+                                l10n.translate('placement.question.title', [
+                                  viewModel.questionNumber,
+                                ]),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const Spacer(),
                               Text(
                                 l10n.translate(
-                                    'placement.question.max_questions'),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
+                                  'placement.question.max_questions',
+                                ),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: scheme.onSurfaceVariant),
                               ),
                             ],
                           ),
                           const SizedBox(height: AppSpacing.sm),
-                          AppProgress(
-                            value: viewModel.questionNumber / 30,
-                          ),
+                          AppProgress(value: viewModel.questionNumber / 30),
                         ],
                       ),
                     ),
@@ -142,27 +138,26 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                         children: [
                           if (item.audioUrl != null) ...[
                             AppCard(
-                              color: AppColors.primaryFixed,
+                              color: scheme.primaryContainer,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.headphones_rounded,
-                                        color: AppColors.primary,
+                                        color: scheme.primary,
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
                                         child: Text(
                                           l10n.translate(
-                                              'placement.question.audio_instruction'),
+                                            'placement.question.audio_instruction',
+                                          ),
                                         ),
                                       ),
                                       FilledButton.tonalIcon(
-                                        key: const Key(
-                                          'placement_play_audio',
-                                        ),
+                                        key: const Key('placement_play_audio'),
                                         onPressed: _isLoadingAudio
                                             ? null
                                             : () => _playAudio(item.audioUrl!),
@@ -171,14 +166,17 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                                 dimension: 16,
                                                 child:
                                                     CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                ),
+                                                      strokeWidth: 2,
+                                                    ),
                                               )
                                             : const Icon(
                                                 Icons.play_arrow_rounded,
                                               ),
-                                        label: Text(l10n.translate(
-                                            'placement.question.listen')),
+                                        label: Text(
+                                          l10n.translate(
+                                            'placement.question.listen',
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -186,12 +184,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                     const SizedBox(height: AppSpacing.sm),
                                     Text(
                                       l10n.translate(_audioError!),
-                                      key: const Key(
-                                        'placement_audio_error',
-                                      ),
-                                      style: const TextStyle(
-                                        color: AppColors.error,
-                                      ),
+                                      key: const Key('placement_audio_error'),
+                                      style: TextStyle(color: scheme.error),
                                     ),
                                   ],
                                 ],
@@ -205,14 +199,17 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          for (var index = 0;
-                              index < item.options.length;
-                              index++) ...[
+                          for (
+                            var index = 0;
+                            index < item.options.length;
+                            index++
+                          ) ...[
                             _AnswerOption(
                               key: Key('placement_option_$index'),
                               label: String.fromCharCode(65 + index),
                               value: item.options[index],
-                              selected: viewModel.selectedAnswer ==
+                              selected:
+                                  viewModel.selectedAnswer ==
                                   item.options[index],
                               enabled: !viewModel.isLoading,
                               onSelected: viewModel.selectAnswer,
@@ -225,7 +222,7 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                             Text(
                               l10n.translate(viewModel.errorMessage!),
                               key: const Key('placement_question_error'),
-                              style: const TextStyle(color: AppColors.error),
+                              style: TextStyle(color: scheme.error),
                             ),
                           ],
                         ],
@@ -238,10 +235,10 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                         AppSpacing.margin,
                         AppSpacing.margin,
                       ),
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface,
+                      decoration: BoxDecoration(
+                        color: scheme.surface,
                         border: Border(
-                          top: BorderSide(color: AppColors.surfaceHigh),
+                          top: BorderSide(color: scheme.outlineVariant),
                         ),
                       ),
                       child: SizedBox(
@@ -259,7 +256,8 @@ class _PlacementQuestionScreenState extends State<PlacementQuestionScreen> {
                                   ),
                                 )
                               : Text(
-                                  l10n.translate('placement.question.submit')),
+                                  l10n.translate('placement.question.submit'),
+                                ),
                         ),
                       ),
                     ),
@@ -292,6 +290,7 @@ class _AnswerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       selected: selected,
       button: true,
@@ -302,10 +301,10 @@ class _AnswerOption extends StatelessWidget {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryFixed : AppColors.surface,
+            color: selected ? scheme.primaryContainer : scheme.surface,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
-              color: selected ? AppColors.primary : AppColors.surfaceHigh,
+              color: selected ? scheme.primary : scheme.outlineVariant,
               width: selected ? 2 : 1,
             ),
           ),
@@ -313,10 +312,12 @@ class _AnswerOption extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor:
-                    selected ? AppColors.primary : AppColors.surfaceLow,
-                foregroundColor:
-                    selected ? AppColors.surface : AppColors.textSecondary,
+                backgroundColor: selected
+                    ? scheme.primary
+                    : scheme.surfaceContainerHighest,
+                foregroundColor: selected
+                    ? scheme.onPrimary
+                    : scheme.onSurfaceVariant,
                 child: Text(label),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -327,10 +328,7 @@ class _AnswerOption extends StatelessWidget {
                 ),
               ),
               if (selected)
-                const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.primary,
-                ),
+                Icon(Icons.check_circle_rounded, color: scheme.primary),
             ],
           ),
         ),

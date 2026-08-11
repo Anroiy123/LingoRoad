@@ -10,7 +10,9 @@ class PlacementIntroScreen extends StatelessWidget {
   const PlacementIntroScreen({super.key});
 
   Future<void> _start(
-      BuildContext context, PlacementViewModel viewModel) async {
+    BuildContext context,
+    PlacementViewModel viewModel,
+  ) async {
     final started = await viewModel.start();
     if (started && context.mounted) {
       context.go('/placement/question');
@@ -20,6 +22,7 @@ class PlacementIntroScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<PlacementViewModel>();
+    final scheme = Theme.of(context).colorScheme;
     final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: SafeArea(
@@ -31,11 +34,7 @@ class PlacementIntroScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.route_rounded,
-                    size: 52,
-                    color: AppColors.primary,
-                  ),
+                  Icon(Icons.route_rounded, size: 52, color: scheme.primary),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     l10n.translate('placement.intro.title'),
@@ -47,8 +46,8 @@ class PlacementIntroScreen extends StatelessWidget {
                     l10n.translate('placement.intro.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppCard(
@@ -56,25 +55,30 @@ class PlacementIntroScreen extends StatelessWidget {
                       children: [
                         _IntroPoint(
                           icon: Icons.quiz_outlined,
-                          title:
-                              l10n.translate('placement.intro.duration_title'),
-                          description:
-                              l10n.translate('placement.intro.duration_desc'),
+                          title: l10n.translate(
+                            'placement.intro.duration_title',
+                          ),
+                          description: l10n.translate(
+                            'placement.intro.duration_desc',
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _IntroPoint(
                           icon: Icons.tune_rounded,
-                          title:
-                              l10n.translate('placement.intro.adaptive_title'),
-                          description:
-                              l10n.translate('placement.intro.adaptive_desc'),
+                          title: l10n.translate(
+                            'placement.intro.adaptive_title',
+                          ),
+                          description: l10n.translate(
+                            'placement.intro.adaptive_desc',
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _IntroPoint(
                           icon: Icons.insights_rounded,
                           title: l10n.translate('placement.intro.result_title'),
-                          description:
-                              l10n.translate('placement.intro.result_desc'),
+                          description: l10n.translate(
+                            'placement.intro.result_desc',
+                          ),
                         ),
                       ],
                     ),
@@ -85,7 +89,7 @@ class PlacementIntroScreen extends StatelessWidget {
                       l10n.translate(viewModel.errorMessage!),
                       key: const Key('placement_intro_error'),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.error),
+                      style: TextStyle(color: scheme.error),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.xl),
@@ -106,8 +110,8 @@ class PlacementIntroScreen extends StatelessWidget {
                     l10n.translate('placement.intro.note'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -135,7 +139,7 @@ class _IntroPoint extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.primary),
+        Icon(icon, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Column(
@@ -146,8 +150,8 @@ class _IntroPoint extends StatelessWidget {
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

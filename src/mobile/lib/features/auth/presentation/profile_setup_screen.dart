@@ -189,6 +189,7 @@ class ProfileSetupStatusErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
     final session = context.read<SessionController>();
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -199,11 +200,7 @@ class ProfileSetupStatusErrorScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.cloud_off_rounded,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
+                  Icon(Icons.cloud_off_rounded, size: 56, color: scheme.error),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     l10n.translate('profile_setup.status_error_title'),

@@ -10,6 +10,7 @@ class PlacementStatusErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sessionController = context.read<SessionController>();
+    final scheme = Theme.of(context).colorScheme;
     final l10n = context.watch<AppLanguageProvider>();
     return Scaffold(
       body: SafeArea(
@@ -22,11 +23,7 @@ class PlacementStatusErrorScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.cloud_off_rounded,
-                    size: 56,
-                    color: AppColors.error,
-                  ),
+                  Icon(Icons.cloud_off_rounded, size: 56, color: scheme.error),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     l10n.translate('placement.error.title'),
@@ -39,8 +36,8 @@ class PlacementStatusErrorScreen extends StatelessWidget {
                     l10n.translate('placement.error.subtitle'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton.icon(
