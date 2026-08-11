@@ -91,7 +91,7 @@ class _StreakDetailsScreenState extends State<StreakDetailsScreen> {
                 Icon(
                   Icons.local_fire_department_rounded,
                   size: 64.sp,
-                  color: AppColors.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 SizedBox(height: AppSpacing.md.h),
                 Text(
@@ -206,7 +206,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) => AppCard(
     child: Column(
       children: [
-        Icon(icon, color: AppColors.primary),
+        Icon(icon, color: Theme.of(context).colorScheme.primary),
         SizedBox(height: AppSpacing.sm.h),
         Text(label),
         Text(value, style: Theme.of(context).textTheme.titleLarge),

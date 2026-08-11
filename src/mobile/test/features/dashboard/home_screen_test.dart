@@ -142,7 +142,10 @@ Widget homeApp(
   ),
 );
 
-Widget streakApp(FakeDashboardRepository repository) => MultiProvider(
+Widget streakApp(
+  FakeDashboardRepository repository, {
+  ThemeData? theme,
+}) => MultiProvider(
   providers: [
     ChangeNotifierProvider<AppLanguageProvider>.value(
       value: languageProvider(),
@@ -151,7 +154,10 @@ Widget streakApp(FakeDashboardRepository repository) => MultiProvider(
       create: (_) => DashboardViewModel(repository),
     ),
   ],
-  child: MaterialApp(theme: AppTheme.light, home: const StreakDetailsScreen()),
+  child: MaterialApp(
+    theme: theme ?? AppTheme.light,
+    home: const StreakDetailsScreen(),
+  ),
 );
 
 void main() {
@@ -204,6 +210,28 @@ void main() {
     expect(find.text('6 ngày'), findsOneWidget);
     expect(find.text('12 ngày'), findsNothing);
     expect(find.text('18 ngày'), findsNothing);
+  });
+
+  testWidgets('Chi tiết streak dark resolve indicator và stat icon theo primary', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      streakApp(FakeDashboardRepository(), theme: AppTheme.dark),
+    );
+    await tester.pumpAndSettle();
+
+    final primary = AppTheme.dark.colorScheme.primary;
+    expect(
+      tester.widget<Icon>(
+        find.byIcon(Icons.local_fire_department_rounded),
+      ).color,
+      primary,
+    );
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.emoji_events_rounded)).color,
+      primary,
+    );
   });
 
   testWidgets(
