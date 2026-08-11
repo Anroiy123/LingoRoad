@@ -260,18 +260,26 @@ void main() {
   for (final surface in _FoundationSurface.values) {
     for (final mode in [ThemeMode.light, ThemeMode.dark]) {
       final brightness = mode == ThemeMode.light ? 'light' : 'dark';
-      testWidgets('${surface.goldenName} $brightness golden', (tester) async {
-        await pumpLingoRoadGoldenSurface(
-          tester,
-          child: await _surface(surface),
-          themeMode: mode,
-        );
+      testWidgets(
+        '${surface.goldenName} $brightness golden',
+        (tester) async {
+          await pumpLingoRoadGoldenSurface(
+            tester,
+            child: await _surface(surface),
+            themeMode: mode,
+          );
 
-        await expectLater(
-          find.byKey(lingoRoadGoldenRootKey),
-          matchesGoldenFile('foundation/${surface.goldenName}_$brightness.png'),
-        );
-      });
+          await expectLater(
+            find.byKey(lingoRoadGoldenRootKey),
+            matchesGoldenFile(
+              'foundation/${surface.goldenName}_$brightness.png',
+            ),
+          );
+        },
+        // Rasterization varies by host OS; committed baselines are generated
+        // and compared on the pinned Linux CI runtime.
+        skip: !Platform.isLinux,
+      );
     }
   }
 
