@@ -70,21 +70,20 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
               l10n.translate('learning_path.title'),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.w800,
-                  ),
+                fontSize: 28.sp,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             SizedBox(height: AppSpacing.xxs.h),
             Text(
-              l10n.translate(
-                'learning_path.subtitle',
-                [viewModel.steps.length],
-              ),
+              l10n.translate('learning_path.subtitle', [
+                viewModel.steps.length,
+              ]),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 14.sp,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 14.sp,
+              ),
             ),
           ],
         ),
@@ -100,37 +99,37 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
   ) {
     return switch (viewModel.state) {
       LearningPathState.initial || LearningPathState.loading => KeyedSubtree(
-          key: const Key('learning_path_loading'),
-          child: loadingView(),
-        ),
+        key: const Key('learning_path_loading'),
+        child: loadingView(),
+      ),
       LearningPathState.empty => _MessageCard(
-          key: const Key('learning_path_empty'),
-          icon: Icons.route_rounded,
-          title: l10n.translate('learning_path.empty.title'),
-          message: l10n.translate('learning_path.empty.message'),
-        ),
+        key: const Key('learning_path_empty'),
+        icon: Icons.route_rounded,
+        title: l10n.translate('learning_path.empty.title'),
+        message: l10n.translate('learning_path.empty.message'),
+      ),
       LearningPathState.error => _MessageCard(
-          key: const Key('learning_path_error'),
-          icon: Icons.cloud_off_rounded,
-          title: l10n.translate('learning_path.error.title'),
-          message: l10n.translate(
-            viewModel.errorCode == 'network_unavailable' ||
-                    viewModel.errorCode == 'request_timeout'
-                ? 'learning_path.error.network'
-                : 'learning_path.error.message',
-          ),
-          action: FilledButton.icon(
-            key: const Key('learning_path_retry'),
-            onPressed: viewModel.retry,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(l10n.translate('common.retry')),
-          ),
+        key: const Key('learning_path_error'),
+        icon: Icons.cloud_off_rounded,
+        title: l10n.translate('learning_path.error.title'),
+        message: l10n.translate(
+          viewModel.errorCode == 'network_unavailable' ||
+                  viewModel.errorCode == 'request_timeout'
+              ? 'learning_path.error.network'
+              : 'learning_path.error.message',
         ),
+        action: FilledButton.icon(
+          key: const Key('learning_path_retry'),
+          onPressed: viewModel.retry,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(l10n.translate('common.retry')),
+        ),
+      ),
       LearningPathState.success => _PathList(
-          steps: viewModel.steps,
-          selectedCode: _selectedCode,
-          onSelected: _openLesson,
-        ),
+        steps: viewModel.steps,
+        selectedCode: _selectedCode,
+        onSelected: _openLesson,
+      ),
     };
   }
 
@@ -144,9 +143,12 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       if (matches.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('learning_path.no_lesson'))),
+            content: Text(
+              context.read<AppLanguageProvider>().translate(
+                'learning_path.no_lesson',
+              ),
+            ),
+          ),
         );
         return;
       }
@@ -155,9 +157,12 @@ class _LearningPathScreenState extends State<LearningPathScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(context
-                  .read<AppLanguageProvider>()
-                  .translate('learning_path.open_error'))),
+            content: Text(
+              context.read<AppLanguageProvider>().translate(
+                'learning_path.open_error',
+              ),
+            ),
+          ),
         );
       }
     }
@@ -177,6 +182,13 @@ class _PathList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstIncomplete = steps.indexWhere((step) => step.mastery < 1);
+    final firstRecommended = steps.indexWhere(
+      (step) => step.mastery < 1 && step.reason == 'below_threshold',
+    );
+    final currentIndex = firstRecommended >= 0
+        ? firstRecommended
+        : firstIncomplete;
     return Column(
       children: [
         for (var index = 0; index < steps.length; index++)
@@ -185,11 +197,29 @@ class _PathList extends StatelessWidget {
             index: index,
             isLast: index == steps.length - 1,
             selected: selectedCode == steps[index].code,
-            onTap: () => onSelected(steps[index].code),
+            state: _pathStateFor(steps[index], index, currentIndex),
+            onTap:
+                _pathStateFor(steps[index], index, currentIndex) ==
+                    _PathStepState.locked
+                ? null
+                : () => onSelected(steps[index].code),
           ),
       ],
     );
   }
+}
+
+enum _PathStepState { completed, current, unlocked, locked }
+
+_PathStepState _pathStateFor(
+  LearningPathStep step,
+  int index,
+  int currentIndex,
+) {
+  if (step.mastery >= 1) return _PathStepState.completed;
+  if (index == currentIndex) return _PathStepState.current;
+  if (step.reason == 'below_threshold') return _PathStepState.unlocked;
+  return _PathStepState.locked;
 }
 
 class _PathItem extends StatelessWidget {
@@ -198,6 +228,7 @@ class _PathItem extends StatelessWidget {
     required this.index,
     required this.isLast,
     required this.selected,
+    required this.state,
     required this.onTap,
   });
 
@@ -205,13 +236,15 @@ class _PathItem extends StatelessWidget {
   final int index;
   final bool isLast;
   final bool selected;
-  final VoidCallback onTap;
+  final _PathStepState state;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
-    final localizedName =
-        l10n.currentLanguage == AppLanguage.vi ? step.nameVi : step.name;
+    final localizedName = l10n.currentLanguage == AppLanguage.vi
+        ? step.nameVi
+        : step.name;
     final reasonKey = switch (step.reason) {
       'below_threshold' => 'learning_path.reason.below_threshold',
       'not_started' => 'learning_path.reason.not_started',
@@ -219,8 +252,9 @@ class _PathItem extends StatelessWidget {
     };
 
     final side = index.isEven ? Alignment.centerLeft : Alignment.centerRight;
-    final bool current = index == 0;
-    final bool isCompleted = step.mastery >= 1.0;
+    final current = state == _PathStepState.current;
+    final isCompleted = state == _PathStepState.completed;
+    final locked = state == _PathStepState.locked;
     final String statusText = l10n.translate(reasonKey);
 
     final theme = Theme.of(context);
@@ -231,8 +265,10 @@ class _PathItem extends StatelessWidget {
     Color iconBg = AppColors.primary;
     Color iconColor = Colors.white;
     Color cardColor = theme.scaffoldBackgroundColor;
-    BorderSide borderSide =
-        BorderSide(color: theme.colorScheme.primary, width: 1.5.w);
+    BorderSide borderSide = BorderSide(
+      color: theme.colorScheme.primary,
+      width: 1.5.w,
+    );
     List<BoxShadow> shadow = [
       BoxShadow(
         color: isDark ? AppColorsDark.shadow : AppColors.shadow,
@@ -259,7 +295,7 @@ class _PathItem extends StatelessWidget {
           offset: const Offset(0, 8),
         ),
       ];
-    } else if (step.reason == 'below_threshold') {
+    } else if (state == _PathStepState.unlocked) {
       progressColor = AppColors.primaryContainer;
       iconData = Icons.psychology_rounded;
       iconBg = isDark ? AppColorsDark.primaryFixed : AppColors.primaryFixed;
@@ -267,19 +303,34 @@ class _PathItem extends StatelessWidget {
     } else {
       iconData = Icons.lock_rounded;
       iconBg = isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh;
-      iconColor = isDark ? AppColorsDark.textSecondary : AppColors.textSecondary;
+      iconColor = isDark
+          ? AppColorsDark.textSecondary
+          : AppColors.textSecondary;
       cardColor = isDark ? AppColorsDark.surfaceLow : AppColors.surfaceLow;
       borderSide = BorderSide(
-          color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
-          width: 1.w);
+        color: isDark ? AppColorsDark.surfaceHigh : AppColors.surfaceHigh,
+        width: 1.w,
+      );
     }
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: Align(
-        alignment: side,
-        child: FractionallySizedBox(
-          widthFactor: 0.76,
+    final stateName = state.name;
+    final semanticsLabel = '$localizedName, ${step.cefr}, $statusText';
+
+    return Semantics(
+      key: Key('learning_path_state_${stateName}_${step.code}'),
+      container: true,
+      explicitChildNodes: true,
+      button: true,
+      enabled: !locked,
+      selected: current || selected,
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          child: Align(
+            alignment: side,
+            child: FractionallySizedBox(
+              widthFactor: MediaQuery.sizeOf(context).width <= 340 ? .9 : .76,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -330,9 +381,9 @@ class _PathItem extends StatelessWidget {
                                               ?.copyWith(
                                                 fontSize: 14.sp,
                                                 fontWeight: FontWeight.bold,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                               ),
                                         ),
                                         SizedBox(height: 2.h),
@@ -342,9 +393,9 @@ class _PathItem extends StatelessWidget {
                                               .textTheme
                                               .labelSmall
                                               ?.copyWith(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurfaceVariant,
                                                 fontSize: 12.sp,
                                               ),
                                         ),
@@ -358,8 +409,9 @@ class _PathItem extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: ClipRRect(
-                                      borderRadius:
-                                          BorderRadius.circular(999.r),
+                                      borderRadius: BorderRadius.circular(
+                                        999.r,
+                                      ),
                                       child: LinearProgressIndicator(
                                         value: step.mastery.clamp(0.0, 1.0),
                                         minHeight: 6.h,
@@ -414,16 +466,15 @@ class _PathItem extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.primaryContainer,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.md.r),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.md.r,
+                              ),
                             ),
                             child: Text(
                               l10n
                                   .translate('learning_path.current_step')
                                   .toUpperCase(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -438,10 +489,11 @@ class _PathItem extends StatelessWidget {
               ),
             ),
           ),
-        );
+        ),
+      ),
+    );
   }
 }
-
 
 class _MessageCard extends StatelessWidget {
   const _MessageCard({
@@ -466,24 +518,20 @@ class _MessageCard extends StatelessWidget {
           SizedBox(height: AppSpacing.sm.h),
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontSize: 20.sp),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontSize: 20.sp),
           ),
           SizedBox(height: AppSpacing.xs.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 14.sp,
-                ),
+              color: AppColors.textSecondary,
+              fontSize: 14.sp,
+            ),
           ),
-          if (action != null) ...[
-            SizedBox(height: AppSpacing.md.h),
-            action!,
-          ],
+          if (action != null) ...[SizedBox(height: AppSpacing.md.h), action!],
         ],
       ),
     );

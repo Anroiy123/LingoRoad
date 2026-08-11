@@ -168,6 +168,24 @@ void main() {
     );
   });
 
+  test('question review deep link is gated by placement and profile setup', () {
+    expect(
+      _redirect(
+        location: '/question-review',
+        placement: PlacementOnboardingStatus.required,
+      ),
+      '/placement',
+    );
+    expect(
+      _redirect(
+        location: '/question-review',
+        profile: ProfileSetupStatus.required,
+      ),
+      '/profile-setup',
+    );
+    expect(_redirect(location: '/question-review'), isNull);
+  });
+
   test('completed onboarding protects no application deep link', () {
     for (final location in _protectedDeepLinks) {
       expect(_redirect(location: location), isNull, reason: location);

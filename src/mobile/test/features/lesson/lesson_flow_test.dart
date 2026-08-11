@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,7 +78,9 @@ class FakeLessonRepository implements LessonRepository {
 
   @override
   Future<LessonCompletion> complete(
-      String attemptId, String operationId) async {
+    String attemptId,
+    String operationId,
+  ) async {
     completeCalls++;
     return const LessonCompletion(
       correctAnswers: 1,
@@ -118,10 +121,12 @@ class FakeSavedWordRepository implements SavedWordRepository {
 }
 
 AppLanguageProvider languageProvider() {
-  final vi = json.decode(File('assets/translations/vi.json').readAsStringSync())
-      as Map<String, dynamic>;
-  final en = json.decode(File('assets/translations/en.json').readAsStringSync())
-      as Map<String, dynamic>;
+  final vi =
+      json.decode(File('assets/translations/vi.json').readAsStringSync())
+          as Map<String, dynamic>;
+  final en =
+      json.decode(File('assets/translations/en.json').readAsStringSync())
+          as Map<String, dynamic>;
   return AppLanguageProvider.test(
     translations: {AppLanguage.vi: vi, AppLanguage.en: en},
   );
@@ -131,27 +136,26 @@ Widget lessonApp(
   FakeLessonRepository repository, {
   DictionaryRepository? dictionaryRepository,
   SavedWordRepository? savedWordRepository,
-}) =>
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AppLanguageProvider>.value(
-          value: languageProvider(),
-        ),
-        ChangeNotifierProvider<LessonViewModel>(
-          create: (_) => LessonViewModel(repository),
-        ),
-        Provider<DictionaryRepository>.value(
-          value: dictionaryRepository ?? FakeDictionaryRepository(),
-        ),
-        Provider<SavedWordRepository>.value(
-          value: savedWordRepository ?? FakeSavedWordRepository(),
-        ),
-      ],
-      child: MaterialApp(
-        theme: AppTheme.light,
-        home: const LessonScreen(lessonId: 'lesson-1'),
-      ),
-    );
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<AppLanguageProvider>.value(
+      value: languageProvider(),
+    ),
+    ChangeNotifierProvider<LessonViewModel>(
+      create: (_) => LessonViewModel(repository),
+    ),
+    Provider<DictionaryRepository>.value(
+      value: dictionaryRepository ?? FakeDictionaryRepository(),
+    ),
+    Provider<SavedWordRepository>.value(
+      value: savedWordRepository ?? FakeSavedWordRepository(),
+    ),
+  ],
+  child: MaterialApp(
+    theme: AppTheme.light,
+    home: const LessonScreen(lessonId: 'lesson-1'),
+  ),
+);
 
 void main() {
   test('double submit gửi một request và retry giữ operation ID', () async {
@@ -218,8 +222,9 @@ void main() {
     );
   });
 
-  testWidgets('giữ tay vào từ để tra nghĩa rồi lưu từ vào danh sách xem lại',
-      (tester) async {
+  testWidgets('giữ tay vào từ để tra nghĩa rồi lưu từ vào danh sách xem lại', (
+    tester,
+  ) async {
     final repository = FakeLessonRepository();
     final dictionaryRepository = FakeDictionaryRepository()
       ..nextDefinition = 'một cái tên tiếng Việt';
@@ -254,8 +259,9 @@ void main() {
     expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
   });
 
-  testWidgets('lỗi tra từ điển hiển thị thông báo lỗi, không có nút lưu',
-      (tester) async {
+  testWidgets('lỗi tra từ điển hiển thị thông báo lỗi, không có nút lưu', (
+    tester,
+  ) async {
     final repository = FakeLessonRepository();
     final dictionaryRepository = FakeDictionaryRepository()
       ..lookupError = const ApiException(
@@ -272,9 +278,68 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(dictionaryRepository.lookedUpWords, ['English']);
-    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'),
-        findsOneWidget);
+    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'), findsOneWidget);
     expect(find.byKey(const Key('dictionary_definition')), findsNothing);
     expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
   });
+
+  testWidgets('nút từ điển hiển thị rõ ràng và cho chọn từ để tra', (
+    tester,
+  ) async {
+    final dictionaryRepository = FakeDictionaryRepository()
+      ..nextDefinition = 'học';
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(
+        FakeLessonRepository(),
+        dictionaryRepository: dictionaryRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final dictionaryButton = find.byKey(const Key('lesson_dictionary_button'));
+    expect(dictionaryButton, findsOneWidget);
+    expect(tester.getSize(dictionaryButton).width, greaterThanOrEqualTo(48));
+    expect(tester.getSize(dictionaryButton).height, greaterThanOrEqualTo(48));
+    expect(
+      tester.getSemantics(dictionaryButton).label,
+      contains('Tra từ trong câu'),
+    );
+
+    await tester.tap(dictionaryButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('lesson_dictionary_word_English')));
+    await tester.pumpAndSettle();
+
+    expect(dictionaryRepository.lookedUpWords, ['English']);
+    expect(find.byKey(const Key('dictionary_definition')), findsOneWidget);
+  });
+
+  testWidgets(
+    'feedback giữ lựa chọn, công bố đúng/sai bằng semantics live region và nhận focus',
+    (tester) async {
+      await pumpWidgetWithLingoRoadScreenUtil(
+        tester,
+        lessonApp(FakeLessonRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pumpAndSettle();
+
+      final selected = tester.getSemantics(
+        find.byKey(const Key('lesson_option_studies')),
+      );
+      expect(selected.flagsCollection.isSelected, Tristate.isTrue);
+      expect(selected.label, contains('đúng'));
+
+      final feedbackFinder = find.byKey(const Key('lesson_feedback'));
+      final feedback = tester.widget<Semantics>(feedbackFinder);
+      expect(feedback.properties.liveRegion, isTrue);
+      final focus = tester.widget<Focus>(
+        find.descendant(of: feedbackFinder, matching: find.byType(Focus)).first,
+      );
+      expect(focus.focusNode?.hasFocus, isTrue);
+    },
+  );
 }

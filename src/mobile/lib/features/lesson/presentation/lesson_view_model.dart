@@ -17,7 +17,7 @@ enum LessonState {
 
 class LessonViewModel extends ChangeNotifier {
   LessonViewModel(this._repository, {Uuid? uuid})
-      : _uuid = uuid ?? const Uuid();
+    : _uuid = uuid ?? const Uuid();
 
   final LessonRepository _repository;
   final Uuid _uuid;
@@ -31,6 +31,7 @@ class LessonViewModel extends ChangeNotifier {
   String? _startOperationId;
   String? _answerOperationId;
   String? _pendingAnswer;
+  String? _lastAnswer;
   String? _completeOperationId;
   String? _lessonId;
 
@@ -38,12 +39,13 @@ class LessonViewModel extends ChangeNotifier {
   LessonAttempt? get attempt => _attempt;
   LessonExercise? get current =>
       _attempt != null && _index < _attempt!.exercises.length
-          ? _attempt!.exercises[_index]
-          : null;
+      ? _attempt!.exercises[_index]
+      : null;
   LessonCompletion? get completion => _completion;
   ExerciseFeedback? get feedback => _feedback;
   List<MistakeRecord> get mistakes => List.unmodifiable(_mistakes);
   String? get errorCode => _errorCode;
+  String? get lastAnswer => _lastAnswer;
   int get currentNumber => _index + 1;
   int get total => _attempt?.exercises.length ?? 0;
   double get progress => total == 0 ? 0 : _index / total;
@@ -62,6 +64,7 @@ class LessonViewModel extends ChangeNotifier {
     try {
       _attempt = await _repository.start(lessonId, _startOperationId!);
       _startOperationId = null;
+      _lastAnswer = null;
       _mistakes.clear();
       _index = _attempt!.exercises.indexWhere((exercise) => !exercise.answered);
       if (_index < 0) {
@@ -102,12 +105,15 @@ class LessonViewModel extends ChangeNotifier {
         answer: _pendingAnswer!,
         operationId: _answerOperationId!,
       );
+      _lastAnswer = _pendingAnswer;
       if (!_feedback!.correct) {
-        _mistakes.add(MistakeRecord(
-          exercise: exercise,
-          userAnswer: _pendingAnswer!,
-          feedback: _feedback!,
-        ));
+        _mistakes.add(
+          MistakeRecord(
+            exercise: exercise,
+            userAnswer: _pendingAnswer!,
+            feedback: _feedback!,
+          ),
+        );
       }
       _answerOperationId = null;
       _pendingAnswer = null;
@@ -127,6 +133,7 @@ class LessonViewModel extends ChangeNotifier {
   Future<void> next() async {
     if (_state != LessonState.feedback) return;
     _feedback = null;
+    _lastAnswer = null;
     _index++;
     if (_index >= total) {
       await _complete();
@@ -144,8 +151,10 @@ class LessonViewModel extends ChangeNotifier {
     _errorCode = null;
     notifyListeners();
     try {
-      _completion =
-          await _repository.complete(attempt.id, _completeOperationId!);
+      _completion = await _repository.complete(
+        attempt.id,
+        _completeOperationId!,
+      );
       _completeOperationId = null;
       _state = LessonState.completed;
     } catch (error) {

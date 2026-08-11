@@ -49,16 +49,19 @@
     }
   },
   "dictionary": {
+    "lookup_sentence": "Tra từ trong câu",
     "save_word": "Lưu từ để xem lại",
     "word_saved": "Đã lưu từ"
   },
   "common": {
+    "back": "Quay lại",
     "fallback_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
     "not_implemented": "Tính năng này đang được phát triển.",
     "progress_percent": "Tiến độ {} phần trăm",
     "retry": "Thử lại"
   },
   "home": {
+    "avatar_semantics": "Ảnh đại diện của {}",
     "error": "Không thể tải dữ liệu học hôm nay.",
     "level_summary": "{} → {} · Thành thạo {}%",
     "metrics": {
@@ -93,6 +96,7 @@
       "due": "Cần ôn"
     },
     "subtitle": "Sẵn sàng học tiếng Anh hôm nay chưa?",
+    "streak_semantics": "Chuỗi học tập {} ngày",
     "today_lesson": {
       "details": "CEFR {} · {} câu · mục tiêu {} phút",
       "empty": "Bạn đã hoàn thành các bài được đề xuất",
@@ -123,6 +127,11 @@
     "title": "Lộ trình học của bạn"
   },
   "lesson": {
+    "answer_state": {
+      "correct": "đáp án đúng",
+      "incorrect": "lựa chọn chưa đúng",
+      "selected": "đã chọn"
+    },
     "answer_hint": "Nhập câu trả lời",
     "complete": {
       "accuracy": "Tỉ lệ\nchính xác",
@@ -148,6 +157,8 @@
     "feedback": {
       "answer": "Đáp án đúng: {}",
       "correct": "Chính xác!",
+      "semantics_correct": "Câu trả lời chính xác",
+      "semantics_wrong": "Câu trả lời chưa đúng",
       "wrong": "Chưa đúng, hãy xem đáp án và giải thích."
     },
     "mistakes": {
@@ -367,6 +378,9 @@
     "answer_hint": "Nhập câu trả lời",
     "check": "Kiểm tra",
     "progress": "Câu {} · còn {} câu trong lượt này",
+    "status": {
+      "checking": "Đang kiểm tra câu trả lời"
+    },
     "next": "Tiếp tục",
     "rating": { "2": "Khó", "3": "Tốt", "4": "Dễ" },
     "feedback": {

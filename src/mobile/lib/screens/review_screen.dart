@@ -5,6 +5,7 @@ import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
+import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -71,6 +72,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final vocabCountText = vm.state == ReviewState.loading
         ? '...'
         : l.translate('review.selection.vocab_due_badge', [vm.remaining]);
+    final questionCountText = questionVm?.state == QuestionReviewState.loading
+        ? '...'
+        : l.translate('review.selection.question_due_badge', [
+            questionVm?.dueCount ?? 0,
+          ]);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -82,15 +89,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
               context.go('/home');
             }
           },
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.primary),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text(
           l.translate('review.selection.title'),
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.primary,
-                fontSize: 24.sp,
-                fontWeight: FontWeight.w800,
-              ),
+            color: scheme.primary,
+            fontSize: 24.sp,
+            fontWeight: FontWeight.w800,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -113,19 +120,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 _ReviewSelectionCard(
                   key: const Key('question_review_card'),
                   icon: Icons.quiz_outlined,
-                  badgeText: questionVm?.state == QuestionReviewState.loading
-                      ? '...'
-                      : l.translate('review.selection.question_due_badge', [questionVm?.dueCount ?? 0]),
+                  badgeText: questionCountText,
                   badgeIcon: Icons.schedule_rounded,
-                  badgeTextColor: AppColors.primary,
-                  badgeBgColor: AppColors.primaryFixed,
+                  badgeTextColor: scheme.primary,
+                  badgeBgColor: scheme.primaryContainer,
                   title: l.translate('review.selection.question_title'),
                   description: l.translate('review.selection.question_desc'),
                   onTap: () async {
                     final routerContext = context;
                     await routerContext.push('/question-review');
                     if (!routerContext.mounted) return;
-                    final freshQuestionVm = routerContext.read<QuestionReviewViewModel?>();
+                    final freshQuestionVm = routerContext
+                        .read<QuestionReviewViewModel?>();
                     if (freshQuestionVm != null) await freshQuestionVm.load();
                   },
                 ),
@@ -135,14 +141,27 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   icon: Icons.menu_book_outlined,
                   badgeText: vocabCountText,
                   badgeIcon: Icons.schedule_rounded,
-                  badgeTextColor: AppColors.primary,
-                  badgeBgColor: AppColors.primaryFixed,
+                  badgeTextColor: scheme.primary,
+                  badgeBgColor: scheme.primaryContainer,
                   title: l.translate('review.selection.vocab_title'),
                   description: l.translate('review.selection.vocab_desc'),
                   onTap: () {
                     context.push('/vocabulary-review');
                   },
                 ),
+                if (vm.state == ReviewState.error ||
+                    questionVm?.state == QuestionReviewState.error) ...[
+                  SizedBox(height: AppSpacing.lg.h),
+                  _ReviewLoadError(
+                    retryVocabulary: vm.state == ReviewState.error
+                        ? vm.load
+                        : null,
+                    retryQuestions:
+                        questionVm?.state == QuestionReviewState.error
+                        ? questionVm!.retry
+                        : null,
+                  ),
+                ],
               ],
             ),
           ),
@@ -177,107 +196,168 @@ class _ReviewSelectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final cardColor = theme.scaffoldBackgroundColor;
+    final cardColor = scheme.surface;
     final cardBorderColor = theme.colorScheme.primary;
     final shadowColor = isDark ? AppColorsDark.shadow : AppColors.shadow;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(AppRadius.lg.r),
-        border: Border.all(color: cardBorderColor, width: 1.5.w),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return Semantics(
+      button: true,
+      label: '$title, $badgeText',
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(AppRadius.lg.r),
+            border: Border.all(color: cardBorderColor, width: 1.5.w),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.lg.r),
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.lg.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(AppSpacing.sm.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        icon,
-                        color: AppColors.primary,
-                        size: 32.sp,
-                      ),
-                    ),
-                    Flexible(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm.w,
-                          vertical: AppSpacing.xxs.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: badgeBgColor,
-                          borderRadius: BorderRadius.circular(999.r),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              badgeIcon,
-                              color: badgeTextColor,
-                              size: 16.sp,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppRadius.lg.r),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 152),
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(AppSpacing.sm.w),
+                            decoration: BoxDecoration(
+                              color: scheme.primaryContainer,
+                              shape: BoxShape.circle,
                             ),
-                            SizedBox(width: 4.w),
-                            Flexible(
-                              child: Text(
-                                badgeText,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(
-                                      color: badgeTextColor,
-                                      fontWeight: FontWeight.w600,
+                            child: Icon(
+                              icon,
+                              color: scheme.primary,
+                              size: 32.sp,
+                            ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm.w,
+                                vertical: AppSpacing.xxs.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: badgeBgColor,
+                                borderRadius: BorderRadius.circular(999.r),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    badgeIcon,
+                                    color: badgeTextColor,
+                                    size: 16.sp,
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  Flexible(
+                                    child: Text(
+                                      badgeText,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: badgeTextColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      SizedBox(height: AppSpacing.xxs.h),
+                      Text(
+                        description,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 14.sp,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                SizedBox(height: AppSpacing.md.h),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                SizedBox(height: AppSpacing.xxs.h),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 14.sp,
-                      ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ReviewLoadError extends StatelessWidget {
+  const _ReviewLoadError({this.retryVocabulary, this.retryQuestions});
+
+  final VoidCallback? retryVocabulary;
+  final VoidCallback? retryQuestions;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.watch<AppLanguageProvider>();
+    return AppCard(
+      variant: AppCardVariant.outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.translate('review.error.title'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: AppSpacing.xs.h),
+          Text(l10n.translate('review.error.message')),
+          SizedBox(height: AppSpacing.md.h),
+          Wrap(
+            spacing: AppSpacing.sm.w,
+            runSpacing: AppSpacing.sm.h,
+            children: [
+              if (retryQuestions != null)
+                OutlinedButton.icon(
+                  key: const Key('review_retry_questions'),
+                  onPressed: retryQuestions,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(
+                    l10n.translate('review.selection.question_title'),
+                  ),
+                ),
+              if (retryVocabulary != null)
+                FilledButton.icon(
+                  key: const Key('review_retry_vocabulary'),
+                  onPressed: retryVocabulary,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(l10n.translate('review.selection.vocab_title')),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
