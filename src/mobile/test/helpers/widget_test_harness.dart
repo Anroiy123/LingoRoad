@@ -10,11 +10,13 @@ const lingoRoadGoldenRootKey = Key('lingoroad_golden_root');
 Future<void>? _fontLoad;
 
 Future<void> loadLingoRoadGoldenFonts() => _fontLoad ??= () async {
-  final loader = FontLoader('HankenGrotesk')
+  final hankenLoader = FontLoader('HankenGrotesk')
     ..addFont(
       rootBundle.load('assets/fonts/HankenGrotesk-VariableFont_wght.ttf'),
     );
-  await loader.load();
+  final materialIconsLoader = FontLoader('MaterialIcons')
+    ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+  await Future.wait([hankenLoader.load(), materialIconsLoader.load()]);
 }();
 
 void expectRenderedTextSequence(Finder ancestor, String expected) {
