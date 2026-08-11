@@ -149,14 +149,13 @@ class SessionController extends ChangeNotifier {
       return;
     }
 
-    final token = _token!;
     final epoch = _sessionEpoch;
     final generation = ++_placementLookupGeneration;
     _setPlacementStatus(PlacementOnboardingStatus.checking);
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
         final completed = await loader().timeout(_placementStatusTimeout);
-        if (!_isCurrentPlacementLookup(token, epoch, generation)) {
+        if (!_isCurrentPlacementLookup(epoch, generation)) {
           return;
         }
         _setPlacementStatus(
@@ -167,12 +166,12 @@ class SessionController extends ChangeNotifier {
         if (completed) await refreshProfileSetupStatus();
         return;
       } catch (_) {
-        if (!_isCurrentPlacementLookup(token, epoch, generation)) {
+        if (!_isCurrentPlacementLookup(epoch, generation)) {
           return;
         }
       }
     }
-    if (_isCurrentPlacementLookup(token, epoch, generation)) {
+    if (_isCurrentPlacementLookup(epoch, generation)) {
       _setPlacementStatus(PlacementOnboardingStatus.error);
     }
   }
@@ -196,13 +195,12 @@ class SessionController extends ChangeNotifier {
       _setProfileSetupStatus(ProfileSetupStatus.completed);
       return;
     }
-    final token = _token!;
     final epoch = _sessionEpoch;
     final generation = ++_profileSetupLookupGeneration;
     _setProfileSetupStatus(ProfileSetupStatus.checking);
     try {
       final completed = await loader().timeout(_placementStatusTimeout);
-      if (_isCurrentProfileSetupLookup(token, epoch, generation)) {
+      if (_isCurrentProfileSetupLookup(epoch, generation)) {
         _setProfileSetupStatus(
           completed
               ? ProfileSetupStatus.completed
@@ -210,7 +208,7 @@ class SessionController extends ChangeNotifier {
         );
       }
     } catch (_) {
-      if (_isCurrentProfileSetupLookup(token, epoch, generation)) {
+      if (_isCurrentProfileSetupLookup(epoch, generation)) {
         _setProfileSetupStatus(ProfileSetupStatus.error);
       }
     }
@@ -275,15 +273,15 @@ class SessionController extends ChangeNotifier {
 
   Future<void> invalidate() => logout();
 
-  bool _isCurrentPlacementLookup(String token, int epoch, int generation) =>
+  bool _isCurrentPlacementLookup(int epoch, int generation) =>
       _status == SessionStatus.authenticated &&
-      _token == token &&
+      _token != null &&
       _sessionEpoch == epoch &&
       _placementLookupGeneration == generation;
 
-  bool _isCurrentProfileSetupLookup(String token, int epoch, int generation) =>
+  bool _isCurrentProfileSetupLookup(int epoch, int generation) =>
       _status == SessionStatus.authenticated &&
-      _token == token &&
+      _token != null &&
       _sessionEpoch == epoch &&
       _placementStatus == PlacementOnboardingStatus.completed &&
       _profileSetupLookupGeneration == generation;
