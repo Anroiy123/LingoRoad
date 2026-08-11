@@ -56,17 +56,25 @@ public static class ReviewEndpoints
             var take = limit ?? 10;
             if (take is < 1 or > 10) return Results.BadRequest(new { error = "limit_1_to_10" });
             var userId = user.UserId();
-            var due = await (from card in db.ReviewCards
-                             join exercise in db.Exercises on card.SourceExerciseId equals exercise.Id
-                             where card.UserId == userId && card.Due <= DateTime.UtcNow &&
-                                   exercise.UserId == userId && exercise.LessonAttemptId != null &&
-                                   exercise.IsCorrect == false && QuestionTypes.Contains(exercise.Type)
-                             orderby card.Due
-                             select new { card.Id, card.Reps, exercise.Type, exercise.Stem,
-                                 exercise.OptionsJson }).ToListAsync();
+            var due = from card in db.ReviewCards
+                      join exercise in db.Exercises on card.SourceExerciseId equals exercise.Id
+                      where card.UserId == userId && card.Due <= DateTime.UtcNow &&
+                            exercise.UserId == userId && exercise.LessonAttemptId != null &&
+                            exercise.IsCorrect == false && QuestionTypes.Contains(exercise.Type)
+                      select new { card.Due, card.Id, card.Reps, exercise.Type, exercise.Stem,
+                          exercise.OptionsJson };
+            var totalDue = await due.CountAsync();
+            var items = await due.OrderBy(x => x.Due).Take(take).Select(x => new
+            {
+                x.Id,
+                x.Reps,
+                x.Type,
+                x.Stem,
+                x.OptionsJson,
+            }).ToListAsync();
             return Results.Ok(new
             {
-                items = due.Take(take).Select(x => new
+                items = items.Select(x => new
                 {
                     x.Id,
                     x.Reps,
@@ -74,7 +82,7 @@ public static class ReviewEndpoints
                     x.Stem,
                     options = JsonSerializer.Deserialize<string[]>(x.OptionsJson) ?? [],
                 }),
-                totalDue = due.Count,
+                totalDue,
             });
         });
 
@@ -122,7 +130,6 @@ public static class ReviewEndpoints
             var question = card.SourceExerciseId is null ? null : await db.Exercises.SingleOrDefaultAsync(e =>
                 e.Id == card.SourceExerciseId && e.UserId == userId && e.LessonAttemptId != null &&
                 e.IsCorrect == false && QuestionTypes.Contains(e.Type));
-            if (card.SourceExerciseId is not null && question is null) return Results.NotFound();
             bool? correct = null;
             if (question is not null)
             {

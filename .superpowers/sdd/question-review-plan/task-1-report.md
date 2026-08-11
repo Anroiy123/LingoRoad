@@ -63,3 +63,79 @@ Result: no pending model changes.
 ## Concerns
 
 - The local EF CLI reports version `10.0.9` while runtime packages are `10.0.10`; migration generation and pending-model validation succeeded, but updating the developer tool would remove that non-blocking warning.
+
+---
+
+## Fix round 1/5
+
+### Review findings addressed
+
+- Source-backed lesson cards that are not supported question types (including valid
+  `listening_mcq`) now follow the legacy rating-only grade path. Only an owned,
+  wrong, lesson-backed `mcq`, `cloze`, or `reorder` source enters the answer-aware
+  grade branch.
+- The question queue now obtains `totalDue` with `CountAsync`, then applies ordered
+  `Take(limit)` before materializing/deserializing option JSON.
+- Tests now assert stored answer/correctness, FSRS `Reps`/`State`/future `Due`,
+  mastery decreases after a wrong grade then returns above the neutral baseline
+  after a correct grade, and each reward ledger row is exactly 5 XP and 1 coin.
+
+### Compatibility TDD evidence
+
+RED regression test was added before modifying production code:
+
+```powershell
+dotnet test src/backend/LingoRoad.Tests/LingoRoad.Tests.csproj --filter FullyQualifiedName~Legacy_source_backed_unsupported_lesson_card_still_accepts_rating_only_grade --no-restore
+```
+
+Output: `1 failed, 0 passed`; expected `OK`, actual `NotFound`. This reproduced
+the reviewed `listening_mcq` source-backed legacy compatibility regression.
+
+GREEN after restricting answer-aware processing to supported question sources:
+
+```powershell
+dotnet test src/backend/LingoRoad.Tests/LingoRoad.Tests.csproj --filter FullyQualifiedName~QuestionReviewEndpointTests --no-restore
+```
+
+Output: `9 passed, 0 failed`.
+
+Final backend verification:
+
+```powershell
+dotnet test src/backend/LingoRoad.Tests/LingoRoad.Tests.csproj --no-restore
+dotnet ef migrations has-pending-model-changes --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj --no-build
+```
+
+Output: `123 passed, 0 failed`; no pending model changes.
+
+### PostgreSQL migration evidence and CI boundary
+
+No local disposable PostgreSQL runtime was available: `docker=unavailable` and
+`psql=unavailable`. No user connection strings or existing databases were used.
+The Npgsql migration scripts generated successfully and show the exact production
+upgrade and rollback SQL:
+
+```powershell
+dotnet ef migrations script 20260809154200_AddSavedWordReviewSchedule 20260811052419_AddQuestionReviewGradeAnswers --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj --no-build
+dotnet ef migrations script 20260811052419_AddQuestionReviewGradeAnswers 20260809154200_AddSavedWordReviewSchedule --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj --no-build
+```
+
+Output respectively begins with `ALTER TABLE "ReviewGradeOperations" ADD
+"Correct" boolean`, `ADD "SubmittedAnswer" text`, and with the reciprocal
+`DROP COLUMN` statements, each wrapped in `START TRANSACTION`/`COMMIT`.
+
+SQLite integration tests use `EnsureCreated`, so they intentionally cannot apply
+Npgsql migration SQL. The CI PostgreSQL job must provision a unique disposable
+database and run the following (the CI service teardown drops that database):
+
+```powershell
+$env:ConnectionStrings__Default = "Host=postgres;Port=5432;Database=lingoroad_task1_$env:CI_PIPELINE_ID;Username=postgres;Password=postgres"
+dotnet ef database update 20260811052419_AddQuestionReviewGradeAnswers --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj
+psql $env:ConnectionStrings__Default -c 'SELECT column_name FROM information_schema.columns WHERE table_name = ''ReviewGradeOperations'' AND column_name IN (''Correct'', ''SubmittedAnswer'') ORDER BY column_name;'
+dotnet ef database update 20260809154200_AddSavedWordReviewSchedule --project src/backend/LingoRoad/LingoRoad.csproj --startup-project src/backend/LingoRoad/LingoRoad.csproj
+psql $env:ConnectionStrings__Default -c 'SELECT column_name FROM information_schema.columns WHERE table_name = ''ReviewGradeOperations'' AND column_name IN (''Correct'', ''SubmittedAnswer'');'
+```
+
+Expected CI output is two columns after apply and zero rows after rollback. This
+is the remaining environment-only evidence boundary; the generated up/down SQL
+and model-drift check passed locally.

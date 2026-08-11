@@ -196,6 +196,23 @@ public class QuestionReviewEndpointTests : IClassFixture<TestAppFactory>
         Assert.Equal(HttpStatusCode.Conflict, changed.StatusCode);
         Assert.Contains("\"xp\":5", await grade.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("\"coins\":1", await replay.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        using (var firstVerifyScope = _factory.Services.CreateScope())
+        {
+            var firstVerifyDb = firstVerifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var wrongOperation = await firstVerifyDb.ReviewGradeOperations.SingleAsync(x => x.OperationId == operationId);
+            Assert.Equal("red", wrongOperation.SubmittedAnswer);
+            Assert.False(wrongOperation.Correct);
+            var wrongCardAfterGrade = await firstVerifyDb.ReviewCards.SingleAsync(x => x.Id == wrongCard.Id);
+            Assert.Equal(1, wrongCardAfterGrade.Reps);
+            Assert.Equal("relearning", wrongCardAfterGrade.State);
+            Assert.True(wrongCardAfterGrade.Due > wrongCardAfterGrade.LastReview);
+            Assert.InRange((await firstVerifyDb.Masteries.SingleAsync(x =>
+                x.UserId == userId && x.SkillId == skillId)).PCorrect, 0.34, 0.36);
+            var wrongReward = await firstVerifyDb.RewardLedgerEntries.SingleAsync(x =>
+                x.SourceOperationId == operationId);
+            Assert.Equal(5, wrongReward.Xp);
+            Assert.Equal(1, wrongReward.Coins);
+        }
 
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync($"/reviews/{correctCard.Id}/grade",
             new { answer = "GREEN", rating = 1, operationId = Guid.NewGuid(), expectedReps = 0 })).StatusCode);
@@ -208,10 +225,21 @@ public class QuestionReviewEndpointTests : IClassFixture<TestAppFactory>
 
         using var verifyScope = _factory.Services.CreateScope();
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
-        Assert.Equal(2, await verifyDb.ReviewGradeOperations.CountAsync(x => x.UserId == userId));
-        Assert.Equal(2, await verifyDb.RewardLedgerEntries.CountAsync(x => x.UserId == userId));
+        var operations = await verifyDb.ReviewGradeOperations.Where(x => x.UserId == userId).ToListAsync();
+        Assert.Equal(2, operations.Count);
+        var correctOperation = Assert.Single(operations, x => x.CardId == correctCard.Id);
+        Assert.Equal("GREEN", correctOperation.SubmittedAnswer);
+        Assert.True(correctOperation.Correct);
+        var rewards = await verifyDb.RewardLedgerEntries.Where(x => x.UserId == userId).ToListAsync();
+        Assert.Equal(2, rewards.Count);
+        Assert.All(rewards, reward => { Assert.Equal(5, reward.Xp); Assert.Equal(1, reward.Coins); });
         Assert.Equal(2, await verifyDb.LearningEvents.CountAsync(x => x.UserId == userId && x.EventType == LearningEventTypes.ReviewGraded));
-        Assert.Single(await verifyDb.Masteries.Where(x => x.UserId == userId && x.SkillId == skillId).ToListAsync());
+        var mastery = await verifyDb.Masteries.SingleAsync(x => x.UserId == userId && x.SkillId == skillId);
+        Assert.InRange(mastery.PCorrect, 0.54, 0.56);
+        var correctCardAfterGrade = await verifyDb.ReviewCards.SingleAsync(x => x.Id == correctCard.Id);
+        Assert.Equal(1, correctCardAfterGrade.Reps);
+        Assert.Equal("review", correctCardAfterGrade.State);
+        Assert.True(correctCardAfterGrade.Due > correctCardAfterGrade.LastReview);
     }
 
     [Fact]
@@ -223,6 +251,22 @@ public class QuestionReviewEndpointTests : IClassFixture<TestAppFactory>
         var id = JsonDocument.Parse(await created.Content.ReadAsStringAsync()).RootElement.GetProperty("id").GetGuid();
 
         var grade = await client.PostAsJsonAsync($"/reviews/{id}/grade",
+            new { rating = 3, operationId = Guid.NewGuid(), expectedReps = 0 });
+
+        Assert.Equal(HttpStatusCode.OK, grade.StatusCode);
+    }
+
+    [Fact]
+    public async Task Legacy_source_backed_unsupported_lesson_card_still_accepts_rating_only_grade()
+    {
+        var (client, userId) = await RegisterAsync();
+        var skillId = await SkillIdAsync();
+        ReviewCard card;
+        using (var scope = _factory.Services.CreateScope())
+            card = await AddLessonMistakeAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), userId,
+                skillId, type: "listening_mcq");
+
+        var grade = await client.PostAsJsonAsync($"/reviews/{card.Id}/grade",
             new { rating = 3, operationId = Guid.NewGuid(), expectedReps = 0 });
 
         Assert.Equal(HttpStatusCode.OK, grade.StatusCode);
