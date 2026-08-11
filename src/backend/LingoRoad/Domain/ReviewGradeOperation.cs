@@ -14,4 +14,6 @@ public class ReviewGradeOperation
     public double Stability { get; set; }
     public double Difficulty { get; set; }
     public int Reps { get; set; }
+    public string? SubmittedAnswer { get; set; }
+    public bool? Correct { get; set; }
 }
