@@ -33,7 +33,9 @@ public static class PathEndpoints
                 nameVi = p.Skill.NameVi,
                 cefr = p.Skill.CefrLevel,
                 mastery = p.Mastery,
-                reason = p.Reason
+                reason = p.Reason,
+                availability = p.Availability,
+                sequence = p.Sequence
             }));
 
         g.MapPost("/advisor", async (AdvisorQuestion req,

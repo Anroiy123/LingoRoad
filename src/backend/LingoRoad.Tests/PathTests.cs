@@ -66,6 +66,31 @@ public class PathBuilderTests
         Assert.Equal("below_threshold", path.Single(p => p.Skill.Code == "present_simple").Reason);
         Assert.Equal("not_started", path.Single(p => p.Skill.Code == "past_simple").Reason);
     }
+
+    [Fact]
+    public void Current_and_available_steps_precede_truly_locked_dependents()
+    {
+        var skills = new List<Skill>
+        {
+            S(1, "current", "A1"),
+            S(2, "locked", "A1"),
+            S(3, "available", "A1"),
+        };
+        var edges = new List<SkillEdge>
+        {
+            new() { PrerequisiteId = 1, SkillId = 2 },
+        };
+        var mastery = new Dictionary<int, double> { [1] = 0.44 };
+
+        var path = PathBuilder.Build(skills, edges, mastery, "A1");
+
+        Assert.Equal(["current", "available", "locked"],
+            path.Select(step => step.Skill.Code));
+        Assert.Equal("current", path[0].Availability);
+        Assert.Equal("available", path[1].Availability);
+        Assert.Equal("locked", path[2].Availability);
+        Assert.Equal([1, 2, 3], path.Select(step => step.Sequence));
+    }
 }
 
 public class PathEndpointTests : IClassFixture<TestAppFactory>
@@ -74,7 +99,7 @@ public class PathEndpointTests : IClassFixture<TestAppFactory>
     public PathEndpointTests(TestAppFactory f) => _client = f.CreateClient();
 
     private record PathRow(string Code, string Name, string NameVi, string Cefr,
-        double Mastery, string Reason);
+        double Mastery, string Reason, string Availability, int Sequence);
 
     [Fact]
     public async Task Path_returns_seeded_skills_as_not_started()
@@ -88,5 +113,9 @@ public class PathEndpointTests : IClassFixture<TestAppFactory>
         var path = await _client.GetFromJsonAsync<List<PathRow>>("/path?limit=5");
         Assert.Equal(5, path!.Count);
         Assert.All(path, p => Assert.Equal("not_started", p.Reason));
+        Assert.Equal("current", path[0].Availability);
+        Assert.All(path.Skip(1), p => Assert.Contains(p.Availability,
+            new[] { "available", "locked" }));
+        Assert.Equal(Enumerable.Range(1, path.Count), path.Select(p => p.Sequence));
     }
 }

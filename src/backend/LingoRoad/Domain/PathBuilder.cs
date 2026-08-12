@@ -1,6 +1,7 @@
 namespace LingoRoad.Domain;
 
-public record PathStep(Skill Skill, double Mastery, string Reason);
+public record PathStep(Skill Skill, double Mastery, string Reason,
+    string Availability, int Sequence);
 
 public static class PathBuilder
 {
@@ -14,12 +15,40 @@ public static class PathBuilder
                             .Select(s => s.ParentId!.Value).ToHashSet();
         var goal = CefrMap.Rank(goalCefr);
 
-        return SkillGraph.TopologicalOrder(skills, edges)
+        var mastered = mastery.Where(pair => pair.Value >= MasteryThreshold)
+            .Select(pair => pair.Key).ToHashSet();
+        var prerequisites = edges.GroupBy(edge => edge.SkillId)
+            .ToDictionary(group => group.Key,
+                group => group.Select(edge => edge.PrerequisiteId).ToArray());
+
+        var candidates = SkillGraph.TopologicalOrder(skills, edges)
             .Where(s => !parents.Contains(s.Id))                 // leaves only
             .Where(s => CefrMap.Rank(s.CefrLevel) <= goal)
-            .Select(s => new PathStep(s, mastery.GetValueOrDefault(s.Id, 0.0),
-                mastery.ContainsKey(s.Id) ? "below_threshold" : "not_started"))
-            .Where(p => p.Mastery < MasteryThreshold)
+            .Select((skill, index) => new
+            {
+                Skill = skill,
+                Mastery = mastery.GetValueOrDefault(skill.Id, 0.0),
+                Reason = mastery.ContainsKey(skill.Id) ? "below_threshold" : "not_started",
+                TopologyIndex = index,
+                Availability = prerequisites.TryGetValue(skill.Id, out var requiredSkills) &&
+                               requiredSkills.Any(id => !mastered.Contains(id))
+                    ? "locked"
+                    : "available"
+            })
+            .Where(step => step.Mastery < MasteryThreshold)
+            .ToList();
+
+        var current = candidates.Where(step => step.Availability == "available")
+            .OrderBy(step => step.Reason == "below_threshold" ? 0 : 1)
+            .ThenBy(step => step.TopologyIndex)
+            .FirstOrDefault();
+
+        return candidates
+            .OrderBy(step => ReferenceEquals(step, current) ? 0
+                : step.Availability == "available" ? 1 : 2)
+            .ThenBy(step => step.TopologyIndex)
+            .Select((step, index) => new PathStep(step.Skill, step.Mastery, step.Reason,
+                ReferenceEquals(step, current) ? "current" : step.Availability, index + 1))
             .Take(limit)
             .ToList();
     }

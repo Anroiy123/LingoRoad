@@ -182,13 +182,6 @@ class _PathList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstIncomplete = steps.indexWhere((step) => step.mastery < 1);
-    final firstRecommended = steps.indexWhere(
-      (step) => step.mastery < 1 && step.reason == 'below_threshold',
-    );
-    final currentIndex = firstRecommended >= 0
-        ? firstRecommended
-        : firstIncomplete;
     return Column(
       children: [
         for (var index = 0; index < steps.length; index++)
@@ -197,10 +190,8 @@ class _PathList extends StatelessWidget {
             index: index,
             isLast: index == steps.length - 1,
             selected: selectedCode == steps[index].code,
-            state: _pathStateFor(steps[index], index, currentIndex),
-            onTap:
-                _pathStateFor(steps[index], index, currentIndex) ==
-                    _PathStepState.locked
+            state: _pathStateFor(steps[index]),
+            onTap: _pathStateFor(steps[index]) == _PathStepState.locked
                 ? null
                 : () => onSelected(steps[index].code),
           ),
@@ -211,15 +202,13 @@ class _PathList extends StatelessWidget {
 
 enum _PathStepState { completed, current, unlocked, locked }
 
-_PathStepState _pathStateFor(
-  LearningPathStep step,
-  int index,
-  int currentIndex,
-) {
-  if (step.mastery >= 1) return _PathStepState.completed;
-  if (index == currentIndex) return _PathStepState.current;
-  if (step.reason == 'below_threshold') return _PathStepState.unlocked;
-  return _PathStepState.locked;
+_PathStepState _pathStateFor(LearningPathStep step) {
+  return switch (step.availability) {
+    'completed' => _PathStepState.completed,
+    'current' => _PathStepState.current,
+    'locked' => _PathStepState.locked,
+    _ => _PathStepState.unlocked,
+  };
 }
 
 class _PathItem extends StatelessWidget {
@@ -245,16 +234,17 @@ class _PathItem extends StatelessWidget {
     final localizedName = l10n.currentLanguage == AppLanguage.vi
         ? step.nameVi
         : step.name;
-    final reasonKey = switch (step.reason) {
-      'below_threshold' => 'learning_path.reason.below_threshold',
-      'not_started' => 'learning_path.reason.not_started',
-      _ => 'learning_path.reason.recommended',
-    };
-
     final side = index.isEven ? Alignment.centerLeft : Alignment.centerRight;
     final current = state == _PathStepState.current;
     final isCompleted = state == _PathStepState.completed;
     final locked = state == _PathStepState.locked;
+    final reasonKey = locked
+        ? 'learning_path.reason.locked'
+        : switch (step.reason) {
+            'below_threshold' => 'learning_path.reason.below_threshold',
+            'not_started' => 'learning_path.reason.not_started',
+            _ => 'learning_path.reason.recommended',
+          };
     final String statusText = l10n.translate(reasonKey);
 
     final theme = Theme.of(context);
