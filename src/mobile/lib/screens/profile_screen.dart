@@ -373,11 +373,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          Divider(
-            height: 1.h,
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          ...children,
+          SizedBox(height: AppSpacing.xs.h),
+          for (var index = 0; index < children.length; index++) ...[
+            children[index],
+            if (index != children.length - 1) SizedBox(height: AppSpacing.xs.h),
+          ],
         ],
       ),
     );
@@ -409,14 +409,6 @@ class _SettingTile extends StatelessWidget {
           padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md.w,
             vertical: AppSpacing.sm.h,
-          ),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: .5.w,
-              ),
-            ),
           ),
           child: Row(
             children: [

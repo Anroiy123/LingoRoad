@@ -27,6 +27,8 @@ const widgetStep = LearningPathStep(
   cefr: 'A2',
   mastery: 0.35,
   reason: 'below_threshold',
+  availability: 'current',
+  sequence: 1,
 );
 
 const completedStep = LearningPathStep(
@@ -36,6 +38,8 @@ const completedStep = LearningPathStep(
   cefr: 'A1',
   mastery: 1,
   reason: 'recommended',
+  availability: 'completed',
+  sequence: 1,
 );
 
 const lockedStep = LearningPathStep(
@@ -45,6 +49,19 @@ const lockedStep = LearningPathStep(
   cefr: 'B1',
   mastery: 0,
   reason: 'not_started',
+  availability: 'locked',
+  sequence: 3,
+);
+
+const availableStep = LearningPathStep(
+  code: 'grammar.available',
+  name: 'Available skill',
+  nameVi: 'Kỹ năng sẵn sàng',
+  cefr: 'A1',
+  mastery: 0,
+  reason: 'not_started',
+  availability: 'available',
+  sequence: 2,
 );
 
 const routeExercise = LessonExercise(
@@ -199,6 +216,22 @@ Widget buildRoutedScreen({
 }
 
 void main() {
+  test('đọc availability và sequence do API lộ trình cung cấp', () {
+    final step = LearningPathStep.fromJson({
+      'code': 'grammar.current',
+      'name': 'Current skill',
+      'nameVi': 'Kỹ năng hiện tại',
+      'cefr': 'A1',
+      'mastery': .44,
+      'reason': 'below_threshold',
+      'availability': 'current',
+      'sequence': 1,
+    });
+
+    expect(step.availability, 'current');
+    expect(step.sequence, 1);
+  });
+
   testWidgets('hiển thị dữ liệu thật và không còn XP/streak mock', (
     tester,
   ) async {
@@ -343,6 +376,40 @@ void main() {
       expect(semantics.label, contains('Kỹ năng bị khóa'));
     },
   );
+
+  testWidgets('Path chỉ khoá theo availability API và giữ thứ tự server', (
+    tester,
+  ) async {
+    final repository = ScreenLearningPathRepository()
+      ..result = const [widgetStep, availableStep, lockedStep];
+    await pumpWidgetWithLingoRoadScreenUtil(tester, buildScreen(repository));
+    await tester.pumpAndSettle();
+
+    final currentTop = tester
+        .getTopLeft(
+          find.byKey(const Key('learning_path_card_grammar.present-simple')),
+        )
+        .dy;
+    final availableTop = tester
+        .getTopLeft(
+          find.byKey(const Key('learning_path_card_grammar.available')),
+        )
+        .dy;
+    final lockedTop = tester
+        .getTopLeft(find.byKey(const Key('learning_path_card_grammar.locked')))
+        .dy;
+
+    expect(currentTop, lessThan(availableTop));
+    expect(availableTop, lessThan(lockedTop));
+    expect(
+      find.byKey(const Key('learning_path_state_unlocked_grammar.available')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('learning_path_state_locked_grammar.locked')),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('Path dark resolve màu current và locked theo ColorScheme', (
     tester,

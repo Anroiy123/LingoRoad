@@ -50,6 +50,8 @@
   },
   "dictionary": {
     "lookup_sentence": "Look up a word in the sentence",
+    "lookup_error_message": "We could not get a definition for this word. Please try again later.",
+    "lookup_error_title": "Could not look up this word",
     "save_word": "Save word to review",
     "word_saved": "Word saved"
   },
@@ -65,15 +67,30 @@
     "avatar_semantics": "Avatar for {}",
     "error": "Could not load today's learning data.",
     "level_summary": "{} → {} · {}% mastery",
+    "level_current": "Level {}",
+    "level_journey": "{} → {}",
+    "level_target": "Current {} · Target {}",
+    "mastery_percent": "{}% mastery",
+    "mastery_semantics": "Current level {}, target {}, mastery {} percent",
+    "xp_value": "{} XP",
+    "xp_semantics": "{} experience points",
+    "coins_value": "{} Coins",
+    "coins_semantics": "{} coins",
     "metrics": {
       "daily_goal": "Daily goal",
       "weekly_goal": "Weekly goal"
     },
     "plan": {
+      "completed": "Completed",
       "daily_lesson": "Daily Lesson",
       "done": "Done",
+      "goal_completed_semantics": "Today's goal completed",
+      "goal_minutes": "{} minute learning goal",
+      "minutes_progress": "{} / {} min",
+      "remaining_xp": "{} XP left",
       "review_cards": "Review {} cards",
-      "title": "Today's Plan"
+      "title": "Today's Plan",
+      "xp_target": "Earn {} XP"
     },
     "quests": {
       "daily_lesson": "Complete one lesson",
@@ -98,6 +115,7 @@
     },
     "subtitle": "Ready to learn English today?",
     "streak_semantics": "{} day learning streak",
+    "streak_compact": "{} days",
     "today_lesson": {
       "details": "CEFR {} · {} questions · {} minute goal",
       "empty": "You have completed all recommended lessons",
@@ -121,6 +139,7 @@
     "open_error": "Could not open the lesson. Please try again.",
     "reason": {
       "below_threshold": "Needs more practice",
+      "locked": "Complete the previous lesson to unlock",
       "not_started": "Not started",
       "recommended": "Recommended"
     },
@@ -161,6 +180,11 @@
       "semantics_correct": "Correct answer",
       "semantics_wrong": "Incorrect answer",
       "wrong": "Not quite. Review the answer and explanation."
+    },
+    "instruction": {
+      "arrange_words": "Arrange the words in order",
+      "choose_answer": "Choose the best answer",
+      "enter_answer": "Enter your answer"
     },
     "mistakes": {
       "back_home": "Back to Home",
@@ -346,6 +370,7 @@
       "due_reviews": "REVIEWS DUE",
       "improvements": "Needs Improvement",
       "longest_streak": "LONGEST STREAK",
+      "maintaining": "Consolidating",
       "mastery": "Mastery Level",
       "quests": "QUESTS",
       "streak": "STREAK",
@@ -354,6 +379,7 @@
       "total_xp": "TOTAL XP"
     },
     "quests_empty": "There are no quests yet.",
+    "skill_unpracticed": "Not practiced",
     "loading": "Loading learning progress",
     "retry_load": "Retry loading learning progress",
     "skills_analysis": {
@@ -364,6 +390,7 @@
       "grammar": "Grammar",
       "listening": "Listening",
       "pronunciation": "Pronunciation",
+      "reading": "Reading",
       "speaking": "Speaking",
       "vocabulary": "Vocabulary",
       "writing": "Writing"
@@ -418,6 +445,9 @@
       "question_desc": "Practice with multiple choice and fill-in-the-blank questions to reinforce sentence structures.",
       "question_completed_badge": "{}% completed",
       "question_due_badge": "{} questions due",
+      "completed_badge": "Completed",
+      "loading_badge": "Loading...",
+      "unavailable_badge": "Unavailable",
       "vocab_title": "Vocabulary Review",
       "vocab_desc": "Use spaced repetition system (SRS) to memorize vocabulary more effectively.",
       "vocab_due_badge": "{} words need review"

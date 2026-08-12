@@ -108,5 +108,6 @@ void main() {
     expect(find.text('Mục tiêu & Lịch học'), findsWidgets);
     expect(find.text('45 phút / ngày • B1'), findsOneWidget);
     expect(find.text('Thông báo'), findsWidgets);
+    expect(find.byType(Divider), findsNothing);
   });
 }

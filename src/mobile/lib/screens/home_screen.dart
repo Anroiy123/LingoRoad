@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/dashboard/presentation/dashboard_view_model.dart';
 import 'package:lingoroad_mobile/screens/home/home_sections.dart';
@@ -78,23 +79,69 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final dashboard = viewModel.dashboard!;
-    return RefreshIndicator(
-      onRefresh: viewModel.load,
-      child: AppPage(
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headerShadow = isDark
+        ? AppColorsDark.shadow
+        : AppColors.shadow;
+    final content = [
+      HomeGreeting(dashboard: dashboard),
+      HomeDailyPlan(dashboard: dashboard, quests: viewModel.quests),
+      HomeLearningCarousel(dashboard: dashboard),
+      HomeRecentActivity(dashboard: dashboard),
+    ];
+    return SafeArea(
+      bottom: false,
+      child: Column(
         children: [
-          HomeHeader(dashboard: dashboard),
-          HomeGreeting(dashboard: dashboard),
-          HomeOverview(dashboard: dashboard),
-          TodayLessonCard(dashboard: dashboard),
-          HomeQuestsSection(quests: viewModel.quests),
-          HomePlanSection(
-            quests: viewModel.quests,
-            dueReviews: dashboard.dueReviews,
+          Container(
+            key: const Key('home_sticky_header'),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.margin.w,
+              AppSpacing.xs.h,
+              AppSpacing.margin.w,
+              AppSpacing.sm.h,
+            ),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(AppRadius.xl.r),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: headerShadow,
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: HomeHeader(dashboard: dashboard),
           ),
-          HomeQuickActions(dashboard: dashboard),
-          HomeRecentActivity(dashboard: dashboard),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: viewModel.load,
+              child: ListView(
+                key: const Key('home_content_scroll'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.margin.w,
+                  AppSpacing.md.h,
+                  AppSpacing.margin.w,
+                  112.h,
+                ),
+                children: _withSpacing(content),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+
+  List<Widget> _withSpacing(List<Widget> children) => [
+    for (var index = 0; index < children.length; index++) ...[
+      children[index],
+      if (index != children.length - 1) SizedBox(height: AppSpacing.lg.h),
+    ],
+  ];
 }

@@ -42,6 +42,52 @@ class _UnpracticedProgressRepository implements ProgressRepository {
   Future<List<MasteryRow>> mastery() async => const [];
 }
 
+class _ProgressDataRepository implements ProgressRepository {
+  @override
+  Future<List<SkillCatalogItem>> skills() async => const [
+    SkillCatalogItem(
+      id: 1,
+      code: 'grammar.present',
+      name: 'Present tense',
+      nameVi: 'Thì hiện tại',
+      category: 'grammar',
+      parentId: null,
+    ),
+    SkillCatalogItem(
+      id: 2,
+      code: 'vocabulary.travel',
+      name: 'Travel vocabulary',
+      nameVi: 'Từ vựng du lịch',
+      category: 'vocabulary',
+      parentId: null,
+    ),
+    SkillCatalogItem(
+      id: 3,
+      code: 'listening.basic',
+      name: 'Basic listening',
+      nameVi: 'Nghe cơ bản',
+      category: 'listening',
+      parentId: null,
+    ),
+    SkillCatalogItem(
+      id: 4,
+      code: 'reading.basic',
+      name: 'Basic reading',
+      nameVi: 'Đọc cơ bản',
+      category: 'reading',
+      parentId: null,
+    ),
+  ];
+
+  @override
+  Future<List<MasteryRow>> mastery() async => const [
+    MasteryRow('grammar.present', .68),
+    MasteryRow('vocabulary.travel', .92),
+    MasteryRow('listening.basic', .52),
+    MasteryRow('reading.basic', .55),
+  ];
+}
+
 class _TaskDashboardRepository implements DashboardRepository {
   const _TaskDashboardRepository();
 
@@ -194,6 +240,29 @@ class _PendingDashboardRepository extends _TaskDashboardRepository {
   Future<List<QuestData>> quests() => questsCompleter.future;
 }
 
+class _MaintenanceDashboardRepository extends _TaskDashboardRepository {
+  const _MaintenanceDashboardRepository();
+
+  @override
+  Future<DashboardData> dashboard() async => DashboardData(
+    name: 'Linh Mai',
+    currentCefr: 'B1',
+    targetCefr: 'B1',
+    dailyGoalMinutes: 30,
+    mastery: .62,
+    dailyProgress: .5,
+    weeklyProgress: .4,
+    dueReviews: 2,
+    completedLessons: 2,
+    xp: 1240,
+    coins: 12,
+    currentStreak: 12,
+    longestStreak: 18,
+    activeDates: const [],
+    recentActivity: const [],
+  );
+}
+
 AppLanguageProvider _language() {
   Map<String, dynamic> load(String path) =>
       json.decode(File(path).readAsStringSync()) as Map<String, dynamic>;
@@ -205,7 +274,11 @@ AppLanguageProvider _language() {
   );
 }
 
-Widget _progress({ProgressRepository? repository}) => MultiProvider(
+Widget _progress({
+  ProgressRepository? repository,
+  DashboardRepository? dashboardRepository,
+  int initialTab = 0,
+}) => MultiProvider(
   providers: [
     ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
     ChangeNotifierProvider(
@@ -213,12 +286,14 @@ Widget _progress({ProgressRepository? repository}) => MultiProvider(
           ProgressViewModel(repository ?? _UnpracticedProgressRepository()),
     ),
     ChangeNotifierProvider(
-      create: (_) => DashboardViewModel(const _TaskDashboardRepository()),
+      create: (_) => DashboardViewModel(
+        dashboardRepository ?? const _TaskDashboardRepository(),
+      ),
     ),
   ],
   child: MaterialApp(
     theme: AppTheme.light,
-    home: const Scaffold(body: ProgressScreen()),
+    home: Scaffold(body: ProgressScreen(initialTab: initialTab)),
   ),
 );
 
@@ -270,6 +345,78 @@ Widget _notificationSettings() => MultiProvider(
 );
 
 void main() {
+  testWidgets('progress overview groups CEFR, insight and compact stats', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      _progress(repository: _ProgressDataRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('progress_cefr_hero')), findsOneWidget);
+    expect(find.byKey(const Key('progress_compact_stats')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('progress_focus_insight')),
+      300,
+      scrollable: find.descendant(
+        of: find.byKey(const PageStorageKey('progress-overview')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.byKey(const Key('progress_focus_insight')), findsOneWidget);
+  });
+
+  testWidgets(
+    'progress labels a reached CEFR target without a redundant arrow',
+    (tester) async {
+      await pumpWidgetWithLingoRoadScreenUtil(
+        tester,
+        _progress(dashboardRepository: const _MaintenanceDashboardRepository()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('B1 · Đang củng cố'), findsOneWidget);
+      expect(find.text('B1 → B1'), findsNothing);
+    },
+  );
+
+  testWidgets('progress skills uses one scannable group and a daily focus', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      _progress(repository: _ProgressDataRepository(), initialTab: 1),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('progress_skills_group')), findsOneWidget);
+    expect(find.byKey(const Key('progress_skill_listening')), findsOneWidget);
+    expect(find.byKey(const Key('progress_skills_focus')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('progress_skills_group')),
+        matching: find.byType(Divider),
+      ),
+      findsNothing,
+    );
+    expect(find.text('Đọc'), findsOneWidget);
+  });
+
+  testWidgets(
+    'progress achievements joins motivation stats and quest progress',
+    (tester) async {
+      await pumpWidgetWithLingoRoadScreenUtil(tester, _progress(initialTab: 2));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('progress_achievement_stats')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('progress_quests_group')), findsOneWidget);
+    },
+  );
+
   testWidgets('progress explains empty strengths and improvements separately', (
     tester,
   ) async {

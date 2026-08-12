@@ -117,69 +117,101 @@ class _LessonScreenState extends State<LessonScreen> {
         children: [
           Row(
             children: [
-              Text('${viewModel.currentNumber}/${viewModel.total}'),
-              SizedBox(width: AppSpacing.sm.w),
-              Expanded(child: AppProgress(value: viewModel.progress)),
-            ],
-          ),
-          SizedBox(height: AppSpacing.xl.h),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Wrap(
-                  key: const Key('lesson_stem'),
-                  children: exercise.stem.split(' ').map((word) {
-                    final cleanWord = word.replaceAll(
-                      RegExp(r'[^\p{L}]', unicode: true),
-                      '',
-                    );
-                    return GestureDetector(
-                      onLongPress: () => _showDictionaryBottomSheet(
-                        context,
-                        l10n,
-                        cleanWord,
-                        viewModel.attempt?.skillCode ?? '',
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(right: 6.w, bottom: 4.h),
-                        child: Text(
-                          word.replaceAll('*', ''),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+              Text(
+                '${viewModel.currentNumber}/${viewModel.total}',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              SizedBox(width: AppSpacing.xs.w),
-              FocusTraversalOrder(
-                order: const NumericFocusOrder(1),
-                child: Semantics(
-                  key: const Key('lesson_dictionary_button'),
-                  button: true,
-                  label: l10n.translate('dictionary.lookup_sentence'),
-                  child: PopupMenuButton<String>(
-                    tooltip: l10n.translate('dictionary.lookup_sentence'),
-                    icon: const Icon(Icons.menu_book_outlined),
-                    onSelected: (word) => _showDictionaryBottomSheet(
-                      context,
-                      l10n,
-                      word,
-                      viewModel.attempt?.skillCode ?? '',
-                    ),
-                    itemBuilder: (context) => [
-                      for (final word in _dictionaryWords(exercise.stem))
-                        PopupMenuItem<String>(
-                          key: Key('lesson_dictionary_word_$word'),
-                          value: word,
-                          child: Text(word),
+              SizedBox(width: AppSpacing.sm.w),
+              Expanded(
+                child: AppProgress(value: viewModel.progress, height: 6),
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpacing.lg.h),
+          Container(
+            key: const Key('lesson_question_card'),
+            padding: EdgeInsets.all(AppSpacing.md.w),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppRadius.xl.r),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.translate(_instructionKey(exercise.type)),
+                        key: const Key('lesson_instruction'),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w800,
                         ),
+                      ),
+                      SizedBox(height: AppSpacing.sm.h),
+                      Wrap(
+                        key: const Key('lesson_stem'),
+                        children: exercise.stem.split(' ').map((word) {
+                          final cleanWord = word.replaceAll(
+                            RegExp(r'[^\p{L}]', unicode: true),
+                            '',
+                          );
+                          return GestureDetector(
+                            onLongPress: () => _showDictionaryBottomSheet(
+                              context,
+                              l10n,
+                              cleanWord,
+                              viewModel.attempt?.skillCode ?? '',
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 6.w, bottom: 4.h),
+                              child: Text(
+                                word.replaceAll('*', ''),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                SizedBox(width: AppSpacing.xs.w),
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(1),
+                  child: Semantics(
+                    key: const Key('lesson_dictionary_button'),
+                    button: true,
+                    label: l10n.translate('dictionary.lookup_sentence'),
+                    child: PopupMenuButton<String>(
+                      tooltip: l10n.translate('dictionary.lookup_sentence'),
+                      icon: const Icon(Icons.menu_book_outlined),
+                      onSelected: (word) => _showDictionaryBottomSheet(
+                        context,
+                        l10n,
+                        word,
+                        viewModel.attempt?.skillCode ?? '',
+                      ),
+                      itemBuilder: (context) => [
+                        for (final word in _dictionaryWords(exercise.stem))
+                          PopupMenuItem<String>(
+                            key: Key('lesson_dictionary_word_$word'),
+                            value: word,
+                            child: Text(word),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: AppSpacing.lg.h),
           Expanded(
@@ -265,8 +297,10 @@ class _LessonScreenState extends State<LessonScreen> {
           textFieldKey: const Key('lesson_text_answer'),
           submitKey: const Key('lesson_submit'),
           submitLabel: l10n.translate('lesson.submit'),
-          submitOnOptionTap: exercise.type == 'mcq',
+          submitOnOptionTap: false,
           optionKeyBuilder: (option) => Key('lesson_option_$option'),
+          showOptionLabels: exercise.type == 'mcq',
+          optionBadgeKeyBuilder: (index) => Key('lesson_option_badge_$index'),
           hintText: l10n.translate('lesson.answer_hint'),
         ),
         if (viewModel.errorCode != null) ...[
@@ -427,6 +461,12 @@ class _LessonScreenState extends State<LessonScreen> {
         : attempt.title;
   }
 
+  String _instructionKey(String type) => switch (type) {
+    'mcq' => 'lesson.instruction.choose_answer',
+    'reorder' => 'lesson.instruction.arrange_words',
+    _ => 'lesson.instruction.enter_answer',
+  };
+
   void _scheduleRefresh() {
     if (_refreshScheduled) return;
     _refreshScheduled = true;
@@ -448,6 +488,7 @@ class _LessonScreenState extends State<LessonScreen> {
     if (word.isEmpty) return;
     showModalBottomSheet(
       context: context,
+      showDragHandle: true,
       builder: (ctx) => _DictionarySheet(word: word, skillCode: skillCode),
     );
   }
@@ -563,9 +604,55 @@ class _DictionarySheetState extends State<_DictionarySheet> {
           if (_loading)
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
-            Text(
-              l10n.translate('lesson.error.message'),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            Semantics(
+              key: const Key('dictionary_lookup_error'),
+              container: true,
+              liveRegion: true,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(AppSpacing.md.w),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.lg.r),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.cloud_off_rounded,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    SizedBox(height: AppSpacing.sm.h),
+                    Text(
+                      l10n.translate('dictionary.lookup_error_title'),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.xxs.h),
+                    Text(
+                      l10n.translate('dictionary.lookup_error_message'),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.sm.h),
+                    TextButton.icon(
+                      key: const Key('dictionary_lookup_retry'),
+                      onPressed: () {
+                        setState(() {
+                          _error = null;
+                          _loading = true;
+                        });
+                        _loadDefinition();
+                      },
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(l10n.translate('common.retry')),
+                    ),
+                  ],
+                ),
+              ),
             )
           else ...[
             Text(

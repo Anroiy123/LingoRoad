@@ -8,6 +8,8 @@ class LearningPathStep {
     required this.cefr,
     required this.mastery,
     required this.reason,
+    this.availability = 'available',
+    this.sequence = 0,
   });
 
   final String code;
@@ -16,6 +18,8 @@ class LearningPathStep {
   final String cefr;
   final double mastery;
   final String reason;
+  final String availability;
+  final int sequence;
 
   factory LearningPathStep.fromJson(Object? value) {
     if (value is! Map<String, dynamic>) {
@@ -28,11 +32,21 @@ class LearningPathStep {
     final cefr = _requiredString(value, 'cefr');
     final mastery = _double(value['mastery']);
     final reason = _requiredString(value, 'reason');
+    final availability = value['availability']?.toString().trim();
+    final sequence = _integer(value['sequence']);
 
     if (!const {'A1', 'A2', 'B1', 'B2'}.contains(cefr) ||
         mastery == null ||
         mastery < 0 ||
-        mastery > 1) {
+        mastery > 1 ||
+        (availability != null &&
+            !const {
+              'completed',
+              'current',
+              'available',
+              'locked',
+            }.contains(availability)) ||
+        (sequence != null && sequence < 1)) {
       throw _malformed();
     }
 
@@ -43,6 +57,8 @@ class LearningPathStep {
       cefr: cefr,
       mastery: mastery,
       reason: reason,
+      availability: availability?.isEmpty ?? true ? 'available' : availability!,
+      sequence: sequence ?? 0,
     );
   }
 }
@@ -58,7 +74,10 @@ String _requiredString(Map<String, dynamic> json, String key) {
 double? _double(Object? value) =>
     value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '');
 
+int? _integer(Object? value) =>
+    value is int ? value : int.tryParse(value?.toString() ?? '');
+
 ApiException _malformed() => const ApiException(
-      code: 'malformed_response',
-      message: 'Phản hồi lộ trình học không hợp lệ',
-    );
+  code: 'malformed_response',
+  message: 'Phản hồi lộ trình học không hợp lệ',
+);

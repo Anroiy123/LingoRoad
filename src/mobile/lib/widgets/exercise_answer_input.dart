@@ -13,7 +13,9 @@ class ExerciseAnswerInput extends StatefulWidget {
     required this.submitKey,
     required this.submitLabel,
     this.submitOnOptionTap = false,
+    this.showOptionLabels = false,
     this.optionKeyBuilder,
+    this.optionBadgeKeyBuilder,
     this.hintText,
     this.feedbackCorrect,
     this.correctAnswer,
@@ -33,7 +35,9 @@ class ExerciseAnswerInput extends StatefulWidget {
   final Key submitKey;
   final String submitLabel;
   final bool submitOnOptionTap;
+  final bool showOptionLabels;
   final Key Function(String option)? optionKeyBuilder;
+  final Key Function(int index)? optionBadgeKeyBuilder;
   final String? hintText;
   final bool? feedbackCorrect;
   final String? correctAnswer;
@@ -116,11 +120,13 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final option in widget.options)
+          for (final entry in widget.options.asMap().entries)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Builder(
                 builder: (context) {
+                  final index = entry.key;
+                  final option = entry.value;
                   final selected = option == _selectedOption;
                   final correct =
                       widget.feedbackCorrect != null &&
@@ -141,14 +147,14 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
                       ? scheme.errorContainer
                       : selected
                       ? scheme.primaryContainer
-                      : Colors.transparent;
+                      : scheme.surfaceContainerLow;
                   final border = correct
                       ? scheme.primary
                       : incorrect
                       ? scheme.error
                       : selected
                       ? scheme.primary
-                      : scheme.outline;
+                      : scheme.onSurfaceVariant.withValues(alpha: .28);
                   return Semantics(
                     container: true,
                     excludeSemantics: true,
@@ -165,7 +171,25 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
                       style: OutlinedButton.styleFrom(
                         alignment: Alignment.centerLeft,
                         backgroundColor: fill,
+                        // Keep undecided answers quiet. The brand colour is
+                        // reserved for the answer the learner has selected
+                        // (or its feedback state), so the state change is
+                        // immediately legible instead of every option
+                        // competing with the prompt.
+                        foregroundColor: incorrect
+                            ? scheme.onErrorContainer
+                            : selected || correct
+                            ? scheme.onPrimaryContainer
+                            : scheme.onSurface,
                         side: BorderSide(color: border, width: 1.5),
+                        minimumSize: const Size.fromHeight(56),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       onPressed: !widget.enabled
                           ? null
@@ -176,7 +200,36 @@ class _ExerciseAnswerInputState extends State<ExerciseAnswerInput> {
                                 widget.onSubmit(option);
                               }
                             },
-                      child: Text(option),
+                      child: Row(
+                        children: [
+                          if (widget.showOptionLabels) ...[
+                            Container(
+                              key: widget.optionBadgeKeyBuilder?.call(index),
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? scheme.primary.withValues(alpha: .14)
+                                    : scheme.surface,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                String.fromCharCode(65 + index),
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: selected
+                                          ? scheme.primary
+                                          : scheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Expanded(child: Text(option)),
+                        ],
+                      ),
                     ),
                   );
                 },
