@@ -424,12 +424,16 @@ Future<void> _pumpSurface(
     case _LearningSurface.lessonComplete:
       await tester.tap(find.byKey(const Key('lesson_option_studies')));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
+      await tester.pumpAndSettle();
       if (surface == _LearningSurface.lessonComplete) {
         await tester.tap(find.byKey(const Key('lesson_next')));
         await tester.pumpAndSettle();
       }
     case _LearningSurface.lessonFeedbackIncorrect:
       await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
       await tester.pumpAndSettle();
     case _LearningSurface.questionFeedbackCorrect:
       await tester.tap(find.byKey(const Key('answer_option_blue')));
