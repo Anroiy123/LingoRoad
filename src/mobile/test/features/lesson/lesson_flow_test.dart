@@ -232,6 +232,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('lesson_submission_error')), findsOneWidget);
@@ -256,12 +258,16 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('lesson_option_study')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
       await tester.pumpAndSettle();
       final firstOperationId = repository.operationIds.single;
 
       await tester.tap(find.byKey(const Key('lesson_change_answer')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
       await tester.pumpAndSettle();
 
       expect(repository.answers, ['study', 'studies']);
@@ -280,6 +286,8 @@ void main() {
       'Lan ___ English every day.',
     );
     await tester.tap(find.byKey(const Key('lesson_option_studies')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('lesson_submit')));
     await tester.pumpAndSettle();
     expect(find.text('Chính xác!'), findsOneWidget);
 
@@ -366,9 +374,70 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(dictionaryRepository.lookedUpWords, ['English']);
-    expect(find.text('Dữ liệu được giữ an toàn. Hãy thử lại.'), findsOneWidget);
+    expect(find.text('Không thể tra nghĩa lúc này'), findsOneWidget);
     expect(find.byKey(const Key('dictionary_definition')), findsNothing);
     expect(find.byKey(const Key('dictionary_save_word')), findsNothing);
+  });
+
+  testWidgets('lỗi tra từ điển dùng trạng thái có thể thử lại', (tester) async {
+    final dictionaryRepository = FakeDictionaryRepository()
+      ..lookupError = const ApiException(
+        code: 'network_unavailable',
+        message: 'offline',
+      );
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(
+        FakeLessonRepository(),
+        dictionaryRepository: dictionaryRepository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('English'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dictionary_lookup_error')), findsOneWidget);
+    expect(find.byKey(const Key('dictionary_lookup_retry')), findsOneWidget);
+  });
+
+  testWidgets('câu trắc nghiệm nhóm ngữ cảnh và đánh dấu từng lựa chọn', (
+    tester,
+  ) async {
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      lessonApp(FakeLessonRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('lesson_question_card')), findsOneWidget);
+    expect(find.byKey(const Key('lesson_instruction')), findsOneWidget);
+    expect(find.byKey(const Key('lesson_option_badge_0')), findsOneWidget);
+    expect(find.byKey(const Key('lesson_option_badge_1')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('lesson_option_study'))).height,
+      greaterThanOrEqualTo(56),
+    );
+  });
+
+  testWidgets('trắc nghiệm chỉ gửi sau khi người học nhấn kiểm tra', (
+    tester,
+  ) async {
+    final repository = FakeLessonRepository();
+    await pumpWidgetWithLingoRoadScreenUtil(tester, lessonApp(repository));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('lesson_option_studies')));
+    await tester.pump();
+
+    expect(repository.submitCalls, 0);
+    expect(find.byKey(const Key('lesson_submit')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('lesson_submit')));
+    await tester.pumpAndSettle();
+
+    expect(repository.submitCalls, 1);
+    expect(find.byKey(const Key('lesson_feedback')), findsOneWidget);
   });
 
   testWidgets('nút từ điển hiển thị rõ ràng và cho chọn từ để tra', (
@@ -413,6 +482,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('lesson_option_studies')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('lesson_submit')));
       await tester.pumpAndSettle();
 
       final selected = tester.getSemantics(

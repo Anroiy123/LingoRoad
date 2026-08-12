@@ -175,7 +175,7 @@ void main() {
   );
 
   testWidgets(
-    'selection exposes semantic choices and retries the failed source',
+    'selection keeps failures inline instead of adding a third error card',
     (tester) async {
       final semantics = tester.ensureSemantics();
       final session = SessionController(MemorySessionStore('token'));
@@ -213,17 +213,75 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.bySemanticsLabel('Ôn tập câu hỏi, 0 câu hỏi cần ôn'),
+        find.bySemanticsLabel('Ôn tập câu hỏi, Không tải được'),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('review_retry_questions')), findsOneWidget);
-      expect(find.byKey(const Key('review_retry_vocabulary')), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+      expect(find.byType(AnimatedContainer), findsNWidgets(2));
+      expect(find.text('Không thể tải thẻ ôn'), findsNothing);
 
       questions.error = null;
-      await tester.tap(find.byKey(const Key('review_retry_questions')));
+      await tester.tap(find.byKey(const Key('question_review_card')));
       await tester.pumpAndSettle();
       expect(questions.calls, greaterThanOrEqualTo(2));
       semantics.dispose();
     },
   );
+
+  testWidgets('empty review sources render green completed cards', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final session = SessionController(MemorySessionStore('token'));
+    await session.restore();
+    final words = FakeReviewRepository();
+    final questions = FakeQuestionReviewRepository()
+      ..session = const QuestionReviewSession(items: [], totalDue: 0);
+
+    await pumpWidgetWithLingoRoadScreenUtil(
+      tester,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<SessionController>.value(value: session),
+          ChangeNotifierProvider<AppLanguageProvider>.value(value: _language()),
+          ChangeNotifierProvider(create: (_) => ReviewViewModel(words)),
+          ChangeNotifierProvider(
+            create: (_) => QuestionReviewViewModel(questions),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(body: ReviewScreen(active: true)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsLabel('Ôn tập câu hỏi, Đã hoàn thành'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Ôn tập từ vựng, Đã hoàn thành'),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.check_circle_rounded), findsNWidgets(2));
+
+    for (final cardKey in const [
+      Key('question_review_card'),
+      Key('vocabulary_review_card'),
+    ]) {
+      final surfaceFinder = find.descendant(
+        of: find.byKey(cardKey),
+        matching: find.byType(AnimatedContainer),
+      );
+      expect(surfaceFinder, findsOneWidget);
+      final surface = tester.widget<AnimatedContainer>(surfaceFinder);
+      final decoration = surface.decoration! as BoxDecoration;
+      final border = decoration.border! as Border;
+      expect(decoration.color, const Color(0xFFECFDF2));
+      expect(border.top.color, AppColors.success);
+    }
+    semantics.dispose();
+  });
 }

@@ -57,7 +57,8 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
         title: Text(l10n.translate('question_review.title')),
       ),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Padding(
@@ -167,6 +168,7 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _ProgressHeader(
+              key: const Key('question_review_progress_header'),
               text: l10n.translate('question_review.progress', [
                 viewModel.completed + 1,
                 viewModel.remaining,
@@ -179,14 +181,32 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
             SizedBox(height: AppSpacing.lg.h),
             Semantics(
               header: true,
-              child: AppCard(
-                variant: AppCardVariant.outlined,
-                child: Text(
-                  item.stem,
-                  key: const Key('question_review_stem'),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              child: Container(
+                key: const Key('question_review_prompt'),
+                padding: EdgeInsets.all(AppSpacing.md.w),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(AppRadius.xl.r),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.translate(_instructionKey(item.type)),
+                      key: const Key('question_review_instruction'),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: AppSpacing.sm.h),
+                    Text(
+                      item.stem,
+                      key: const Key('question_review_stem'),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -205,6 +225,7 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
                 submitKey: const Key('question_review_check'),
                 submitLabel: l10n.translate('question_review.check'),
                 hintText: l10n.translate('question_review.answer_hint'),
+                showOptionLabels: item.type == 'mcq',
                 selectedSemanticsLabel: l10n.translate(
                   'lesson.answer_state.selected',
                 ),
@@ -229,6 +250,12 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
       ),
     );
   }
+
+  String _instructionKey(String type) => switch (type) {
+    'mcq' => 'lesson.instruction.choose_answer',
+    'reorder' => 'lesson.instruction.arrange_words',
+    _ => 'lesson.instruction.enter_answer',
+  };
 
   Widget _feedback(
     QuestionReviewViewModel viewModel,
@@ -346,7 +373,7 @@ class _QuestionReviewScreenState extends State<QuestionReviewScreen> {
 }
 
 class _ProgressHeader extends StatelessWidget {
-  const _ProgressHeader({required this.text, required this.value});
+  const _ProgressHeader({super.key, required this.text, required this.value});
 
   final String text;
   final double value;
@@ -355,16 +382,17 @@ class _ProgressHeader extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     container: true,
     label: text,
-    child: AppCard(
-      padding: EdgeInsets.all(AppSpacing.md.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(text, style: Theme.of(context).textTheme.labelLarge),
-          SizedBox(height: AppSpacing.sm.h),
-          AppProgress(value: value),
-        ],
-      ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(text, style: Theme.of(context).textTheme.labelLarge),
+        SizedBox(height: AppSpacing.sm.h),
+        AppProgress(
+          key: const Key('question_review_progress_bar'),
+          value: value,
+          height: 6,
+        ),
+      ],
     ),
   );
 }

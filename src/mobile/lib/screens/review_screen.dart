@@ -5,7 +5,6 @@ import 'package:lingoroad_mobile/core/utils/app_localization.dart';
 import 'package:lingoroad_mobile/features/review/presentation/review_view_model.dart';
 import 'package:lingoroad_mobile/features/question_review/presentation/question_review_view_model.dart';
 import 'package:lingoroad_mobile/theme/app_theme.dart';
-import 'package:lingoroad_mobile/widgets/common.dart';
 import 'package:provider/provider.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -69,14 +68,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
       _scheduled = false;
       _schedule();
     }
-    final vocabCountText = vm.state == ReviewState.loading
-        ? '...'
-        : l.translate('review.selection.vocab_due_badge', [vm.remaining]);
-    final questionCountText = questionVm?.state == QuestionReviewState.loading
-        ? '...'
-        : l.translate('review.selection.question_due_badge', [
-            questionVm?.dueCount ?? 0,
-          ]);
+    final vocabStatus = switch (vm.state) {
+      ReviewState.initial || ReviewState.loading => _ReviewCardStatus.loading,
+      ReviewState.error => _ReviewCardStatus.error,
+      ReviewState.empty || ReviewState.complete when vm.remaining == 0 =>
+        _ReviewCardStatus.completed,
+      _ => _ReviewCardStatus.active,
+    };
+    final questionStatus = switch (questionVm?.state) {
+      null ||
+      QuestionReviewState.initial ||
+      QuestionReviewState.loading => _ReviewCardStatus.loading,
+      QuestionReviewState.error => _ReviewCardStatus.error,
+      QuestionReviewState.empty || QuestionReviewState.complete
+          when (questionVm?.dueCount ?? 0) == 0 =>
+        _ReviewCardStatus.completed,
+      _ => _ReviewCardStatus.active,
+    };
+    final vocabCountText = _statusText(
+      l,
+      vocabStatus,
+      dueKey: 'review.selection.vocab_due_badge',
+      remaining: vm.remaining,
+    );
+    final questionCountText = _statusText(
+      l,
+      questionStatus,
+      dueKey: 'review.selection.question_due_badge',
+      remaining: questionVm?.dueCount ?? 0,
+    );
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -121,47 +141,34 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   key: const Key('question_review_card'),
                   icon: Icons.quiz_outlined,
                   badgeText: questionCountText,
-                  badgeIcon: Icons.schedule_rounded,
-                  badgeTextColor: scheme.primary,
-                  badgeBgColor: scheme.primaryContainer,
+                  status: questionStatus,
                   title: l.translate('review.selection.question_title'),
                   description: l.translate('review.selection.question_desc'),
-                  onTap: () async {
-                    final routerContext = context;
-                    await routerContext.push('/question-review');
-                    if (!routerContext.mounted) return;
-                    final freshQuestionVm = routerContext
-                        .read<QuestionReviewViewModel?>();
-                    if (freshQuestionVm != null) await freshQuestionVm.load();
-                  },
+                  onTap: questionStatus == _ReviewCardStatus.error
+                      ? questionVm!.retry
+                      : () async {
+                          final routerContext = context;
+                          await routerContext.push('/question-review');
+                          if (!routerContext.mounted) return;
+                          final freshQuestionVm = routerContext
+                              .read<QuestionReviewViewModel?>();
+                          if (freshQuestionVm != null) {
+                            await freshQuestionVm.load();
+                          }
+                        },
                 ),
                 SizedBox(height: AppSpacing.lg.h),
                 _ReviewSelectionCard(
                   key: const Key('vocabulary_review_card'),
                   icon: Icons.menu_book_outlined,
                   badgeText: vocabCountText,
-                  badgeIcon: Icons.schedule_rounded,
-                  badgeTextColor: scheme.primary,
-                  badgeBgColor: scheme.primaryContainer,
+                  status: vocabStatus,
                   title: l.translate('review.selection.vocab_title'),
                   description: l.translate('review.selection.vocab_desc'),
-                  onTap: () {
-                    context.push('/vocabulary-review');
-                  },
+                  onTap: vocabStatus == _ReviewCardStatus.error
+                      ? vm.load
+                      : () => context.push('/vocabulary-review'),
                 ),
-                if (vm.state == ReviewState.error ||
-                    questionVm?.state == QuestionReviewState.error) ...[
-                  SizedBox(height: AppSpacing.lg.h),
-                  _ReviewLoadError(
-                    retryVocabulary: vm.state == ReviewState.error
-                        ? vm.load
-                        : null,
-                    retryQuestions:
-                        questionVm?.state == QuestionReviewState.error
-                        ? questionVm!.retry
-                        : null,
-                  ),
-                ],
               ],
             ),
           ),
@@ -171,13 +178,31 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 }
 
+enum _ReviewCardStatus { loading, error, active, completed }
+
+String _statusText(
+  AppLanguageProvider language,
+  _ReviewCardStatus status, {
+  required String dueKey,
+  required int remaining,
+}) => switch (status) {
+  _ReviewCardStatus.loading => language.translate(
+    'review.selection.loading_badge',
+  ),
+  _ReviewCardStatus.error => language.translate(
+    'review.selection.unavailable_badge',
+  ),
+  _ReviewCardStatus.completed => language.translate(
+    'review.selection.completed_badge',
+  ),
+  _ReviewCardStatus.active => language.translate(dueKey, [remaining]),
+};
+
 class _ReviewSelectionCard extends StatelessWidget {
   const _ReviewSelectionCard({
     required this.icon,
     required this.badgeText,
-    required this.badgeIcon,
-    required this.badgeTextColor,
-    required this.badgeBgColor,
+    required this.status,
     required this.title,
     required this.description,
     required this.onTap,
@@ -186,9 +211,7 @@ class _ReviewSelectionCard extends StatelessWidget {
 
   final IconData icon;
   final String badgeText;
-  final IconData badgeIcon;
-  final Color badgeTextColor;
-  final Color badgeBgColor;
+  final _ReviewCardStatus status;
   final String title;
   final String description;
   final VoidCallback onTap;
@@ -198,20 +221,52 @@ class _ReviewSelectionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final cardColor = scheme.surface;
-    final cardBorderColor = theme.colorScheme.primary;
+    final completed = status == _ReviewCardStatus.completed;
+    final hasError = status == _ReviewCardStatus.error;
+    final statusColor = completed
+        ? (isDark
+              ? AppColorsDark.successForeground
+              : AppColors.successForeground)
+        : hasError
+        ? scheme.error
+        : status == _ReviewCardStatus.loading
+        ? scheme.onSurfaceVariant
+        : scheme.primary;
+    final statusBackground = completed
+        ? (isDark ? AppColorsDark.successSoft : AppColors.successSoft)
+        : hasError
+        ? scheme.errorContainer
+        : status == _ReviewCardStatus.loading
+        ? scheme.surfaceContainerHigh
+        : scheme.primaryContainer;
+    final cardColor = completed
+        ? (isDark ? AppColorsDark.successSurface : AppColors.successSurface)
+        : scheme.surface;
+    final cardBorderColor = completed
+        ? (isDark ? AppColorsDark.success : AppColors.success)
+        : scheme.outlineVariant;
     final shadowColor = isDark ? AppColorsDark.shadow : AppColors.shadow;
+    final statusIcon = switch (status) {
+      _ReviewCardStatus.completed => Icons.check_circle_rounded,
+      _ReviewCardStatus.error => Icons.error_outline_rounded,
+      _ReviewCardStatus.loading => Icons.sync_rounded,
+      _ReviewCardStatus.active => Icons.schedule_rounded,
+    };
 
     return Semantics(
       button: true,
+      liveRegion: true,
       label: '$title, $badgeText',
       onTap: onTap,
       child: ExcludeSemantics(
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(AppRadius.lg.r),
-            border: Border.all(color: cardBorderColor, width: 1.5.w),
+            borderRadius: BorderRadius.circular(AppRadius.xl.r),
+            border: Border.all(color: cardBorderColor, width: 1.w),
             boxShadow: [
               BoxShadow(
                 color: shadowColor,
@@ -224,82 +279,91 @@ class _ReviewSelectionCard extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadius.lg.r),
+              borderRadius: BorderRadius.circular(AppRadius.xl.r),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 152),
+                constraints: const BoxConstraints(minHeight: 144),
                 child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.lg.w),
+                  padding: EdgeInsets.all(AppSpacing.margin.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: EdgeInsets.all(AppSpacing.sm.w),
+                            width: 52.w,
+                            height: 52.w,
                             decoration: BoxDecoration(
-                              color: scheme.primaryContainer,
-                              shape: BoxShape.circle,
+                              color: statusBackground,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.lg.r,
+                              ),
                             ),
-                            child: Icon(
-                              icon,
-                              color: scheme.primary,
-                              size: 32.sp,
+                            child: Icon(icon, color: statusColor, size: 28.sp),
+                          ),
+                          SizedBox(width: AppSpacing.md.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontSize: 20.sp,
+                                    height: 1.25,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: AppSpacing.xxs.h),
+                                Text(
+                                  description,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontSize: 14.sp,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Flexible(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm.w,
-                                vertical: AppSpacing.xxs.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: badgeBgColor,
-                                borderRadius: BorderRadius.circular(999.r),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    badgeIcon,
-                                    color: badgeTextColor,
-                                    size: 16.sp,
-                                  ),
-                                  SizedBox(width: 4.w),
-                                  Flexible(
-                                    child: Text(
-                                      badgeText,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: badgeTextColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          SizedBox(width: AppSpacing.xs.w),
+                          Icon(
+                            status == _ReviewCardStatus.error
+                                ? Icons.refresh_rounded
+                                : Icons.chevron_right_rounded,
+                            color: statusColor,
+                            size: 24.sp,
                           ),
                         ],
                       ),
                       SizedBox(height: AppSpacing.md.h),
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.bold,
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm.w,
+                          vertical: AppSpacing.xxs.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusBackground,
+                          borderRadius: BorderRadius.circular(999.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(statusIcon, color: statusColor, size: 16.sp),
+                            SizedBox(width: AppSpacing.xxs.w),
+                            Flexible(
+                              child: Text(
+                                badgeText,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                      ),
-                      SizedBox(height: AppSpacing.xxs.h),
-                      Text(
-                        description,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 14.sp,
+                          ],
                         ),
                       ),
                     ],
@@ -309,55 +373,6 @@ class _ReviewSelectionCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ReviewLoadError extends StatelessWidget {
-  const _ReviewLoadError({this.retryVocabulary, this.retryQuestions});
-
-  final VoidCallback? retryVocabulary;
-  final VoidCallback? retryQuestions;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.watch<AppLanguageProvider>();
-    return AppCard(
-      variant: AppCardVariant.outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.translate('review.error.title'),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          SizedBox(height: AppSpacing.xs.h),
-          Text(l10n.translate('review.error.message')),
-          SizedBox(height: AppSpacing.md.h),
-          Wrap(
-            spacing: AppSpacing.sm.w,
-            runSpacing: AppSpacing.sm.h,
-            children: [
-              if (retryQuestions != null)
-                OutlinedButton.icon(
-                  key: const Key('review_retry_questions'),
-                  onPressed: retryQuestions,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(
-                    l10n.translate('review.selection.question_title'),
-                  ),
-                ),
-              if (retryVocabulary != null)
-                FilledButton.icon(
-                  key: const Key('review_retry_vocabulary'),
-                  onPressed: retryVocabulary,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: Text(l10n.translate('review.selection.vocab_title')),
-                ),
-            ],
-          ),
-        ],
       ),
     );
   }

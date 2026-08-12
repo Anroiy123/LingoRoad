@@ -706,6 +706,27 @@ void main() {
     },
   );
 
+  testWidgets(
+    'question review bắt đầu ở đầu trang với ngữ cảnh câu hỏi rõ ràng',
+    (tester) async {
+      final repository = _FakeQuestionReviewRepository();
+      await pumpWidgetWithLingoRoadScreenUtil(tester, _app(repository));
+      await tester.pumpAndSettle();
+
+      final progress = find.byKey(
+        const Key('question_review_progress_header'),
+      );
+      expect(progress, findsOneWidget);
+      expect(tester.getTopLeft(progress).dy, lessThan(220));
+      expect(
+        find.byKey(const Key('question_review_progress_bar')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('question_review_instruction')), findsOneWidget);
+      expect(find.byKey(const Key('question_review_prompt')), findsOneWidget);
+    },
+  );
+
   testWidgets('long question and feedback remain reachable by scrolling', (
     tester,
   ) async {

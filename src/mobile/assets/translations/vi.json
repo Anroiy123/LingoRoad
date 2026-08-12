@@ -50,6 +50,8 @@
   },
   "dictionary": {
     "lookup_sentence": "Tra từ trong câu",
+    "lookup_error_message": "Chưa thể lấy nghĩa của từ này. Bạn có thể thử lại sau.",
+    "lookup_error_title": "Không thể tra nghĩa lúc này",
     "save_word": "Lưu từ để xem lại",
     "word_saved": "Đã lưu từ"
   },
@@ -65,15 +67,30 @@
     "avatar_semantics": "Ảnh đại diện của {}",
     "error": "Không thể tải dữ liệu học hôm nay.",
     "level_summary": "{} → {} · Thành thạo {}%",
+    "level_current": "Trình độ {}",
+    "level_journey": "{} → {}",
+    "level_target": "Hiện tại {} · Mục tiêu {}",
+    "mastery_percent": "{}% thành thạo",
+    "mastery_semantics": "Trình độ hiện tại {}, mục tiêu {}, mức thành thạo {} phần trăm",
+    "xp_value": "{} XP",
+    "xp_semantics": "{} điểm kinh nghiệm",
+    "coins_value": "{} Xu",
+    "coins_semantics": "{} xu",
     "metrics": {
       "daily_goal": "Mục tiêu hằng ngày",
       "weekly_goal": "Mục tiêu trong tuần"
     },
     "plan": {
+      "completed": "Đã hoàn thành",
       "daily_lesson": "Bài học hằng ngày",
       "done": "Xong",
+      "goal_completed_semantics": "Đã hoàn thành mục tiêu hôm nay",
+      "goal_minutes": "Mục tiêu {} phút học",
+      "minutes_progress": "{} / {} phút",
+      "remaining_xp": "Còn {} XP",
       "review_cards": "Ôn tập {} thẻ",
-      "title": "Kế hoạch hôm nay"
+      "title": "Kế hoạch hôm nay",
+      "xp_target": "Đạt {} XP"
     },
     "quests": {
       "daily_lesson": "Hoàn thành một bài học",
@@ -98,6 +115,7 @@
     },
     "subtitle": "Sẵn sàng học tiếng Anh hôm nay chưa?",
     "streak_semantics": "Chuỗi học tập {} ngày",
+    "streak_compact": "{} ngày",
     "today_lesson": {
       "details": "CEFR {} · {} câu · mục tiêu {} phút",
       "empty": "Bạn đã hoàn thành các bài được đề xuất",
@@ -121,6 +139,7 @@
     "open_error": "Không thể mở bài học. Vui lòng thử lại.",
     "reason": {
       "below_threshold": "Cần luyện thêm",
+      "locked": "Hoàn thành bài trước để mở khóa",
       "not_started": "Chưa bắt đầu",
       "recommended": "Được đề xuất"
     },
@@ -161,6 +180,11 @@
       "semantics_correct": "Câu trả lời chính xác",
       "semantics_wrong": "Câu trả lời chưa đúng",
       "wrong": "Chưa đúng, hãy xem đáp án và giải thích."
+    },
+    "instruction": {
+      "arrange_words": "Sắp xếp các từ theo đúng thứ tự",
+      "choose_answer": "Chọn đáp án phù hợp",
+      "enter_answer": "Điền câu trả lời của bạn"
     },
     "mistakes": {
       "back_home": "Về trang chủ",
@@ -346,6 +370,7 @@
       "due_reviews": "THẺ CẦN ÔN",
       "improvements": "Cần cải thiện",
       "longest_streak": "CHUỖI DÀI NHẤT",
+      "maintaining": "Đang củng cố",
       "mastery": "Mức độ thành thạo",
       "quests": "NHIỆM VỤ",
       "streak": "CHUỖI NGÀY",
@@ -354,6 +379,7 @@
       "total_xp": "TỔNG XP"
     },
     "quests_empty": "Hiện chưa có nhiệm vụ nào.",
+    "skill_unpracticed": "Chưa luyện",
     "loading": "Đang tải tiến độ học tập",
     "retry_load": "Thử tải lại tiến độ học tập",
     "skills_analysis": {
@@ -364,6 +390,7 @@
       "grammar": "Ngữ pháp",
       "listening": "Nghe",
       "pronunciation": "Phát âm",
+      "reading": "Đọc",
       "speaking": "Nói",
       "vocabulary": "Từ vựng",
       "writing": "Viết"
@@ -418,6 +445,9 @@
       "question_desc": "Luyện tập qua các câu hỏi trắc nghiệm và điền từ để củng cố cấu trúc câu.",
       "question_completed_badge": "{}% hoàn thành",
       "question_due_badge": "{} câu hỏi cần ôn",
+      "completed_badge": "Đã hoàn thành",
+      "loading_badge": "Đang tải...",
+      "unavailable_badge": "Không tải được",
       "vocab_title": "Ôn tập từ vựng",
       "vocab_desc": "Sử dụng phương pháp lặp lại ngắt quãng (SRS) để ghi nhớ từ vựng hiệu quả hơn.",
       "vocab_due_badge": "{} từ cần ôn"

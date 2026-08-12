@@ -55,34 +55,125 @@ class _HomeHeaderState extends State<HomeHeader> {
             'LingoRoad',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.primary,
+              fontSize: 20.sp,
               fontWeight: FontWeight.w800,
             ),
           ),
         ),
-        _LevelBadge(level: dashboard.currentCefr, mastery: dashboard.mastery),
+        _HeaderRewardMetric(
+          key: const Key('header_xp'),
+          icon: Icons.bolt_rounded,
+          value: dashboard.xp,
+          color: Theme.of(context).colorScheme.primary,
+          semanticsLabel: l10n.translate('home.xp_semantics', [dashboard.xp]),
+        ),
         SizedBox(width: AppSpacing.xxs.w),
-        Semantics(
-          button: true,
-          label: l10n.translate('home.streak_semantics', [
-            dashboard.currentStreak,
+        _HeaderRewardMetric(
+          key: const Key('header_coins'),
+          icon: Icons.toll_rounded,
+          value: dashboard.coins,
+          color: Theme.of(context).colorScheme.tertiary,
+          semanticsLabel: l10n.translate('home.coins_semantics', [
+            dashboard.coins,
           ]),
-          child: IconButton(
-            key: const Key('header_streak'),
-            onPressed: () => context.push('/streak-details'),
-            icon: Badge(
-              label: Text('${dashboard.currentStreak}'),
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              textColor: Theme.of(context).colorScheme.onPrimaryContainer,
-              child: Icon(
-                Icons.local_fire_department_rounded,
-                color: Theme.of(context).colorScheme.primary,
+        ),
+        SizedBox(width: AppSpacing.xxs.w),
+        _StreakPill(value: dashboard.currentStreak, l10n: l10n),
+      ],
+    );
+  }
+}
+
+class _HeaderRewardMetric extends StatelessWidget {
+  const _HeaderRewardMetric({
+    required this.icon,
+    required this.value,
+    required this.color,
+    required this.semanticsLabel,
+    super.key,
+  });
+
+  final IconData icon;
+  final int value;
+  final Color color;
+  final String semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: semanticsLabel,
+      child: ExcludeSemantics(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18.sp, color: color),
+              SizedBox(width: 3.w),
+              Text(
+                '$value',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StreakPill extends StatelessWidget {
+  const _StreakPill({required this.value, required this.l10n});
+
+  final int value;
+  final AppLanguageProvider l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      container: true,
+      button: true,
+      label: l10n.translate('home.streak_semantics', [value]),
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(999.r),
+        child: InkWell(
+          key: const Key('header_streak'),
+          onTap: () => context.push('/streak-details'),
+          borderRadius: BorderRadius.circular(999.r),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs.w),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 20.sp,
+                    color: scheme.primary,
+                  ),
+                  SizedBox(width: AppSpacing.xxs.w),
+                  Text(
+                    l10n.translate('home.streak_compact', [value]),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -166,43 +257,6 @@ int _stableIndex(String value, int length) {
   return hash % length;
 }
 
-class _LevelBadge extends StatelessWidget {
-  const _LevelBadge({required this.level, required this.mastery});
-
-  final String level;
-  final double mastery;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minHeight: 36),
-    padding: EdgeInsets.symmetric(
-      horizontal: AppSpacing.sm.w,
-      vertical: AppSpacing.xs.h,
-    ),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(999.r),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          level,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        SizedBox(width: AppSpacing.xs.w),
-        SizedBox(
-          width: 42.w,
-          child: AppProgress(value: mastery, height: 6),
-        ),
-      ],
-    ),
-  );
-}
-
 class HomeGreeting extends StatelessWidget {
   const HomeGreeting({required this.dashboard, super.key});
 
@@ -211,89 +265,27 @@ class HomeGreeting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.translate('home.welcome', [dashboard.name]),
-          key: const Key('home_welcome'),
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            fontSize: 28.sp,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        SizedBox(height: AppSpacing.xxs.h),
-        Text(
-          l10n.translate('home.subtitle'),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        SizedBox(height: AppSpacing.xs.h),
-        Text(
-          l10n.translate('home.level_summary', [
-            dashboard.currentCefr,
-            dashboard.targetCefr ?? '—',
-            (dashboard.mastery * 100).round(),
-          ]),
-          key: const Key('home_level_summary'),
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        SizedBox(height: AppSpacing.xs.h),
-        Wrap(
-          spacing: AppSpacing.md.w,
-          runSpacing: AppSpacing.xs.h,
-          children: [
-            _HeaderMetric(icon: Icons.bolt_rounded, value: dashboard.xp),
-            _HeaderMetric(
-              icon: Icons.monetization_on_outlined,
-              value: dashboard.coins,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _HeaderMetric extends StatelessWidget {
-  const _HeaderMetric({required this.icon, required this.value});
-
-  final IconData icon;
-  final int value;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 20.sp, color: Theme.of(context).colorScheme.primary),
-      SizedBox(width: AppSpacing.xxs.w),
-      Text('$value', style: Theme.of(context).textTheme.labelLarge),
-    ],
-  );
-}
-
-class HomeOverview extends StatelessWidget {
-  const HomeOverview({required this.dashboard, super.key});
-
-  final DashboardData dashboard;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.watch<AppLanguageProvider>();
-    return AppCard(
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const Key('home_summary_hero'),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MetricRow(
-            label: l10n.translate('home.metrics.daily_goal'),
-            value: (dashboard.dailyProgress * 100).round(),
+          Text(
+            l10n.translate('home.welcome', [dashboard.name]),
+            key: const Key('home_welcome'),
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+              fontSize: 28.sp,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          SizedBox(height: AppSpacing.md.h),
-          MetricRow(
-            label: l10n.translate('home.metrics.weekly_goal'),
-            value: (dashboard.weeklyProgress * 100).round(),
+          SizedBox(height: AppSpacing.xxs.h),
+          Text(
+            l10n.translate('home.subtitle'),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontSize: 16.sp,
+            ),
           ),
         ],
       ),
@@ -318,140 +310,114 @@ class TodayLessonCard extends StatelessWidget {
       );
     }
 
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBackground = isDark ? scheme.primaryContainer : scheme.primary;
+    final cardForeground = isDark
+        ? scheme.onPrimaryContainer
+        : scheme.onPrimary;
     return Container(
       key: const Key('home_today_lesson'),
-      padding: EdgeInsets.all(AppSpacing.lg.w),
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md.w,
+        vertical: AppSpacing.xs.h,
+      ),
       decoration: BoxDecoration(
-        color: scheme.primary,
+        color: cardBackground,
         borderRadius: BorderRadius.circular(AppRadius.xl.r),
         boxShadow: const [
           BoxShadow(
             color: AppColors.primaryShadow,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.translate('home.today_lesson.tag'),
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(color: scheme.onPrimary),
-          ),
-          SizedBox(height: AppSpacing.md.h),
-          Text(
-            l10n.currentLanguage == AppLanguage.vi
-                ? lesson.titleVi
-                : lesson.title,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(color: scheme.onPrimary),
-          ),
-          SizedBox(height: AppSpacing.xs.h),
-          Text(
-            l10n.translate('home.today_lesson.details', [
-              lesson.cefr,
-              lesson.itemCount,
-              dashboard.dailyGoalMinutes,
-            ]),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: scheme.onPrimary.withValues(alpha: .9),
-            ),
-          ),
-          SizedBox(height: AppSpacing.lg.h),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              key: const Key('home_start_lesson'),
-              onPressed: () => context.push('/lesson/${lesson.id}'),
-              style: FilledButton.styleFrom(
-                backgroundColor: scheme.surface,
-                foregroundColor: scheme.primary,
-              ),
-              iconAlignment: IconAlignment.end,
-              icon: const Icon(Icons.arrow_forward_rounded),
-              label: Text(l10n.translate('home.today_lesson.start')),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class HomeQuestsSection extends StatelessWidget {
-  const HomeQuestsSection({required this.quests, super.key});
-
-  final List<QuestData> quests;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.watch<AppLanguageProvider>();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionTitle(l10n.translate('home.quests_title')),
-        SizedBox(height: AppSpacing.sm.h),
-        for (var index = 0; index < quests.length; index++) ...[
-          _QuestCard(quest: quests[index]),
-          if (index != quests.length - 1) SizedBox(height: AppSpacing.sm.h),
-        ],
-      ],
-    );
-  }
-}
-
-class _QuestCard extends StatelessWidget {
-  const _QuestCard({required this.quest});
-
-  final QuestData quest;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.watch<AppLanguageProvider>();
-    final titleKey = switch (quest.code) {
-      'daily_lesson' => 'home.quests.daily_lesson',
-      'daily_review' => 'home.quests.daily_review',
-      _ => 'home.quests.daily_xp',
-    };
-    return Semantics(
-      checked: quest.completed,
-      child: AppCard(
-        padding: EdgeInsets.all(AppSpacing.md.w),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: 112.h),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              backgroundColor: quest.completed
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: cardForeground.withValues(alpha: .16),
+                borderRadius: BorderRadius.circular(AppRadius.md.r),
+              ),
               child: Icon(
-                quest.completed ? Icons.check_rounded : Icons.bolt_rounded,
-                color: quest.completed
-                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                Icons.auto_stories_outlined,
+                color: cardForeground,
+                size: 21.sp,
               ),
             ),
-            SizedBox(width: AppSpacing.md.w),
+            SizedBox(width: AppSpacing.sm.w),
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(child: Text(l10n.translate(titleKey))),
-                      Text('${quest.current}/${quest.target}'),
-                    ],
+                  Text(
+                    l10n.translate('home.today_lesson.tag').toUpperCase(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: cardForeground.withValues(alpha: .86),
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .7,
+                    ),
                   ),
-                  SizedBox(height: AppSpacing.xs.h),
-                  AppProgress(
-                    value: quest.target == 0 ? 0 : quest.current / quest.target,
-                    height: 4,
+                  SizedBox(height: 3.h),
+                  Text(
+                    l10n.currentLanguage == AppLanguage.vi
+                        ? lesson.titleVi
+                        : lesson.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: cardForeground,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 3.h),
+                  Text(
+                    l10n.translate('home.today_lesson.details', [
+                      lesson.cefr,
+                      lesson.itemCount,
+                      dashboard.dailyGoalMinutes,
+                    ]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cardForeground.withValues(alpha: .9),
+                      fontSize: 12.sp,
+                    ),
                   ),
                 ],
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm.w),
+            Semantics(
+              button: true,
+              label: l10n.translate('home.today_lesson.start'),
+              child: Tooltip(
+                message: l10n.translate('home.today_lesson.start'),
+                child: SizedBox(
+                  key: const Key('home_start_lesson'),
+                  width: 48.w,
+                  height: 48.h,
+                  child: FilledButton(
+                    onPressed: () => context.push('/lesson/${lesson.id}'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: scheme.surface,
+                      foregroundColor: scheme.primary,
+                      padding: EdgeInsets.zero,
+                      shape: const CircleBorder(),
+                    ),
+                    child: Icon(Icons.arrow_forward_rounded, size: 22.sp),
+                  ),
+                ),
               ),
             ),
           ],
@@ -461,51 +427,209 @@ class _QuestCard extends StatelessWidget {
   }
 }
 
-class HomePlanSection extends StatelessWidget {
-  const HomePlanSection({
+/// A horizontally scrollable learning rail keeps the main lesson prominent
+/// while making a secondary practice action readily discoverable.
+class HomeLearningCarousel extends StatelessWidget {
+  const HomeLearningCarousel({required this.dashboard, super.key});
+
+  final DashboardData dashboard;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final heroWidth = (constraints.maxWidth * .86)
+            .clamp(280.w, 320.w)
+            .toDouble();
+        final secondaryWidth = (constraints.maxWidth * .72)
+            .clamp(220.w, 264.w)
+            .toDouble();
+
+        return Semantics(
+          label: 'Hoạt động học tập, vuốt ngang để xem thêm',
+          child: SingleChildScrollView(
+            key: const Key('home_learning_carousel'),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            clipBehavior: Clip.none,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: heroWidth,
+                  height: 132.h,
+                  child: TodayLessonCard(dashboard: dashboard),
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                SizedBox(
+                  width: secondaryWidth,
+                  height: 132.h,
+                  child: HomeQuickActions(dashboard: dashboard),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HomeDailyPlan extends StatelessWidget {
+  const HomeDailyPlan({
+    required this.dashboard,
     required this.quests,
-    required this.dueReviews,
     super.key,
   });
 
+  final DashboardData dashboard;
   final List<QuestData> quests;
-  final int dueReviews;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
-    final lessonDone = quests
-        .where((quest) => quest.code == 'daily_lesson')
-        .any((quest) => quest.completed);
+    final scheme = Theme.of(context).colorScheme;
+    final dailyXp = quests
+        .where((quest) => quest.code == 'daily_xp')
+        .firstOrNull;
+    final dailyReview = quests
+        .where((quest) => quest.code == 'daily_review')
+        .firstOrNull;
+    final masteryPercent = (dashboard.mastery * 100).round();
+    final learnedMinutes =
+        (dashboard.dailyProgress * dashboard.dailyGoalMinutes).round();
+    final dailyGoalCompleted = dashboard.dailyProgress >= 1;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dailyProgressColor = dailyGoalCompleted
+        ? (isDark ? AppColorsDark.success : AppColors.success)
+        : scheme.primary.withValues(alpha: .72);
+    final xpRemaining = dailyXp == null ? 0 : dailyXp.target - dailyXp.current;
+    final xpNearlyCompleted =
+        dailyXp != null &&
+        !dailyXp.completed &&
+        dailyXp.target > 0 &&
+        xpRemaining > 0 &&
+        dailyXp.current / dailyXp.target >= .8;
+    final target = dashboard.targetCefr;
+    final journey = target == null || target == dashboard.currentCefr
+        ? l10n.translate('home.level_current', [dashboard.currentCefr])
+        : l10n.translate('home.level_journey', [dashboard.currentCefr, target]);
+    final levelSummary =
+        '$journey · ${l10n.translate("home.mastery_percent", [masteryPercent])}';
     return AppCard(
+      key: const Key('home_daily_plan'),
+      borderWidth: 1,
+      borderRadius: 20,
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md.w,
+        vertical: AppSpacing.md.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.assignment_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              SizedBox(width: AppSpacing.xs.w),
               Expanded(
                 child: Text(
                   l10n.translate('home.plan.title'),
-                  style: Theme.of(context).textTheme.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.md.h),
-          _PlanRow(
-            icon: lessonDone ? Icons.check_circle : Icons.circle_outlined,
-            label: l10n.translate('home.plan.daily_lesson'),
-            trailing: lessonDone ? l10n.translate('home.plan.done') : null,
-          ),
-          _PlanRow(
-            icon: Icons.style_outlined,
-            label: l10n.translate('home.plan.review_cards', [dueReviews]),
-            trailing: '$dueReviews',
+          SizedBox(height: AppSpacing.xs.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  label: l10n.translate('home.mastery_semantics', [
+                    dashboard.currentCefr,
+                    target ?? dashboard.currentCefr,
+                    masteryPercent,
+                  ]),
+                  child: ExcludeSemantics(
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            levelSummary,
+                            key: const Key('home_level_summary'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  color: scheme.onSurface,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                        ),
+                        SizedBox(height: AppSpacing.sm.h),
+                        AppProgress(
+                          key: const Key('home_mastery_progress'),
+                          value: dashboard.mastery,
+                          height: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: AppSpacing.lg.h),
+                _DailyPlanRow(
+                  cardKey: const Key('home_daily_goal_row'),
+                  icon: Icons.timer_outlined,
+                  label: l10n.translate('home.plan.goal_minutes', [
+                    dashboard.dailyGoalMinutes,
+                  ]),
+                  current: learnedMinutes,
+                  target: dashboard.dailyGoalMinutes,
+                  completed: dailyGoalCompleted,
+                  progressKey: const Key('home_daily_progress'),
+                  progressColorOverride: dailyProgressColor,
+                  showProgressWhenCompleted: true,
+                  keepTaskIconWhenCompleted: true,
+                ),
+                SizedBox(height: AppSpacing.xs.h),
+                _DailyPlanRow(
+                  cardKey: const Key('home_daily_review_card'),
+                  icon: Icons.style_outlined,
+                  label: l10n.translate('home.plan.review_cards', [
+                    dashboard.dueReviews,
+                  ]),
+                  current: dailyReview?.current,
+                  target: dailyReview?.target,
+                  completed:
+                      dailyReview?.completed ?? dashboard.dueReviews == 0,
+                  onTap: () => context.go('/review'),
+                ),
+                if (dailyXp != null) ...[
+                  SizedBox(height: AppSpacing.xs.h),
+                  _DailyPlanRow(
+                    cardKey: const Key('home_daily_xp_card'),
+                    icon: Icons.bolt_rounded,
+                    label: l10n.translate('home.plan.xp_target', [
+                      dailyXp.target,
+                    ]),
+                    current: dailyXp.current,
+                    target: dailyXp.target,
+                    completed: dailyXp.completed,
+                    nearCompletionLabel: xpNearlyCompleted
+                        ? l10n.translate('home.plan.remaining_xp', [
+                            xpRemaining,
+                          ])
+                        : null,
+                    progressKey: const Key('home_daily_xp_progress'),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -513,25 +637,155 @@ class HomePlanSection extends StatelessWidget {
   }
 }
 
-class _PlanRow extends StatelessWidget {
-  const _PlanRow({required this.icon, required this.label, this.trailing});
+class _DailyPlanRow extends StatelessWidget {
+  const _DailyPlanRow({
+    this.cardKey,
+    required this.icon,
+    required this.label,
+    required this.completed,
+    this.current,
+    this.target,
+    this.onTap,
+    this.progressKey,
+    this.nearCompletionLabel,
+    this.progressColorOverride,
+    this.showProgressWhenCompleted = false,
+    this.keepTaskIconWhenCompleted = false,
+  });
 
   final IconData icon;
+  final Key? cardKey;
   final String label;
-  final String? trailing;
+  final bool completed;
+  final int? current;
+  final int? target;
+  final VoidCallback? onTap;
+  final Key? progressKey;
+  final String? nearCompletionLabel;
+  final Color? progressColorOverride;
+  final bool showProgressWhenCompleted;
+  final bool keepTaskIconWhenCompleted;
 
   @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(minHeight: 48),
-    child: Row(
-      children: [
-        Icon(icon, color: Theme.of(context).colorScheme.primary),
-        SizedBox(width: AppSpacing.sm.w),
-        Expanded(child: Text(label)),
-        if (trailing != null) Text(trailing!),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final successForeground = isDark
+        ? AppColorsDark.successForeground
+        : AppColors.successForeground;
+    final foreground = completed ? successForeground : scheme.onSurface;
+    final targetValue = target ?? 0;
+    final progress = targetValue == 0 ? null : (current ?? 0) / targetValue;
+    final progressColor =
+        progressColorOverride ??
+        (progress != null && progress >= .8
+            ? scheme.primary
+            : scheme.onSurfaceVariant.withValues(alpha: .5));
+    final content = Container(
+      key: cardKey,
+      constraints: const BoxConstraints(minHeight: 56),
+      padding: EdgeInsets.symmetric(vertical: AppSpacing.xs.h),
+      child: Row(
+        children: [
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: completed
+                  ? successForeground.withValues(alpha: .12)
+                  : scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppRadius.md.r),
+            ),
+            child: Icon(
+              completed && !keepTaskIconWhenCompleted
+                  ? Icons.check_rounded
+                  : icon,
+              color: completed ? successForeground : scheme.primary,
+            ),
+          ),
+          SizedBox(width: AppSpacing.sm.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (progress != null &&
+                    (!completed || showProgressWhenCompleted)) ...[
+                  SizedBox(height: AppSpacing.xs.h),
+                  AppProgress(
+                    key: progressKey,
+                    value: progress,
+                    height: 4,
+                    color: progressColor,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (completed) ...[
+            SizedBox(width: AppSpacing.sm.w),
+            Text(
+              context.watch<AppLanguageProvider>().translate(
+                'home.plan.completed',
+              ),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: successForeground,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ] else if (nearCompletionLabel != null) ...[
+            SizedBox(width: AppSpacing.sm.w),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs.w,
+                vertical: AppSpacing.xxs.h,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(999.r),
+              ),
+              child: Text(
+                nearCompletionLabel!,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: scheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ] else if (current != null && target != null) ...[
+            SizedBox(width: AppSpacing.sm.w),
+            Text(
+              completed ? '✓' : '$current/$target',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ] else if (onTap != null)
+            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+        ],
+      ),
+    );
+    return Semantics(
+      button: onTap != null,
+      checked: completed,
+      label: label,
+      child: onTap == null
+          ? content
+          : InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppRadius.lg.r),
+              child: content,
+            ),
+    );
+  }
 }
 
 class HomeQuickActions extends StatelessWidget {
@@ -540,51 +794,16 @@ class HomeQuickActions extends StatelessWidget {
   final DashboardData dashboard;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final cards = [
-        _QuickActionCard(
-          key: const Key('home_review_action'),
-          icon: Icons.school_outlined,
-          title: context.watch<AppLanguageProvider>().translate(
-            'home.quick_actions.need_review',
-          ),
-          subtitle: context.watch<AppLanguageProvider>().translate(
-            'home.quick_actions.vocab_count',
-            [dashboard.dueReviews],
-          ),
-          onTap: () => context.go('/review'),
-        ),
-        _QuickActionCard(
-          key: const Key('home_ai_practice'),
-          icon: Icons.record_voice_over_outlined,
-          title: context.watch<AppLanguageProvider>().translate(
-            'home.quick_actions.practice_pronunciation',
-          ),
-          subtitle: context.watch<AppLanguageProvider>().translate(
-            'home.quick_actions.practice_desc',
-          ),
-          onTap: () => context.push('/practice'),
-        ),
-      ];
-      if (constraints.maxWidth < 340) {
-        return Column(
-          children: [
-            cards.first,
-            SizedBox(height: AppSpacing.sm.h),
-            cards.last,
-          ],
-        );
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: cards.first),
-          SizedBox(width: AppSpacing.sm.w),
-          Expanded(child: cards.last),
-        ],
-      );
-    },
+  Widget build(BuildContext context) => _QuickActionCard(
+    key: const Key('home_ai_practice'),
+    icon: Icons.record_voice_over_outlined,
+    title: context.watch<AppLanguageProvider>().translate(
+      'home.quick_actions.practice_pronunciation',
+    ),
+    subtitle: context.watch<AppLanguageProvider>().translate(
+      'home.quick_actions.practice_desc',
+    ),
+    onTap: () => context.push('/practice'),
   );
 }
 
@@ -603,34 +822,64 @@ class _QuickActionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => AppCard(
-    padding: EdgeInsets.zero,
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.xl.r),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 152),
-        child: Padding(
-          padding: EdgeInsets.all(AppSpacing.md.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              SizedBox(height: AppSpacing.md.h),
-              Text(title, style: Theme.of(context).textTheme.titleMedium),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AppCard(
+      color: scheme.surface,
+      borderColor: isDark ? AppColorsDark.cardBorder : AppColors.cardBorder,
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.xl.r),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: 132.h),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md.w,
+              vertical: AppSpacing.xs.h,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 52.w,
+                  height: 52.w,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.lg.r),
+                  ),
+                  child: Icon(icon, color: scheme.primary),
                 ),
-              ),
-            ],
+                SizedBox(width: AppSpacing.md.w),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      SizedBox(height: AppSpacing.xxs.h),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                Icon(Icons.arrow_forward_rounded, color: scheme.primary),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class HomeRecentActivity extends StatelessWidget {
@@ -640,29 +889,18 @@ class HomeRecentActivity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (dashboard.recentActivity.isEmpty) return const SizedBox.shrink();
     final l10n = context.watch<AppLanguageProvider>();
+    final activities = dashboard.recentActivity.take(3).toList(growable: false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionTitle(l10n.translate('home.recent.title')),
         SizedBox(height: AppSpacing.sm.h),
-        if (dashboard.recentActivity.isEmpty)
-          AppCard(
-            child: SizedBox(
-              width: double.infinity,
-              child: Text(l10n.translate('home.recent.empty')),
-            ),
-          )
-        else
-          for (
-            var index = 0;
-            index < dashboard.recentActivity.length;
-            index++
-          ) ...[
-            _ActivityRow(activity: dashboard.recentActivity[index]),
-            if (index != dashboard.recentActivity.length - 1)
-              SizedBox(height: AppSpacing.sm.h),
-          ],
+        for (var index = 0; index < activities.length; index++) ...[
+          _ActivityRow(activity: activities[index]),
+          if (index != activities.length - 1) SizedBox(height: AppSpacing.sm.h),
+        ],
       ],
     );
   }
@@ -676,18 +914,20 @@ class _ActivityRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.watch<AppLanguageProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final successSurface = isDark
+        ? AppColorsDark.successSurface
+        : AppColors.successSurface;
+    final successForeground = isDark
+        ? AppColorsDark.successForeground
+        : AppColors.successForeground;
     return AppCard(
       padding: EdgeInsets.all(AppSpacing.md.w),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest,
-            child: Icon(
-              Icons.menu_book_outlined,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            backgroundColor: successSurface,
+            child: Icon(Icons.menu_book_outlined, color: successForeground),
           ),
           SizedBox(width: AppSpacing.sm.w),
           Expanded(
@@ -699,10 +939,7 @@ class _ActivityRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Icon(
-            Icons.check_circle_outline_rounded,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(Icons.check_circle_rounded, color: successForeground),
         ],
       ),
     );

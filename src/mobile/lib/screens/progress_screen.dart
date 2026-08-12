@@ -72,28 +72,52 @@ class _ProgressScreenState extends State<ProgressScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const LingoHeader(streak: null),
-                SizedBox(height: AppSpacing.md.h),
+                SizedBox(height: AppSpacing.sm.h),
                 Text(
                   l.translate('progress.title'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineMedium?.copyWith(fontSize: 28.sp),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontSize: 26.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 SizedBox(height: AppSpacing.xs.h),
                 Text(
                   l.translate('progress.subtitle'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 SizedBox(height: AppSpacing.sm.h),
-                TabBar(
-                  controller: _tabs,
-                  tabs: [
-                    Tab(text: l.translate('progress.tabs.overview')),
-                    Tab(text: l.translate('progress.tabs.skills')),
-                    Tab(text: l.translate('progress.tabs.achievements')),
-                  ],
+                Container(
+                  height: 48.h,
+                  padding: EdgeInsets.all(4.w),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.lg.r),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: TabBar(
+                    controller: _tabs,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.md.r),
+                    ),
+                    labelStyle: Theme.of(context).textTheme.labelLarge,
+                    unselectedLabelStyle: Theme.of(
+                      context,
+                    ).textTheme.labelLarge,
+                    tabs: [
+                      Tab(text: l.translate('progress.tabs.overview')),
+                      Tab(text: l.translate('progress.tabs.skills')),
+                      Tab(text: l.translate('progress.tabs.achievements')),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -128,6 +152,7 @@ class _ProgressScreenState extends State<ProgressScreen>
     }
     final categories = vm.categories;
     return ListView(
+      key: PageStorageKey(skills ? 'progress-skills' : 'progress-overview'),
       padding: EdgeInsets.all(AppSpacing.margin.w),
       children: [
         if (!skills) ...[
@@ -142,17 +167,11 @@ class _ProgressScreenState extends State<ProgressScreen>
               text: l.translate('progress.strengths_empty'),
             )
           else
-            AppCard(
-              child: Column(
-                children: [
-                  for (var index = 0; index < vm.strengths.length; index++) ...[
-                    _metric(vm.strengths[index], l),
-                    if (index != vm.strengths.length - 1)
-                      SizedBox(height: AppSpacing.md.h),
-                  ],
-                ],
-              ),
-            ),
+            for (final category in vm.strengths.take(2)) ...[
+              _overviewSkillCard(category, l, positive: true),
+              if (category != vm.strengths.take(2).last)
+                SizedBox(height: AppSpacing.sm.h),
+            ],
           SizedBox(height: AppSpacing.md.h),
           SectionTitle(l.translate('progress.overview.improvements')),
           SizedBox(height: AppSpacing.sm.h),
@@ -163,32 +182,22 @@ class _ProgressScreenState extends State<ProgressScreen>
               text: l.translate('progress.improvements_empty'),
             )
           else
-            AppCard(
-              child: Column(
-                children: [
-                  for (
-                    var index = 0;
-                    index < vm.improvements.length;
-                    index++
-                  ) ...[
-                    _metric(vm.improvements[index], l),
-                    if (index != vm.improvements.length - 1)
-                      SizedBox(height: AppSpacing.md.h),
-                  ],
-                ],
-              ),
-            ),
+            for (final category in vm.improvements.take(2)) ...[
+              _overviewSkillCard(category, l, positive: false),
+              if (category != vm.improvements.take(2).last)
+                SizedBox(height: AppSpacing.sm.h),
+            ],
           SizedBox(height: AppSpacing.md.h),
-          AppCard(
-            variant: AppCardVariant.tonal,
-            child: Text(
-              vm.weakest == null
-                  ? l.translate('progress.suggestion.start')
-                  : l.translate('progress.suggestion.weakest', [vm.weakest!]),
-            ),
-          ),
+          _focusInsight(vm.weakest, l),
         ] else ...[
           SectionTitle(l.translate('progress.skills_analysis.title')),
+          SizedBox(height: AppSpacing.xxs.h),
+          Text(
+            l.translate('progress.subtitle'),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           SizedBox(height: AppSpacing.sm.h),
           if (categories.isEmpty)
             _categoryEmpty(
@@ -197,33 +206,230 @@ class _ProgressScreenState extends State<ProgressScreen>
               text: l.translate('progress.empty'),
             )
           else
-            AppCard(
-              child: Column(
-                children: [
-                  for (var index = 0; index < categories.length; index++) ...[
-                    _metric(categories[index], l),
-                    if (index != categories.length - 1)
-                      SizedBox(height: AppSpacing.md.h),
-                  ],
-                ],
-              ),
-            ),
+            _skillsGroup(categories, l),
           SizedBox(height: AppSpacing.md.h),
-          AppCard(
-            variant: AppCardVariant.tonal,
-            child: Text(
-              vm.weakest == null
-                  ? l.translate('progress.suggestion.start')
-                  : l.translate('progress.suggestion.weakest', [vm.weakest!]),
-            ),
-          ),
+          _focusInsight(vm.weakest, l, key: const Key('progress_skills_focus')),
         ],
       ],
     );
   }
 
-  Widget _metric(CategoryProgress e, AppLanguageProvider l) =>
-      MetricRow(label: e.category, value: e.percent);
+  Widget _overviewSkillCard(
+    CategoryProgress category,
+    AppLanguageProvider l, {
+    required bool positive,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.md.w),
+      decoration: _outlinedSurface(
+        context,
+        radius: AppRadius.lg,
+      ),
+      child: _skillContent(category, l, compact: true),
+    );
+  }
+
+  Widget _skillsGroup(
+    List<CategoryProgress> categories,
+    AppLanguageProvider l,
+  ) => Container(
+    key: const Key('progress_skills_group'),
+    padding: EdgeInsets.all(AppSpacing.md.w),
+    decoration: _outlinedSurface(context),
+    child: Column(
+      children: [
+        for (var index = 0; index < categories.length; index++) ...[
+          KeyedSubtree(
+            key: Key('progress_skill_${categories[index].category}'),
+            child: _skillContent(categories[index], l),
+          ),
+          if (index != categories.length - 1)
+            SizedBox(height: AppSpacing.md.h),
+        ],
+      ],
+    ),
+  );
+
+  Widget _skillContent(
+    CategoryProgress category,
+    AppLanguageProvider l, {
+    bool compact = false,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final categoryLabel = _categoryLabel(category.category, l);
+    final value = category.practiced
+        ? '${category.percent}%'
+        : l.translate('progress.skill_unpracticed');
+    return Semantics(
+      label: '$categoryLabel, $value',
+      child: ExcludeSemantics(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: compact ? 28.w : 32.w,
+                  height: compact ? 28.w : 32.w,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.md.r),
+                  ),
+                  child: Icon(
+                    _categoryIcon(category.category),
+                    color: scheme.primary,
+                    size: compact ? 16.sp : 18.sp,
+                  ),
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                Expanded(
+                  child: Text(
+                    categoryLabel,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: category.practiced
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpacing.xs.h),
+            AppProgress(
+              value: category.practiced ? category.percent / 100 : 0,
+              height: 6,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _focusInsight(String? weakest, AppLanguageProvider l, {Key? key}) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: key ?? const Key('progress_focus_insight'),
+      padding: EdgeInsets.all(AppSpacing.md.w),
+      decoration: _outlinedSurface(context, radius: AppRadius.lg),
+      child: Row(
+        children: [
+          Container(
+            width: 36.w,
+            height: 36.w,
+            decoration: BoxDecoration(
+              color: scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppRadius.md.r),
+            ),
+            child: Icon(Icons.lightbulb_outline_rounded, color: scheme.primary),
+          ),
+          SizedBox(width: AppSpacing.sm.w),
+          Expanded(
+            child: Text(
+              weakest == null
+                  ? l.translate('progress.suggestion.start')
+                  : l.translate('progress.suggestion.weakest', [
+                      _categoryLabel(weakest, l),
+                    ]),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _compactStat(
+    BuildContext context, {
+    Key? key,
+    required IconData icon,
+    required String value,
+    required String detail,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: key,
+      padding: EdgeInsets.all(AppSpacing.sm.w),
+      decoration: _outlinedSurface(context, radius: AppRadius.lg),
+      child: Row(
+        children: [
+          Icon(icon, color: scheme.primary, size: 20.sp),
+          SizedBox(width: AppSpacing.xs.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _achievementStat(
+    BuildContext context, {
+    required String value,
+    required String label,
+  }) => Column(
+    children: [
+      Text(
+        value,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      SizedBox(height: AppSpacing.xxs.h),
+      Text(
+        label,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontSize: 10.sp,
+        ),
+      ),
+    ],
+  );
+
+  String _categoryLabel(String category, AppLanguageProvider l) =>
+      l.translate('progress.skills_list.$category');
+
+  IconData _categoryIcon(String category) => switch (category) {
+    'grammar' => Icons.menu_book_outlined,
+    'vocabulary' => Icons.translate_rounded,
+    'listening' => Icons.headphones_rounded,
+    'speaking' => Icons.record_voice_over_outlined,
+    'pronunciation' => Icons.graphic_eq_rounded,
+    'writing' => Icons.edit_note_rounded,
+    _ => Icons.auto_graph_rounded,
+  };
 
   Widget _categoryEmpty({
     required Key key,
@@ -231,7 +437,6 @@ class _ProgressScreenState extends State<ProgressScreen>
     required String text,
   }) => AppCard(
     key: key,
-    variant: AppCardVariant.outlined,
     child: Semantics(
       liveRegion: true,
       label: text,
@@ -317,49 +522,108 @@ class _ProgressScreenState extends State<ProgressScreen>
       );
     }
     final dashboard = vm.dashboard!;
+    final targetCefr = dashboard.targetCefr;
+    final cefrStatus = targetCefr == null || targetCefr.isEmpty
+        ? dashboard.currentCefr
+        : targetCefr == dashboard.currentCefr
+        ? '${dashboard.currentCefr} · ${l.translate('progress.overview.maintaining')}'
+        : '${dashboard.currentCefr} → $targetCefr';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionTitle(l.translate('progress.overview.cefr_journey')),
-        AppCard(
+        Container(
+          key: const Key('progress_cefr_hero'),
+          padding: EdgeInsets.all(AppSpacing.md.w),
+          decoration: _outlinedSurface(context),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _summaryRow(
-                l.translate('progress.overview.current_level'),
-                dashboard.currentCefr,
-              ),
-              _summaryRow(
-                l.translate('progress.overview.target_level'),
-                dashboard.targetCefr ?? '—',
-              ),
-              MetricRow(
-                label: l.translate('progress.overview.mastery'),
-                value: (dashboard.mastery * 100).round(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l.translate('progress.overview.cefr_journey'),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    cefrStatus,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: AppSpacing.sm.h),
-              _summaryRow(
-                l.translate('progress.overview.total_xp'),
-                '${dashboard.xp}',
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l.translate('progress.overview.mastery'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${(dashboard.mastery * 100).round()}%',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
-              _summaryRow(
-                l.translate('progress.overview.coins'),
-                '${dashboard.coins}',
+              SizedBox(height: AppSpacing.xs.h),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999.r),
+                child: LinearProgressIndicator(
+                  value: dashboard.mastery.clamp(0, 1),
+                  minHeight: 8.h,
+                  color: Theme.of(context).colorScheme.primary,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                ),
               ),
-              _summaryRow(
-                l.translate('progress.overview.streak'),
-                '${dashboard.currentStreak}',
-              ),
-              _summaryRow(
-                l.translate('progress.overview.completed_lessons'),
-                '${dashboard.completedLessons}',
-              ),
-              _summaryRow(
-                l.translate('progress.overview.due_reviews'),
-                '${dashboard.dueReviews}',
-                last: true,
+              SizedBox(height: AppSpacing.sm.h),
+              Text(
+                '${dashboard.completedLessons} ${l.translate('progress.overview.completed_lessons').toLowerCase()} · ${dashboard.dueReviews} ${l.translate('progress.overview.due_reviews').toLowerCase()}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
+        ),
+        SizedBox(height: AppSpacing.sm.h),
+        Row(
+          key: const Key('progress_compact_stats'),
+          children: [
+            Expanded(
+              child: _compactStat(
+                context,
+                key: const Key('progress_xp_stat'),
+                icon: Icons.workspace_premium_outlined,
+                value: '${dashboard.xp} XP',
+                detail:
+                    '${dashboard.coins} ${l.translate('progress.overview.coins').toLowerCase()}',
+              ),
+            ),
+            SizedBox(width: AppSpacing.sm.w),
+            Expanded(
+              child: _compactStat(
+                context,
+                key: const Key('progress_streak_stat'),
+                icon: Icons.local_fire_department_rounded,
+                value: '${dashboard.currentStreak}',
+                detail: l.translate('progress.overview.streak').toLowerCase(),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -394,64 +658,141 @@ class _ProgressScreenState extends State<ProgressScreen>
       );
     }
     final dashboard = vm.dashboard!;
+    final completedQuests = vm.quests.where((quest) => quest.completed).length;
     return ListView(
+      key: const PageStorageKey('progress-achievements'),
       padding: EdgeInsets.all(AppSpacing.margin.w),
       children: [
-        AppCard(
+        Container(
+          key: const Key('progress_achievement_stats'),
+          padding: EdgeInsets.all(AppSpacing.md.w),
+          decoration: _outlinedSurface(context),
           child: Column(
             children: [
-              _summaryRow(
-                l.translate('progress.overview.total_xp'),
-                '${dashboard.xp}',
+              Row(
+                children: [
+                  Expanded(
+                    child: _achievementStat(
+                      context,
+                      value: '${dashboard.xp}',
+                      label: l.translate('progress.overview.total_xp'),
+                    ),
+                  ),
+                  Expanded(
+                    child: _achievementStat(
+                      context,
+                      value: '${dashboard.currentStreak}',
+                      label: l.translate('progress.overview.streak'),
+                    ),
+                  ),
+                  Expanded(
+                    child: _achievementStat(
+                      context,
+                      value: '${dashboard.longestStreak}',
+                      label: l.translate('progress.overview.longest_streak'),
+                    ),
+                  ),
+                ],
               ),
-              _summaryRow(
-                l.translate('progress.overview.coins'),
-                '${dashboard.coins}',
-              ),
-              _summaryRow(
-                l.translate('progress.overview.streak'),
-                '${dashboard.currentStreak}',
-              ),
-              _summaryRow(
-                l.translate('progress.overview.longest_streak'),
-                '${dashboard.longestStreak}',
-                last: true,
+              SizedBox(height: AppSpacing.xs.h),
+              Text(
+                '${dashboard.coins} ${l.translate('progress.overview.coins').toLowerCase()}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
         ),
         SizedBox(height: AppSpacing.lg.h),
-        SectionTitle(l.translate('progress.overview.quests')),
+        Row(
+          children: [
+            Expanded(
+              child: SectionTitle(l.translate('progress.overview.quests')),
+            ),
+            Text(
+              '$completedQuests/${vm.quests.length}',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: AppSpacing.sm.h),
         if (vm.quests.isEmpty)
           AppCard(child: Text(l.translate('progress.quests_empty')))
         else
-          for (final quest in vm.quests) ...[
-            _questCard(quest, l),
-            SizedBox(height: AppSpacing.sm.h),
-          ],
+          Container(
+            key: const Key('progress_quests_group'),
+            padding: EdgeInsets.all(AppSpacing.md.w),
+            decoration: _outlinedSurface(context),
+            child: Column(
+              children: [
+                for (var index = 0; index < vm.quests.length; index++) ...[
+                  _questCard(vm.quests[index], l),
+                  if (index != vm.quests.length - 1)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.sm.h),
+                      child: Divider(
+                        height: 1,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Widget _questCard(QuestData quest, AppLanguageProvider l) => AppCard(
-    child: Semantics(
+  Widget _questCard(QuestData quest, AppLanguageProvider l) {
+    final scheme = Theme.of(context).colorScheme;
+    final progress = quest.target == 0
+        ? 0.0
+        : (quest.current / quest.target).clamp(0, 1).toDouble();
+    return Semantics(
       label:
-          '${l.translate(_questKey(quest.code))}, ${quest.current}/${quest.target}',
-      child: Row(
-        children: [
-          Icon(
-            quest.completed ? Icons.check_circle : Icons.flag_outlined,
-            color: quest.completed
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          SizedBox(width: AppSpacing.sm.w),
-          Expanded(child: Text(l.translate(_questKey(quest.code)))),
-          Text('${quest.current}/${quest.target}'),
-        ],
+          '${l.translate(_questKey(quest.code))}, ${quest.current}/${quest.target}, ${(progress * 100).round()}%',
+      child: ExcludeSemantics(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  quest.completed
+                      ? Icons.check_circle_rounded
+                      : Icons.flag_outlined,
+                  color: quest.completed
+                      ? scheme.primary
+                      : scheme.onSurfaceVariant,
+                ),
+                SizedBox(width: AppSpacing.sm.w),
+                Expanded(
+                  child: Text(
+                    l.translate(_questKey(quest.code)),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${quest.current}/${quest.target}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpacing.xs.h),
+            AppProgress(value: progress, height: 6),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   String _questKey(String code) => switch (code) {
     'daily_lesson' => 'home.quests.daily_lesson',
@@ -459,16 +800,27 @@ class _ProgressScreenState extends State<ProgressScreen>
     _ => 'home.quests.daily_xp',
   };
 
-  Widget _summaryRow(String label, String value, {bool last = false}) =>
-      Padding(
-        padding: EdgeInsets.only(bottom: last ? 0 : AppSpacing.sm.h),
-        child: Row(
-          children: [
-            Expanded(child: Text(label)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
-          ],
+  BoxDecoration _outlinedSurface(
+    BuildContext context, {
+    double radius = AppRadius.xl,
+  }) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return BoxDecoration(
+      color: scheme.surface,
+      borderRadius: BorderRadius.circular(radius.r),
+      border: Border.all(color: scheme.outlineVariant),
+      boxShadow: [
+        BoxShadow(
+          color: scheme.shadow.withValues(
+            alpha: theme.brightness == Brightness.dark ? .14 : .06,
+          ),
+          blurRadius: 14,
+          offset: const Offset(0, 5),
         ),
-      );
+      ],
+    );
+  }
 
   Widget _text(String text) => Center(
     child: Padding(

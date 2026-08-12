@@ -73,6 +73,7 @@ void main() {
     expect(find.text('Ôn tập'), findsOneWidget);
     expect(find.text('Tiến độ'), findsOneWidget);
     expect(find.text('Hồ sơ'), findsOneWidget);
+    expect(find.byKey(const Key('main_navigation_chrome')), findsOneWidget);
   });
 
   testWidgets('tab Lộ trình tải API khi được chọn', (tester) async {
